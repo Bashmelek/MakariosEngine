@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta content="text/html;charset=utf-8" http-equiv="Content-Type">
+    <meta content="utf-8" http-equiv="encoding">
+    <title></title>
+</head>
+<body style="background-color: #aaaa;">
+    <div style="width: 100%; display: flex; justify-content: center;">
+        <div style="margin-left: auto; margin-right: auto;">
+            <canvas id="glCanvas" style="position: absolute;" width="640" height="480"></canvas>
+            <!--Thank you to https://stackoverflow.com/questions/6796194/canvas-getcontext2d-returns-null and https://stackoverflow.com/questions/10037649/how-can-i-stack-two-same-sized-canvas-on-top-of-each-other -->
+            <canvas id="uiCanvas" style="position: relative;" width="640" height="480"></canvas>
+        </div>
+    </div>
+
+    <div style="width: 100%; display: flex; justify-content: center; padding-top: 12px; font-family: sans-serif; font-size: 14pt;">
+        <div style="margin-left: 10%">
+            <br />
+            Hello world! Welcome to Makarios Labs.
+            <br />
+            You are in the Digital Garden of Makarios Labs, an endeavor of using science and technology to improve the world.
+            <br />
+            In practice, this will be a dumping ground for random stuff I make.
+        </div>
+    </div>
+</body>
+</html>
+<script src="StarfieldDemo.js"></script>
+<script>
+
+    var theGame = StarfieldDemo;
+    //theGame must have functions:
+    //    Init
+    //    OnFrame
+
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/gl-matrix@3.0.0/gl-matrix-min.js"></script>
+<script src="ShapePrimitives.js"></script>
+<!--<script src="ObjectsShapeData.js"></script>-->
+<script src="LevelData.js"></script>
+<script src="StageData.js"></script>
+<!--<script src="perframelogicm01.js"></script>-->
+<script src="MakariosEngine.js"></script>
