@@ -36,7 +36,7 @@ const vsSource = `
             varying highp vec3 vLighting;
 
             void main(void) {
-                if(aUseParentMatrix >= uMatrixLevel) {
+                if(true) {//aUseParentMatrix >= uMatrixLevel) {
                     gl_Position = uProjectionMatrix * uModelViewMatrix * aVertexPosition;//aVertexPosition;//uProjectionMatrix * uModelViewMatrix * aVertexPosition;
                 }
                 else {
@@ -203,31 +203,12 @@ function initBuffers(gl) {
     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertexNormals),
         gl.STATIC_DRAW);
 
-
-
-    const useParentMatrixBuffer = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, useParentMatrixBuffer);
-
-    //const vertexNormals = ObjData.vertexNormals;
-    var useParentMatrix = [];
-    for (var pmobs = 0; pmobs < StageData.objects.length; pmobs++) {
-        if (!StageData.objects[pmobs]) { continue; }
-        var oldcount = useParentMatrix.length;
-        useParentMatrix = useParentMatrix.concat(StageData.objects[pmobs].useParentMatrix);
-        for (var pmobsi = 0; pmobsi < StageData.objects[pmobs].children.length; pmobsi++) {
-            useParentMatrix = useParentMatrix.concat(StageData.objects[pmobs].children[pmobsi].useParentMatrix);
-        }
-    }
-
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(useParentMatrix),
-        gl.STATIC_DRAW);
-
     return {
         position: positionBuffer,
         textureCoord: textureCoordBuffer,
         indices: indexBuffer,
         normal: normalBuffer,
-        useParentMatrix: useParentMatrixBuffer,
+        //useParentMatrix: useParentMatrixBuffer,
     };
 }
 
@@ -402,20 +383,6 @@ function drawScene(gl, programInfo, buffers, deltaTime) {
         gl.enableVertexAttribArray(programInfo.attribLocations.textureCoord);
     }
 
-
-
-    // tell webgl how to pull out the answer to whether to use parent matrix from buffer
-    {
-        const num = 1; // every coordinate composed of 2 values
-        const type = gl.FLOAT; // the data in the buffer is 32 bit float
-        const normalize = false; // don't normalize
-        const stride = 0; // how many bytes to get from one set to the next
-        const offset = 0; // how many bytes inside the buffer to start from
-        gl.bindBuffer(gl.ARRAY_BUFFER, buffers.useParentMatrix);
-        gl.vertexAttribPointer(programInfo.attribLocations.useParentMatrix, num, type, normalize, stride, offset);
-        gl.enableVertexAttribArray(programInfo.attribLocations.useParentMatrix);
-    }
-
     // Tell WebGL which indices to use to index the vertices
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, buffers.indices);
 
@@ -437,10 +404,10 @@ function drawScene(gl, programInfo, buffers, deltaTime) {
     //    StageData.objects[2].textureImage = texture3;
     //}
 
-    gl.uniformMatrix4fv(
-        programInfo.uniformLocations.parentMatrix,
-        false,
-        modelViewMatrix);
+    //gl.uniformMatrix4fv(
+    //    programInfo.uniformLocations.parentMatrix,
+    //    false,
+    //    modelViewMatrix);
     // Tell WebGL we want to affect texture unit 0
     gl.activeTexture(gl.TEXTURE0);
     RenderObjects(gl, programInfo, StageData.objects, modelViewMatrix, 0.0, { val: 0 });
@@ -455,6 +422,7 @@ function RenderObjects(gl, programInfo, objects, parentmatrix, depth, offsetHold
         //const normalMatrix = mat4.create();
         //mat4.invert(normalMatrix, parentmatrix);
         //mat4.transpose(normalMatrix, normalMatrix);
+        //if (depth > 0.0) { console.log(' : )'); }
 
         var mat0 = mat4.create();
         mat4.multiply(mat0,     // destination matrix
@@ -463,7 +431,7 @@ function RenderObjects(gl, programInfo, objects, parentmatrix, depth, offsetHold
         gl.uniformMatrix4fv(
             programInfo.uniformLocations.modelViewMatrix,
             false,
-            mat0);//modelViewMatrix
+            depth > 0.0 ? parentmatrix : mat0);//modelViewMatrix
         //gl.uniformMatrix4fv(
         //    programInfo.uniformLocations.normalMatrix,
         //    false,
@@ -496,15 +464,16 @@ function RenderObjects(gl, programInfo, objects, parentmatrix, depth, offsetHold
         }
 
         if (objects[oj].children && objects[oj].children.length > 0) {
-            gl.uniformMatrix4fv(
-                programInfo.uniformLocations.parentMatrix,
-                false,
-                mat0);
+            //gl.uniformMatrix4fv(
+            //    programInfo.uniformLocations.parentMatrix,
+            //    false,
+            //    mat0);
+            //console.log(objects[oj].children[0]);
             RenderObjects(gl, programInfo, objects[oj].children, mat0, depth + 1.0, offsetHolder);
-            gl.uniformMatrix4fv(
-                programInfo.uniformLocations.parentMatrix,
-                false,
-                parentmatrix);
+            //gl.uniformMatrix4fv(
+            //    programInfo.uniformLocations.parentMatrix,
+            //    false,
+            //    parentmatrix);
         }
     }
 }
@@ -539,14 +508,14 @@ function main() {
             vertexPosition: gl.getAttribLocation(shaderProgram, 'aVertexPosition'),
             textureCoord: gl.getAttribLocation(shaderProgram, 'aTextureCoord'),
             vertexNormal: gl.getAttribLocation(shaderProgram, 'aVertexNormal'),
-            useParentMatrix: gl.getAttribLocation(shaderProgram, 'aUseParentMatrix'),
+            //useParentMatrix: gl.getAttribLocation(shaderProgram, 'aUseParentMatrix'),
         },
         uniformLocations: {
             projectionMatrix: gl.getUniformLocation(shaderProgram, 'uProjectionMatrix'),
             modelViewMatrix: gl.getUniformLocation(shaderProgram, 'uModelViewMatrix'),
             uSampler: gl.getUniformLocation(shaderProgram, 'uSampler'),
             normalMatrix: gl.getUniformLocation(shaderProgram, 'uNormalMatrix'),
-            parentMatrix: gl.getUniformLocation(shaderProgram, 'uParentMatrix'),
+            //parentMatrix: gl.getUniformLocation(shaderProgram, 'uParentMatrix'),
             matrixLevel: gl.getUniformLocation(shaderProgram, 'uMatrixLevel'),
         },
     };
@@ -611,6 +580,7 @@ function main() {
     setInterval(function () {
         StageData.ticks += 1;
         theGame.OnFrame();
+        //console.log('click');
         for (var c = 0; c < StageData.objects.length; c++) {
             if (StageData.objects[c] && StageData.objects[c].ObjectOnFrame) {
                 StageData.objects[c].ObjectOnFrame(StageData.objects[c]);
@@ -784,22 +754,10 @@ function recursiveCheckAllObjectsIfScreenPointHits(object, parent, itsfullmatrix
 onmousemove = function (e) {
 
     //the good code
-    var rect = document.querySelector('#glCanvas').getBoundingClientRect();
-    var goodvals = (320 + 320 * (rez2[0] / rez2[3]) + rect.left - e.clientX) + ' ,' + (240 - 240 * (rez2[1] / rez2[3]) + rect.top - e.clientY);
-    //console.log( (320 + 320 * (rez2[0]/rez2[3]) + rect.left - e.clientX) + ' ,' + (240 - 240 * (rez2[1]/rez2[3]) + rect.top - e.clientY));
+    //var rect = document.querySelector('#glCanvas').getBoundingClientRect();
     if (mouseisdown) {
-        //console.log(e.clientX + ', ' + e.clientY);
-        //console.log((e.clientX - lastmousedownpoint.x) + ', ' + (e.clientY - lastmousedownpoint.y));
-        var origmod = mat4.create();
-        mat4.copy(origmod, gmod);
-        var origproj = mat4.create();
-        mat4.invert(origproj, gproj);
-        var full = mat4.create();
-        mat4.multiply(full, gproj, gmod);
-        //mat4.multiply(origmod, gproj, gmod);
-        //mat4.invert(origmod, origmod);
-        //console.log(gmod);
-        mat4.rotate(gmod, origmod, (e.clientX - lastmousedownpoint.x) * 0.001, [gmod[1], gmod[5], gmod[9]]);//[0, 1, 0]);//linTransform(gproj, [0, 1, 0]));// [0, 1, 0]);//linTransform(origmod, [0, 1, 0]));// [0, 1, 0]);
+
+        mat4.rotate(gmod, gmod, (e.clientX - lastmousedownpoint.x) * 0.001, [gmod[1], gmod[5], gmod[9]]);//[0, 1, 0]);//linTransform(gproj, [0, 1, 0]));// [0, 1, 0]);//linTransform(origmod, [0, 1, 0]));// [0, 1, 0]);
         mat4.rotate(gmod, gmod, (e.clientY - lastmousedownpoint.y) * 0.001, [gmod[0], gmod[4], gmod[8]]);//[1, 0, 0]);//linTransform(gproj, [1, 0, 0]));// [1, 0, 0]);//linTransform(origmod, [1, 0, 0]));
         lastmousedownpoint = { x: e.clientX, y: e.clientY };
     }

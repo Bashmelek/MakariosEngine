@@ -81,7 +81,7 @@ const StageData = (function () {
             //console.log(newInst.indices);
         }
 
-        newInst.useParentMatrix = new Array(newInst.positions.length / 3).fill().map(x => 0.0);
+        //newInst.useParentMatrix = new Array(newInst.positions.length / 3).fill().map(x => 0.0);
         newInst.matrix = mat4.create();
         newInst.children = [];
         newInst.isGrounded = true,
