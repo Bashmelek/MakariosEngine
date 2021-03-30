@@ -23,27 +23,27 @@ const StarfieldDemo = (function () {
     var Init = function () {
         StageData.ticks = 0;
         Makarios.writeToUI();
-         Makarios.instantiate(Primitives.shapes["tetrahedron"], 'grumpycss.jpg', disappearingItem, {});
-        Makarios.instantiate(Primitives.shapes["cube"], 'grumpycss.jpg', null, {});//'meeseeks can do.jpg'
+        // Makarios.instantiate(Primitives.shapes["tetrahedron"], 'grumpycss.jpg', disappearingItem, {});
+        //Makarios.instantiate(Primitives.shapes["cube"], 'grumpycss.jpg', null, {});//'meeseeks can do.jpg'
 
-        glMatrix.mat4.translate(StageData.objects[0].matrix,     // destination matrix
-            StageData.objects[0].matrix,     // matrix to translate
-            [-3.5, 0.0, 0.0]);
-        glMatrix.mat4.rotate(StageData.objects[0].matrix,  // destination matrix
-            StageData.objects[0].matrix,  // matrix to rotate
-            .7,   // amount to rotate in radians
-            [0, 1, 0]);
+        //glMatrix.mat4.translate(StageData.objects[0].matrix,     // destination matrix
+        //    StageData.objects[0].matrix,     // matrix to translate
+        //    [-3.5, 0.0, 0.0]);
+        //glMatrix.mat4.rotate(StageData.objects[0].matrix,  // destination matrix
+        //    StageData.objects[0].matrix,  // matrix to rotate
+        //    .7,   // amount to rotate in radians
+        //    [0, 1, 0]);
 
         //var obj2 = Makarios.instantiate(Primitives.shapes["cube"], 2, 'smile1.jpg', {});
         //glMatrix.mat4.translate(obj2.matrix,     // destination matrix
         //    obj2.matrix,     // matrix to translate
         //    [3.5, 0.0, 0.0]);
-        setTimeout(function () {
-            var obj2 = Makarios.instantiate(Primitives.shapes["cube"], 'meeseeks can do.jpg', disappearingItem, {});
-            glMatrix.mat4.translate(obj2.matrix,     // destination matrix
-                obj2.matrix,     // matrix to translate
-                [3.5, 0.0, 0.0]);
-        }, 4000);
+        //setTimeout(function () {
+        //    var obj2 = Makarios.instantiate(Primitives.shapes["cube"], 'meeseeks can do.jpg', disappearingItem, {});
+        //    glMatrix.mat4.translate(obj2.matrix,     // destination matrix
+        //        obj2.matrix,     // matrix to translate
+        //        [3.5, 0.0, 0.0]);
+        //}, 4000);
     };
 
     var getRandomSpawnPoint = function () {

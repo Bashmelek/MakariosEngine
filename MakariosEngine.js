@@ -426,10 +426,12 @@ function drawScene(gl, programInfo, buffers, deltaTime) {
     gl.useProgram(programInfo.program);
 
     // Set the shader uniforms
+    var fullproj = mat4.create();
+    mat4.multiply(fullproj, projectionMatrix, modelViewMatrix);//gproj, gmod
     gl.uniformMatrix4fv(
         programInfo.uniformLocations.projectionMatrix,
         false,
-        projectionMatrix);
+        fullproj);//projectionMatrix
     //gl.uniformMatrix4fv(
     //    programInfo.uniformLocations.normalMatrix,
     //    false,
@@ -446,7 +448,7 @@ function drawScene(gl, programInfo, buffers, deltaTime) {
         modelViewMatrix);
     // Tell WebGL we want to affect texture unit 0
     gl.activeTexture(gl.TEXTURE0);
-    RenderObjects(gl, programInfo, StageData.objects, modelViewMatrix, 0.0, { val: 0 }, mat4.create());
+    RenderObjects(gl, programInfo, StageData.objects, mat4.create()/*modelViewMatrix*/, 0.0, { val: 0 }, mat4.create());
 
     gproj = projectionMatrix;
     gmod = modelViewMatrix;
@@ -633,8 +635,11 @@ function main() {
         for (var c = 0; c < StageData.objects.length; c++) {
             if (StageData.objects[c] && StageData.objects[c].ObjectOnFrame) {
                 StageData.objects[c].ObjectOnFrame(StageData.objects[c]);
-                for (var i = 0; i < StageData.objects[c].children.length; i++) {
-                    StageData.objects[c].children[i].ObjectOnFrame(StageData.objects[c].children[i]);
+                if (StageData.objects[c] && StageData.objects[c].children) {
+                    for (var i = 0; i < StageData.objects[c].children.length; i++) {
+                        if (!StageData.objects[c].children[i]) { continue; }
+                        StageData.objects[c].children[i].ObjectOnFrame(StageData.objects[c].children[i]);
+                    }
                 }
             }
         }

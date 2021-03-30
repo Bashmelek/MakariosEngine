@@ -6,33 +6,68 @@ const StageData = (function () {
     var ticks = 0;
 
     var firstAvailableIndex = 0;
-    var availabilityChain = { 'first': null };
-    var setNextAvailableIndex = function () {
-        var oldFirst = firstAvailableIndex;
+
+    var createAvailabilityObject = function () {
+
+        return {
+            availabilityChain: { 'first': null },
+            firstAvailableIndex : 0
+        };
+    };
+
+
+
+    var globalAvailabilityContainer = createAvailabilityObject();//{ 'first': null };
+    var setNextAvailableIndex = function (holderObj) {
+        var avail;
+        if (!holderObj) {
+            avail = globalAvailabilityContainer;
+        } else {
+            avail = holderObj.availabilityContainer;
+        }
+        var chainToUse = avail.availabilityChain;
+        var oldFirst = avail.firstAvailableIndex;
         var newFirst = objects.length;
 
-        if (availabilityChain.first && availabilityChain.first.val < newFirst) {
-            newFirst = availabilityChain.first.val;
-            availabilityChain.first = availabilityChain.first.next;
+        if (chainToUse.first && chainToUse.first.val < newFirst) {
+            newFirst = chainToUse.first.val;
+            chainToUse.first = chainToUse.first.next;
         }
 
-        firstAvailableIndex = newFirst;
+        avail.firstAvailableIndex = newFirst;
     };
-    var finalizeInstantiation = function (newItem) {
+    var finalizeInstantiation = function (newItem, parent) {
+        var avail;
+        var objArray;
+        if (!parent) {
+            avail = globalAvailabilityContainer;
+            objArray = objects;
+        } else {
+            avail = parent.availabilityContainer;
+            objArray = parent.children;
+        }
 
-        newItem.id = firstAvailableIndex;
-        objects[firstAvailableIndex] = newItem;
-        setNextAvailableIndex();
+        newItem.id = avail.firstAvailableIndex;
+        objArray[avail.firstAvailableIndex] = newItem;
+        setNextAvailableIndex(parent);
     };
     var destroy = function (inst) {
+        var avail;
+        if (!inst.parent) {
+            avail = globalAvailabilityContainer;
+        } else {
+            avail = parent.availabilityContainer;
+        }
+        var chainToUse = avail.availabilityChain;
+
         var oldindex = inst.id;
         objects[oldindex] = null;
-        if (!availabilityChain.first || availabilityChain.first.val > oldindex) {
-            availabilityChain.first = { 'val': oldindex, 'next': availabilityChain.first };
+        if (!chainToUse.first || chainToUse.first.val > oldindex) {
+            chainToUse.first = { 'val': oldindex, 'next': chainToUse.first };
             firstAvailableIndex = oldindex;
         } else {
             var searching = true;
-            var currentLink = availabilityChain.first;
+            var currentLink = chainToUse.first;
             while (searching) {
                 if (!currentLink.next) {
                     searching = false;
@@ -84,6 +119,8 @@ const StageData = (function () {
         //newInst.useParentMatrix = new Array(newInst.positions.length / 3).fill().map(x => 0.0);
         newInst.matrix = mat4.create();
         newInst.children = [];
+        newInst.availabilityContainer = createAvailabilityObject();
+
         newInst.isGrounded = true,
             newInst.confirmGrounded = true,
             newInst.velocity = {
@@ -119,7 +156,9 @@ const StageData = (function () {
         newInst.useParentMatrix = new Array(newInst.positions.length / 3).fill().map(function (x, ind) { return 1.0 });
 
         newInst.parent = parent;
-        parent.children.push(newInst);
+        //parent.children.push(newInst);
+        //newInst.
+        finalizeInstantiation(newInst, newInst.parent);
 
         return newInst;
     };
