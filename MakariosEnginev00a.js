@@ -52,7 +52,7 @@ const vsSource = `
                 highp vec3 ambientLight = vec3(0.2, 0.2, 0.2);
                 highp vec3 directionalLightColor = vec3(1, 1, 1);
                 highp vec3 directionalVector = normalize(vec3(0.85, 0.8, 0.75));
-                highp vec4 transformedNormal = uNormalMatrix  * vec4(aVertexNormal, 1.0);
+                highp vec4 transformedNormal = uNormalMatrix * vec4(aVertexNormal, 1.0);
                 highp float directional = max(dot(transformedNormal.xyz, directionalVector), 0.0);
                 vLighting = ambientLight + (directionalLightColor * directional);
             }
@@ -204,6 +204,7 @@ function initBuffers(gl) {
         gl.STATIC_DRAW);
 
 
+
     const useParentMatrixBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, useParentMatrixBuffer);
 
@@ -344,14 +345,8 @@ function drawScene(gl, programInfo, buffers, deltaTime) {
     }
 
     const normalMatrix = mat4.create();
-
-    mat4.translate(normalMatrix,     // destination matrix
-        modelViewMatrix,     // matrix to translate
-        [-0.0, 0.0, 0.0]);
-    mat4.invert(normalMatrix, normalMatrix);
+    mat4.invert(normalMatrix, modelViewMatrix);
     mat4.transpose(normalMatrix, normalMatrix);
-    //mat4.invert(normalMatrix, modelViewMatrix);
-    //mat4.transpose(normalMatrix, normalMatrix);
 
 
     // Tell WebGL how to pull out the positions from the position
@@ -407,9 +402,11 @@ function drawScene(gl, programInfo, buffers, deltaTime) {
         gl.enableVertexAttribArray(programInfo.attribLocations.textureCoord);
     }
 
+
+
     // tell webgl how to pull out the answer to whether to use parent matrix from buffer
     {
-        const num = 1; // every coordinate composed of 1 values
+        const num = 1; // every coordinate composed of 2 values
         const type = gl.FLOAT; // the data in the buffer is 32 bit float
         const normalize = false; // don't normalize
         const stride = 0; // how many bytes to get from one set to the next
@@ -430,10 +427,10 @@ function drawScene(gl, programInfo, buffers, deltaTime) {
         programInfo.uniformLocations.projectionMatrix,
         false,
         projectionMatrix);
-    //gl.uniformMatrix4fv(
-    //    programInfo.uniformLocations.normalMatrix,
-    //    false,
-    //    normalMatrix);
+    gl.uniformMatrix4fv(
+        programInfo.uniformLocations.normalMatrix,
+        false,
+        normalMatrix);
 
     //if (StageData.objects[2] && !StageData.objects[2].textureImage) {
     //    const texture3 = loadTexture(gl, 'smile1.jpg');//png?
@@ -446,19 +443,18 @@ function drawScene(gl, programInfo, buffers, deltaTime) {
         modelViewMatrix);
     // Tell WebGL we want to affect texture unit 0
     gl.activeTexture(gl.TEXTURE0);
-    RenderObjects(gl, programInfo, StageData.objects, modelViewMatrix, 0.0, { val: 0 }, mat4.create());
+    RenderObjects(gl, programInfo, StageData.objects, modelViewMatrix, 0.0, { val: 0 });
 
     gproj = projectionMatrix;
     gmod = modelViewMatrix;
 }
 
-function RenderObjects(gl, programInfo, objects, parentmatrix, depth, offsetHolder, baseMatrixForNorm) {
+function RenderObjects(gl, programInfo, objects, parentmatrix, depth, offsetHolder) {
     for (var oj = 0; oj < objects.length; oj++) {
         if (!objects[oj]) { continue; };
         //const normalMatrix = mat4.create();
         //mat4.invert(normalMatrix, parentmatrix);
         //mat4.transpose(normalMatrix, normalMatrix);
-        //if (depth > 0.0) { console.log(' : )'); }
 
         var mat0 = mat4.create();
         mat4.multiply(mat0,     // destination matrix
@@ -467,20 +463,7 @@ function RenderObjects(gl, programInfo, objects, parentmatrix, depth, offsetHold
         gl.uniformMatrix4fv(
             programInfo.uniformLocations.modelViewMatrix,
             false,
-            depth > 0.0 ? mat0 : mat0);
-
-        var thisMatForNorm = mat4.create();
-        var nMat = mat4.create();
-        mat4.multiply(thisMatForNorm,     // destination matrix
-            baseMatrixForNorm,     // matrix to translate
-            objects[oj].matrix);
-        mat4.invert(nMat, thisMatForNorm);
-        mat4.transpose(nMat, nMat);
-        gl.uniformMatrix4fv(
-            programInfo.uniformLocations.normalMatrix,
-            false,
-            nMat);
-        //modelViewMatrix
+            mat0);//modelViewMatrix
         //gl.uniformMatrix4fv(
         //    programInfo.uniformLocations.normalMatrix,
         //    false,
@@ -517,8 +500,7 @@ function RenderObjects(gl, programInfo, objects, parentmatrix, depth, offsetHold
                 programInfo.uniformLocations.parentMatrix,
                 false,
                 mat0);
-            //console.log(objects[oj].children[0]);
-            RenderObjects(gl, programInfo, objects[oj].children, mat0, depth + 1.0, offsetHolder, thisMatForNorm);
+            RenderObjects(gl, programInfo, objects[oj].children, mat0, depth + 1.0, offsetHolder);
             gl.uniformMatrix4fv(
                 programInfo.uniformLocations.parentMatrix,
                 false,
@@ -629,13 +611,9 @@ function main() {
     setInterval(function () {
         StageData.ticks += 1;
         theGame.OnFrame();
-        //console.log('click');
         for (var c = 0; c < StageData.objects.length; c++) {
             if (StageData.objects[c] && StageData.objects[c].ObjectOnFrame) {
                 StageData.objects[c].ObjectOnFrame(StageData.objects[c]);
-                for (var i = 0; i < StageData.objects[c].children.length; i++) {
-                    StageData.objects[c].children[i].ObjectOnFrame(StageData.objects[c].children[i]);
-                }
             }
         }
     }, 5);//15
@@ -806,10 +784,22 @@ function recursiveCheckAllObjectsIfScreenPointHits(object, parent, itsfullmatrix
 onmousemove = function (e) {
 
     //the good code
-    //var rect = document.querySelector('#glCanvas').getBoundingClientRect();
+    var rect = document.querySelector('#glCanvas').getBoundingClientRect();
+    var goodvals = (320 + 320 * (rez2[0] / rez2[3]) + rect.left - e.clientX) + ' ,' + (240 - 240 * (rez2[1] / rez2[3]) + rect.top - e.clientY);
+    //console.log( (320 + 320 * (rez2[0]/rez2[3]) + rect.left - e.clientX) + ' ,' + (240 - 240 * (rez2[1]/rez2[3]) + rect.top - e.clientY));
     if (mouseisdown) {
-
-        mat4.rotate(gmod, gmod, (e.clientX - lastmousedownpoint.x) * 0.001, [gmod[1], gmod[5], gmod[9]]);//[0, 1, 0]);//linTransform(gproj, [0, 1, 0]));// [0, 1, 0]);//linTransform(origmod, [0, 1, 0]));// [0, 1, 0]);
+        //console.log(e.clientX + ', ' + e.clientY);
+        //console.log((e.clientX - lastmousedownpoint.x) + ', ' + (e.clientY - lastmousedownpoint.y));
+        var origmod = mat4.create();
+        mat4.copy(origmod, gmod);
+        var origproj = mat4.create();
+        mat4.invert(origproj, gproj);
+        var full = mat4.create();
+        mat4.multiply(full, gproj, gmod);
+        //mat4.multiply(origmod, gproj, gmod);
+        //mat4.invert(origmod, origmod);
+        //console.log(gmod);
+        mat4.rotate(gmod, origmod, (e.clientX - lastmousedownpoint.x) * 0.001, [gmod[1], gmod[5], gmod[9]]);//[0, 1, 0]);//linTransform(gproj, [0, 1, 0]));// [0, 1, 0]);//linTransform(origmod, [0, 1, 0]));// [0, 1, 0]);
         mat4.rotate(gmod, gmod, (e.clientY - lastmousedownpoint.y) * 0.001, [gmod[0], gmod[4], gmod[8]]);//[1, 0, 0]);//linTransform(gproj, [1, 0, 0]));// [1, 0, 0]);//linTransform(origmod, [1, 0, 0]));
         lastmousedownpoint = { x: e.clientX, y: e.clientY };
     }
@@ -974,13 +964,10 @@ function IsPointInTriangleIncludeZ(point, tri)/*(px, py, ax, ay, bx, by, cx, cy)
 const Makarios = (function () {
     var self = this;
 
-    self.helloworld = function () { console.log('hello world'); };
+    self.helloworld = function () { console.log('hell oworld'); };
 
     self.instantiate = function (prim, textureUrl, objectOnFrame, customprops) {
         return StageData.instantiate(prim, textureUrl, objectOnFrame, customprops);
-    }
-    self.instantiateChild = function (parent, prim, textureUrl, objectOnFrame, customprops) {
-        return StageData.instantiateChild(parent, prim, textureUrl, objectOnFrame, customprops);
     }
     self.destroy = function (inst) {
         StageData.destroy(inst);

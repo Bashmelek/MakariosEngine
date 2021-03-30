@@ -46,7 +46,7 @@ const StageData = (function () {
         }
     };
 
-    var instantiate = function (prim, textureUrl, objectOnFrame, customprops) {
+    var setupObject = function (prim, textureUrl, objectOnFrame, customprops) {
         var newInst = {};
         if (!prim.isComposite) {
             newInst.positions = new Array(prim.positions.length).fill().map(function (x, ind) { return prim.positions[ind]; });
@@ -95,7 +95,31 @@ const StageData = (function () {
         newInst.ObjectOnFrame = objectOnFrame;
         newInst.customprops = customprops;
 
-        finalizeInstantiation(newInst)
+        return newInst;
+    };
+
+    var instantiate = function (prim, textureUrl, objectOnFrame, customprops) {
+
+        var newInst = setupObject(prim, textureUrl, objectOnFrame, customprops);
+        newInst.useParentMatrix = new Array(newInst.positions.length / 3).fill().map(function (x, ind) { return 0.0 });
+
+        finalizeInstantiation(newInst);
+
+        return newInst;
+    };
+
+
+
+
+    var instantiateChild = function (parent, prim, textureUrl, objectOnFrame, customprops) {
+
+        var newInst = setupObject(prim, textureUrl, objectOnFrame, customprops);
+
+        newInst.customprops = customprops;
+        newInst.useParentMatrix = new Array(newInst.positions.length / 3).fill().map(function (x, ind) { return 1.0 });
+
+        newInst.parent = parent;
+        parent.children.push(newInst);
 
         return newInst;
     };
@@ -104,6 +128,7 @@ const StageData = (function () {
         'objects': objects,
         'options': options,
         'instantiate': instantiate,
+        'instantiateChild': instantiateChild,
         'destroy': destroy,
         'ticks': ticks
     };

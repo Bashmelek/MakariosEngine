@@ -416,28 +416,28 @@ const MyFirstPhysics = (function () {
             0.0, 0.0, 1.0,
 
             // Back
-            0.0, 0.0, -1.0,
-            0.0, 0.0, -1.0,
-            0.0, 0.0, -1.0,
-            0.0, 0.0, -1.0,
+            //0.0, 0.0, -1.0,
+            //0.0, 0.0, -1.0,
+            //0.0, 0.0, -1.0,
+            //0.0, 0.0, -1.0,
 
-            // Top
-            0.0, 1.0, 0.0,
-            0.0, 1.0, 0.0,
-            0.0, 1.0, 0.0,
-            0.0, 1.0, 0.0,
+            //// Top
+            //0.0, 1.0, 0.0,
+            //0.0, 1.0, 0.0,
+            //0.0, 1.0, 0.0,
+            //0.0, 1.0, 0.0,
 
-            // Bottom
-            0.0, -1.0, 0.0,
-            0.0, -1.0, 0.0,
-            0.0, -1.0, 0.0,
-            0.0, -1.0, 0.0,
+            //// Bottom
+            //0.0, -1.0, 0.0,
+            //0.0, -1.0, 0.0,
+            //0.0, -1.0, 0.0,
+            //0.0, -1.0, 0.0,
 
-            // Right
-            1.0, 0.0, 0.0,
-            1.0, 0.0, 0.0,
-            1.0, 0.0, 0.0,
-            1.0, 0.0, 0.0
+            //// Right
+            //1.0, 0.0, 0.0,
+            //1.0, 0.0, 0.0,
+            //1.0, 0.0, 0.0,
+            //1.0, 0.0, 0.0
         ]
     });
     objects[0].children[0].matrix = mat4.create();
@@ -467,9 +467,10 @@ const MyFirstPhysics = (function () {
         //ob3.collider = objects[2].collider;
 
 
-        var ob4 = Makarios.instantiate(objects[0].children[0], 'plainsky.jpg', null, {});
+        var ob4 = Makarios.instantiateChild(ob1, objects[0].children[0], 'plainsky.jpg', null, {});
         ob4.matrix = objects[0].children[0].matrix;
-        ob1.children.push(ob4);
+        //ob1.children.push(ob4);
+        console.log(ob4)
 
         initVelocity(ob1);
         initVelocity(ob2);
@@ -495,7 +496,7 @@ const MyFirstPhysics = (function () {
     };
 
     var OnFrame = function () {
-        //FrameLogic.onFrame();
+        FrameLogic.onFrame();
     };
 
     //console.log(objects[0].children[0].indices)
