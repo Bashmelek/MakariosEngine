@@ -13,6 +13,7 @@ const fsSource = `
                 //gl_FragColor = vColor;//vec4(1.0, 0.0, 0.0, 1.0);
                 ////gl_FragColor = texture2D(uSampler, vTextureCoord);
                 highp vec4 texelColor = texture2D(uSampler, vTextureCoord);
+                //can use texelColor.bgr for fun effects
                 gl_FragColor = vec4(texelColor.rgb * vLighting, texelColor.a);
             }
         `;
@@ -30,6 +31,7 @@ const vsSource = `
             uniform mat4 uNormalMatrix;
             uniform mat4 uParentMatrix;
             uniform float uMatrixLevel;
+            uniform vec3 uLightDirection;
 
             //varying lowp vec4 vColor;
             varying highp vec2 vTextureCoord;
@@ -51,7 +53,7 @@ const vsSource = `
                 // Apply lighting effect
                 highp vec3 ambientLight = vec3(0.2, 0.2, 0.2);
                 highp vec3 directionalLightColor = vec3(1, 1, 1);
-                highp vec3 directionalVector = normalize(vec3(0.85, 0.8, 0.75));
+                highp vec3 directionalVector = normalize(uLightDirection);// normalize(vec3(0.85, 0.8, 0.75));
                 highp vec4 transformedNormal = uNormalMatrix  * vec4(aVertexNormal, 1.0);
                 highp float directional = max(dot(transformedNormal.xyz, directionalVector), 0.0);
                 vLighting = ambientLight + (directionalLightColor * directional);
@@ -70,6 +72,16 @@ function initShaderProgram(gl, vsSource, fsSource) {
     gl.attachShader(shaderProgram, vertexShader);
     gl.attachShader(shaderProgram, fragmentShader);
     gl.linkProgram(shaderProgram);
+
+    //adding these detaches and deletes as per 1. https://developer.mozilla.org/en-US/docs/Web/API/WebGL_API/By_example/Hello_vertex_attributes
+    // and 2. https://stackoverflow.com/questions/9113154/proper-way-to-delete-glsl-shader
+    // and further 3. https://www.khronos.org/opengl/wiki/GLSL_Object
+    // ...it is a good thing to do after linking
+    // just, as always, test andcheck against other platforms, mobile might give an issue according to the stackoverflow comment in 2
+    gl.detachShader(shaderProgram, vertexShader);
+    gl.detachShader(shaderProgram, fragmentShader);
+    gl.deleteShader(vertexShader);
+    gl.deleteShader(fragmentShader);
 
     // If creating the shader program failed, alert
     if (!gl.getProgramParameter(shaderProgram, gl.LINK_STATUS)) {
@@ -287,6 +299,9 @@ function loadTexture(gl, url) {
     return texture;
 }
 
+
+
+//can't remember where i got this :(
 function isPowerOf2(value) {
     return (value & (value - 1)) == 0;
 }
@@ -297,6 +312,7 @@ var cubeRotation = 0.0;
 var rez2 = [0, 0, 0, 0];
 var gproj;
 var gmod;
+var mainLight;
 function drawScene(gl, programInfo, buffers, deltaTime) {
     gl.clearColor(0.0, 0.0, 0.0, 1.0);  // Clear to black, fully opaque
     gl.clearDepth(1.0);                 // Clear everything
@@ -328,6 +344,7 @@ function drawScene(gl, programInfo, buffers, deltaTime) {
             zNear,
             zFar);
     }
+
 
     // Set the drawing position to the "identity" point, which is
     // the center of the scene.
@@ -425,6 +442,7 @@ function drawScene(gl, programInfo, buffers, deltaTime) {
     // Tell WebGL to use our program when drawing
     gl.useProgram(programInfo.program);
 
+
     // Set the shader uniforms
     var fullproj = mat4.create();
     mat4.multiply(fullproj, projectionMatrix, modelViewMatrix);//gproj, gmod
@@ -441,6 +459,18 @@ function drawScene(gl, programInfo, buffers, deltaTime) {
     //    const texture3 = loadTexture(gl, 'smile1.jpg');//png?
     //    StageData.objects[2].textureImage = texture3;
     //}
+
+
+    //must be after gl.useProgram for the shader program, otherwise "location not for current program"
+    //see https://stackoverflow.com/questions/14413713/webgl-invalid-operation-uniform1i-location-not-for-current-program
+    if (!mainLight) {
+        mainLight = glMatrix.vec3.create();//[0.85, 0.8, 0.75];//glMatrix.vec3.create();
+        mainLight[0] = 0.85; mainLight[1] = 0.8; mainLight[2] = 0.75;
+        gl.uniform3fv(
+            programInfo.uniformLocations.lightDirection,
+            mainLight);
+    }
+
 
     gl.uniformMatrix4fv(
         programInfo.uniformLocations.parentMatrix,
@@ -548,26 +578,28 @@ function main() {
 
     // Initialize a shader program; this is where all the lighting
     // for the vertices and so forth is established.
-    const shaderProgram = initShaderProgram(gl, vsSource, fsSource);
+    const skyboxProgram = initShaderProgram(gl, vsSource, fsSource);
+    const mainShaderProgram = initShaderProgram(gl, vsSource, fsSource);
 
     // Collect all the info needed to use the shader program.
     // Look up which attribute our shader program is using
     // for aVertexPosition and look up uniform locations.
     const programInfo = {
-        program: shaderProgram,
+        program: mainShaderProgram,
         attribLocations: {
-            vertexPosition: gl.getAttribLocation(shaderProgram, 'aVertexPosition'),
-            textureCoord: gl.getAttribLocation(shaderProgram, 'aTextureCoord'),
-            vertexNormal: gl.getAttribLocation(shaderProgram, 'aVertexNormal'),
-            useParentMatrix: gl.getAttribLocation(shaderProgram, 'aUseParentMatrix'),
+            vertexPosition: gl.getAttribLocation(mainShaderProgram, 'aVertexPosition'),
+            textureCoord: gl.getAttribLocation(mainShaderProgram, 'aTextureCoord'),
+            vertexNormal: gl.getAttribLocation(mainShaderProgram, 'aVertexNormal'),
+            useParentMatrix: gl.getAttribLocation(mainShaderProgram, 'aUseParentMatrix'),
         },
         uniformLocations: {
-            projectionMatrix: gl.getUniformLocation(shaderProgram, 'uProjectionMatrix'),
-            modelViewMatrix: gl.getUniformLocation(shaderProgram, 'uModelViewMatrix'),
-            uSampler: gl.getUniformLocation(shaderProgram, 'uSampler'),
-            normalMatrix: gl.getUniformLocation(shaderProgram, 'uNormalMatrix'),
-            parentMatrix: gl.getUniformLocation(shaderProgram, 'uParentMatrix'),
-            matrixLevel: gl.getUniformLocation(shaderProgram, 'uMatrixLevel'),
+            projectionMatrix: gl.getUniformLocation(mainShaderProgram, 'uProjectionMatrix'),
+            modelViewMatrix: gl.getUniformLocation(mainShaderProgram, 'uModelViewMatrix'),
+            uSampler: gl.getUniformLocation(mainShaderProgram, 'uSampler'),
+            normalMatrix: gl.getUniformLocation(mainShaderProgram, 'uNormalMatrix'),
+            parentMatrix: gl.getUniformLocation(mainShaderProgram, 'uParentMatrix'),
+            matrixLevel: gl.getUniformLocation(mainShaderProgram, 'uMatrixLevel'),
+            lightDirection: gl.getUniformLocation(mainShaderProgram, 'uLightDirection'),
         },
     };
 
