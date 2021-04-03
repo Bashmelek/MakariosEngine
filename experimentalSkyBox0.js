@@ -7,6 +7,8 @@ var skyboxVsSource = `
         uniform vec3 uniform_camera_right;
         uniform vec3 uniform_camera_dir;
         uniform float uniform_camera_near;
+        uniform float uniform_camera_far;
+
         varying vec3 varying_pixel_position;
         void main()
         {
@@ -14,7 +16,7 @@ var skyboxVsSource = `
         varying_pixel_position =
         attribute_vertex_position[0] * uniform_camera_right +
         attribute_vertex_position[1] * uniform_camera_up +
-        uniform_camera_near * uniform_camera_dir;
+        uniform_camera_dir * uniform_camera_near;
         }
     `;
 var skyboxFsSource = `
@@ -79,7 +81,7 @@ var request = 0;
 function update() {
     gl.clear(gl.COLOR_BUFFER_BIT);
     gl.uniform3f(uniform_camera_up, camera.up[0], camera.up[1], camera.up[2]);
-    gl.uniform3f(uniform_camera_right, camera.right[0], camera.right[1], camera.right[2]);
+    gl.uniform3fv(uniform_camera_right, camera.right);//camera.right[0], camera.right[1], camera.right[2]);
     gl.uniform3f(uniform_camera_origin, camera.origin[0], camera.origin[1], camera.origin[2]);
     gl.uniform3f(uniform_camera_dir, camera.dir[0], camera.dir[1], camera.dir[2]);
     gl.uniform1f(uniform_camera_near, camera.near);

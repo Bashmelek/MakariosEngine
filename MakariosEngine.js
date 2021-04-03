@@ -64,30 +64,30 @@ const vsSource = `
 // this includes these two shaders, and more that I will try to mention each time
 
 //lifted from https://github.com/lesnitsky/webgl-month/blob/dev/src/shaders/skybox.v.glsl
-    var skyboxVsSource = `//#version 300 es
-            attribute vec3 position;
-            varying vec3 vTexCoord;
+//    var skyboxVsSource = `//#version 300 es
+//            attribute vec3 position;
+//            varying vec3 vTexCoord;
 
-            uniform mat4 projectionMatrix;
-            uniform mat4 viewMatrix;
+//            uniform mat4 projectionMatrix;
+//            uniform mat4 viewMatrix;
 
-            void main() {
-                vTexCoord = position;
-                gl_Position = projectionMatrix * viewMatrix * vec4(position, 0.01);
-    }
-    `;
+//            void main() {
+//                vTexCoord = position;
+//                gl_Position = projectionMatrix * viewMatrix * vec4(position, 0.01);
+//    }
+//    `;
 
-// lifted from same repo, at https://github.com/lesnitsky/webgl-month/blob/dev/src/shaders/skybox.f.glsl
-    var skyboxFsSource = `//#version 300 es
-        precision mediump float;
+//// lifted from same repo, at https://github.com/lesnitsky/webgl-month/blob/dev/src/shaders/skybox.f.glsl
+//    var skyboxFsSource = `//#version 300 es
+//        precision mediump float;
 
-        varying vec3 vTexCoord;
-        uniform samplerCube skybox;
+//        varying vec3 vTexCoord;
+//        uniform samplerCube skybox;
 
-        void main() {
-            gl_FragColor = textureCube(skybox, vTexCoord);
-        }
-    `;
+//        void main() {
+//            gl_FragColor = textureCube(skybox, vTexCoord);
+//        }
+//    `;
 
 
 //
@@ -352,6 +352,10 @@ function drawScene(gl, programInfo, buffers, deltaTime) {
     // Clear the canvas before we start drawing on it.
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
+    SkyboxRenderer.drawSkybox();
+    gl.useProgram(programInfo.program);
+    //gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
     // Create a perspective matrix, a special matrix that is
     // used to simulate the distortion of perspective in a camera.
     // Our field of view is 45 degrees, with a width/height
@@ -480,6 +484,11 @@ function drawScene(gl, programInfo, buffers, deltaTime) {
         programInfo.uniformLocations.projectionMatrix,
         false,
         fullproj);//projectionMatrix
+
+
+    //console.log('proj rock be:');
+    //console.log(fullproj);
+
     //gl.uniformMatrix4fv(
     //    programInfo.uniformLocations.normalMatrix,
     //    false,
@@ -509,6 +518,9 @@ function drawScene(gl, programInfo, buffers, deltaTime) {
     // Tell WebGL we want to affect texture unit 0
     gl.activeTexture(gl.TEXTURE0);
     RenderObjects(gl, programInfo, StageData.objects, mat4.create()/*modelViewMatrix*/, 0.0, { val: 0 }, mat4.create());
+
+    ////SkyboxRenderer.drawSkybox();
+    ////gl.useProgram(programInfo.program);
 
     gproj = projectionMatrix;
     gmod = modelViewMatrix;
@@ -605,6 +617,8 @@ function main() {
 
     gl.clearColor(0.0, 1.0, 1.0, 1.0);
     gl.clear(gl.COLOR_BUFFER_BIT);
+
+    SkyboxRenderer.drawSkybox(gl);
 
     // Initialize a shader program; this is where all the lighting
     // for the vertices and so forth is established.
