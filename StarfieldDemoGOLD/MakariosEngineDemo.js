@@ -876,7 +876,7 @@ function lin3TransformMat3(mat, vec3sarray) {
     for (var i = 0; i < psize; i++) {
         var vstart = i * 3;
         var rez = [vec3sarray[vstart] * mat[0] + vec3sarray[vstart + 1] * mat[3] + vec3sarray[vstart + 2] * mat[6],
-        vec3sarray[vstart] * mat[1] + vec3sarray[vstart + 1] * mat[4] + vec3sarray[vstart + 2] * mat[6],
+        vec3sarray[vstart] * mat[1] + vec3sarray[vstart + 1] * mat[4] + vec3sarray[vstart + 2] * mat[7],
         vec3sarray[vstart] * mat[2] + vec3sarray[vstart + 1] * mat[5] + vec3sarray[vstart + 2] * mat[8]];
         //console.log( (320 + 320 * rez[0]) + ' ,' + (240 + 240 * rez[1]));
         transformedArray[i * 3] = (rez[0]);

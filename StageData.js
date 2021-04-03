@@ -4,6 +4,7 @@ const StageData = (function () {
     var objects = [];
     var options = {};
     var ticks = 0;
+    var skybox = null;
 
     var firstAvailableIndex = 0;
 
@@ -169,6 +170,7 @@ const StageData = (function () {
         'instantiate': instantiate,
         'instantiateChild': instantiateChild,
         'destroy': destroy,
-        'ticks': ticks
+        'ticks': ticks,
+        'skybox': skybox
     };
 })();

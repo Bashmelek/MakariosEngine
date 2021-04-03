@@ -9,14 +9,16 @@ const SkyboxRenderer = (function () {
         uniform vec3 uniform_camera_dir;
         uniform float uniform_camera_near;
         uniform float uniform_camera_far;
+        //uniform mat3 uModelviewMatrix;
         varying vec3 varying_pixel_position;
         void main()
         {
         gl_Position = vec4(uniform_camera_far * attribute_vertex_position, uniform_camera_far, uniform_camera_far);
-        varying_pixel_position =
-        attribute_vertex_position[0] * uniform_camera_right +
+        
+        varying_pixel_position = attribute_vertex_position[0] * uniform_camera_right +
         attribute_vertex_position[1] * uniform_camera_up +
         uniform_camera_dir * uniform_camera_near;
+        //varying_pixel_position = uModelviewMatrix * vec3(attribute_vertex_position, 1.0);
         }
     `;
     var skyboxFsSource = `
@@ -72,6 +74,8 @@ float srgb(float v)
     var uniform_camera_up, uniform_camera_right, uniform_camera_origin;
     var uniform_camera_dir, uniform_camera_near, uniform_camera_far;
     var uniform_cubemap, cubemap_texture, cubemap_image, cubemap_counter;
+
+    var uniform_modelViewMatrix;
     var last_x, last_y;
     var request = 0;
 
@@ -80,14 +84,14 @@ float srgb(float v)
         right: [1.0, 0.0, 0.0],
         dir: [0.0, 0.0, -1.0],
         origin: [0.0, 0.0, 0.0],
-        near: 2.5,
+        near: 2.5,//0.1,//2.5,
         far: 100.0
     };
     var isLoaded = false;
     var cubemap_counter = 0;
 
-    var drawSkybox = function ( ) {
-        if (!isLoaded) { return; }
+    var drawSkybox = function (dir, xrot, yrot, modMat, projMat) {// (projMat, modMat) {
+        if (!isLoaded || false) { return; }
 
         //console.log('drawed dasky?');
         var skyg_l = skygl;
@@ -101,19 +105,59 @@ float srgb(float v)
         ////skyg_l.clear(skyg_l.COLOR_BUFFER_BIT); //return;
         //if (++request % 2 != 0) { return; }
 
-        skyg_l.uniform3f(uniform_camera_up, camera.up[0], camera.up[1], camera.up[2]);
+        //var rotation = glMatrix.mat4.create();
+        //mat4.rotate(rotation, rotation, 0.01 * 0.1, [0, 1, 0]);
+        //camera.right = xrot;//lin3Transform(rotation, camera.right)
+        //camera.dir = dir;//camera.dir;//lin3Transform(rotation, camera.dir)
+        //camera.up = yrot;
 
-        var rotation = glMatrix.mat4.create();
-        mat4.rotate(rotation, rotation, 0.01 * 0.1, [0, 1, 0]);
-        camera.right = lin3Transform(rotation, camera.right)
-        camera.dir = lin3Transform(rotation, camera.dir)
 
+        //var movemat = glMatrix.mat4.create();
+        //var tempy = glMatrix.mat4.create();
+        ////glMatrix.mat4.invert(tempy, modMat);
+        ////glMatrix.mat4.invert(movemat, projMat);
+        ////glMatrix.mat4.transpose(tempy, tempy);
+        //glMatrix.mat4.multiply(tempy, projMat, modMat);
+
+        //var notra = glMatrix.mat4.create();
+        //var unvec = glMatrix.vec3.create();
+        //glMatrix.mat4.getTranslation(unvec, modMat);
+        //glMatrix.mat4.translate(notra,     // destination matrix
+        //    modMat,     // matrix to translate
+        //    -unvec);
+        //var rotemp = glMatrix.mat3.create();
+        //glMatrix.mat3.fromMat4(tempy, notra);
+        //camera.right = xrot;//lin3Transform(notra, [1.0, 0.0, 0.0]);   //lin3TransformMat3(rotemp, [1.0, 0.0, 0.0]);//xrot;//lin3Transform(rotation, camera.right)
+        ////camera.right = [camera.right[0], 0.0, camera.right[2]]
+        //camera.dir = lin3TransformMat3(tempy, [0.0, 0.0, -1.0]);//glMatrix.vec3.normalize(camera.dir, lin3Transform(notra, [0.0, 0.0, -1.0]));//lin3TransformMat3(rotemp, [0.0, 0.0, -1.0]);//dir;//camera.dir;//lin3Transform(rotation, camera.dir)
+        ////camera.up = yrot;//lin3Transform(notra, [0.0, 1.0, 0.0]);//lin3TransformMat3(rotemp, [0.0, 1.0, 0.0])//yrot;
+        //glMatrix.vec3.cross(camera.up, camera.right, camera.dir);//glMatrix.vec3.normalize(camera.up, glMatrix.vec3.cross(camera.up, camera.right, camera.dir));
+        //if (++request % 160 == 0) {
+        //    console.log('angles');
+        //    console.log(camera.up);
+        //    console.log(camera.right);
+        //    console.log(camera.dir);
+        //}
+
+        camera.right = [modMat[0], modMat[4], modMat[8]];
+        camera.up = [modMat[1], modMat[5], modMat[9]];        
+        glMatrix.vec3.normalize(camera.dir, glMatrix.vec3.cross(camera.dir, camera.up, camera.right));
+
+        skyg_l.uniform3fv(uniform_camera_up, camera.up);//[0], camera.up[1], camera.up[2]);
         skyg_l.uniform3fv(uniform_camera_right, camera.right);//camera.right[0], camera.right[1], camera.right[2]);
         skyg_l.uniform3fv(uniform_camera_origin, camera.origin);//[0], camera.origin[1], camera.origin[2]);
         skyg_l.uniform3fv(uniform_camera_dir, camera.dir);//[0], camera.dir[1], camera.dir[2]);
         skyg_l.uniform1f(uniform_camera_near, camera.near);
         skyg_l.uniform1f(uniform_camera_far, 190.0);//camera.far);
         skyg_l.uniform1i(uniform_cubemap, 0);
+
+        //this way is promising but not complete
+        //var temper = glMatrix.mat3.create();
+        //glMatrix.mat3.fromMat4(temper, modMat);
+        //glMatrix.mat3.transpose(temper, temper);
+        //glMatrix.mat3.invert(temper, temper);
+        //skyg_l.uniformMatrix3fv(uniform_modelViewMatrix, false, temper);
+
         skyg_l.bindBuffer(skyg_l.ARRAY_BUFFER, quad_buffer);
         skyg_l.vertexAttribPointer(attribute_vertex_position, 2, skyg_l.FLOAT, false, 0, 0);
         skyg_l.drawArrays(skyg_l.TRIANGLE_STRIP, 0, 4);
@@ -167,6 +211,7 @@ float srgb(float v)
         uniform_camera_near = skygl.getUniformLocation(program, "uniform_camera_near");
         uniform_camera_far = skygl.getUniformLocation(program, "uniform_camera_far");
         uniform_cubemap = skygl.getUniformLocation(program, "uniform_cubemap");
+        uniform_modelViewMatrix = skygl.getUniformLocation(program, "uModelviewMatrix");
 
         skyprogram = program;
     }

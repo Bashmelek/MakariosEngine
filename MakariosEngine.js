@@ -60,35 +60,6 @@ const vsSource = `
             }
         `;
 
-//skybox code taken primarily from https://webgl2fundamentals.org/webgl/lessons/webgl-skybox.html just a few personal changes
-// this includes these two shaders, and more that I will try to mention each time
-
-//lifted from https://github.com/lesnitsky/webgl-month/blob/dev/src/shaders/skybox.v.glsl
-//    var skyboxVsSource = `//#version 300 es
-//            attribute vec3 position;
-//            varying vec3 vTexCoord;
-
-//            uniform mat4 projectionMatrix;
-//            uniform mat4 viewMatrix;
-
-//            void main() {
-//                vTexCoord = position;
-//                gl_Position = projectionMatrix * viewMatrix * vec4(position, 0.01);
-//    }
-//    `;
-
-//// lifted from same repo, at https://github.com/lesnitsky/webgl-month/blob/dev/src/shaders/skybox.f.glsl
-//    var skyboxFsSource = `//#version 300 es
-//        precision mediump float;
-
-//        varying vec3 vTexCoord;
-//        uniform samplerCube skybox;
-
-//        void main() {
-//            gl_FragColor = textureCube(skybox, vTexCoord);
-//        }
-//    `;
-
 
 //
 // Initialize a shader program, so WebGL knows how to draw our data
@@ -343,6 +314,11 @@ var rez2 = [0, 0, 0, 0];
 var gproj;
 var gmod;
 var mainLight;
+var xrot = [1.0, 0.0, 0.0];
+var yrot = [0.0, 1.0, 0.0];
+var dir = [0.0, 0.0, -1.0];
+var updir = [0.0, 1.0, 0.0];
+
 function drawScene(gl, programInfo, buffers, deltaTime) {
     gl.clearColor(0.0, 0.0, 0.0, 1.0);  // Clear to black, fully opaque
     gl.clearDepth(1.0);                 // Clear everything
@@ -352,9 +328,6 @@ function drawScene(gl, programInfo, buffers, deltaTime) {
     // Clear the canvas before we start drawing on it.
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-    SkyboxRenderer.drawSkybox();
-    gl.useProgram(programInfo.program);
-    //gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
     // Create a perspective matrix, a special matrix that is
     // used to simulate the distortion of perspective in a camera.
@@ -393,6 +366,12 @@ function drawScene(gl, programInfo, buffers, deltaTime) {
             [-0.0, 0.0, -22.0]);  // amount to translate
         //mat4.rotate(modelViewMatrix, modelViewMatrix, cubeRotation * 1.9, [.3, 1, 0]);
     }
+
+    if (StageData.skybox || true) {
+        SkyboxRenderer.drawSkybox(dir, xrot, yrot, modelViewMatrix, projectionMatrix);//(projectionMatrix, modelViewMatrix);
+        gl.useProgram(programInfo.program);
+    }
+
 
     const normalMatrix = mat4.create();
 
@@ -519,9 +498,6 @@ function drawScene(gl, programInfo, buffers, deltaTime) {
     gl.activeTexture(gl.TEXTURE0);
     RenderObjects(gl, programInfo, StageData.objects, mat4.create()/*modelViewMatrix*/, 0.0, { val: 0 }, mat4.create());
 
-    ////SkyboxRenderer.drawSkybox();
-    ////gl.useProgram(programInfo.program);
-
     gproj = projectionMatrix;
     gmod = modelViewMatrix;
 }
@@ -618,11 +594,9 @@ function main() {
     gl.clearColor(0.0, 1.0, 1.0, 1.0);
     gl.clear(gl.COLOR_BUFFER_BIT);
 
-    SkyboxRenderer.drawSkybox(gl);
 
     // Initialize a shader program; this is where all the lighting
     // for the vertices and so forth is established.
-    const skyboxProgram = {};// = initShaderProgram(gl, skyboxVsSource, skyboxFsSource);
     const mainShaderProgram = initShaderProgram(gl, vsSource, fsSource);
 
     // Collect all the info needed to use the shader program.
@@ -630,7 +604,6 @@ function main() {
     // for aVertexPosition and look up uniform locations.
     const programInfo = {
         program: mainShaderProgram,
-        skyboxProgram: skyboxProgram,
         attribLocations: {
             vertexPosition: gl.getAttribLocation(mainShaderProgram, 'aVertexPosition'),
             textureCoord: gl.getAttribLocation(mainShaderProgram, 'aTextureCoord'),
@@ -893,6 +866,21 @@ onmousemove = function (e) {
 
         mat4.rotate(gmod, gmod, (e.clientX - lastmousedownpoint.x) * 0.001, [gmod[1], gmod[5], gmod[9]]);//[0, 1, 0]);//linTransform(gproj, [0, 1, 0]));// [0, 1, 0]);//linTransform(origmod, [0, 1, 0]));// [0, 1, 0]);
         mat4.rotate(gmod, gmod, (e.clientY - lastmousedownpoint.y) * 0.001, [gmod[0], gmod[4], gmod[8]]);//[1, 0, 0]);//linTransform(gproj, [1, 0, 0]));// [1, 0, 0]);//linTransform(origmod, [1, 0, 0]));
+
+        /*var xrotation = glMatrix.mat4.create();
+        mat4.rotate(xrotation, xrotation, (e.clientX - lastmousedownpoint.x) * 0.001, [0.0, 1.0, 0.0]);
+        var yrotation = glMatrix.mat4.create();
+        mat4.rotate(yrotation, yrotation, (e.clientY - lastmousedownpoint.y) * 0.001, [1.0, 0.0, 0.0]);
+
+        xrot = lin3Transform(xrotation, xrot);
+        xrot = lin3Transform(yrotation, xrot);
+        yrot = lin3Transform(xrotation, yrot);
+        yrot = lin3Transform(yrotation, yrot);
+        dir = lin3Transform(xrotation, dir);
+        dir = lin3Transform(yrotation, dir);*/
+        //console.log(e.clientX - lastmousedownpoint.x);
+
+
         lastmousedownpoint = { x: e.clientX, y: e.clientY };
     }
 }
@@ -950,7 +938,7 @@ function lin3Transform(mat4For3, vec3sarray) {
         var vstart = i * 3;
         var rez = [vec3sarray[vstart] * mat[0] + vec3sarray[vstart + 1] * mat[4] + vec3sarray[vstart + 2] * mat[8],
         vec3sarray[vstart] * mat[1] + vec3sarray[vstart + 1] * mat[5] + vec3sarray[vstart + 2] * mat[9],
-        vec3sarray[vstart] * mat[2] + vec3sarray[vstart + 1] * mat[7] + vec3sarray[vstart + 2] * mat[10]];
+        vec3sarray[vstart] * mat[2] + vec3sarray[vstart + 1] * mat[6] + vec3sarray[vstart + 2] * mat[10]];
         //console.log( (320 + 320 * rez[0]) + ' ,' + (240 + 240 * rez[1]));
         transformedArray[i * 3] = (rez[0]);
         transformedArray[i * 3 + 1] = (rez[1]);
@@ -968,7 +956,7 @@ function lin3TransformMat3(mat, vec3sarray) {
     for (var i = 0; i < psize; i++) {
         var vstart = i * 3;
         var rez = [vec3sarray[vstart] * mat[0] + vec3sarray[vstart + 1] * mat[3] + vec3sarray[vstart + 2] * mat[6],
-        vec3sarray[vstart] * mat[1] + vec3sarray[vstart + 1] * mat[4] + vec3sarray[vstart + 2] * mat[6],
+        vec3sarray[vstart] * mat[1] + vec3sarray[vstart + 1] * mat[4] + vec3sarray[vstart + 2] * mat[7],
         vec3sarray[vstart] * mat[2] + vec3sarray[vstart + 1] * mat[5] + vec3sarray[vstart + 2] * mat[8]];
         //console.log( (320 + 320 * rez[0]) + ' ,' + (240 + 240 * rez[1]));
         transformedArray[i * 3] = (rez[0]);
