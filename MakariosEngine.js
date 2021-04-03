@@ -60,6 +60,36 @@ const vsSource = `
             }
         `;
 
+//skybox code taken primarily from https://webgl2fundamentals.org/webgl/lessons/webgl-skybox.html just a few personal changes
+// this includes these two shaders, and more that I will try to mention each time
+
+//lifted from https://github.com/lesnitsky/webgl-month/blob/dev/src/shaders/skybox.v.glsl
+    var skyboxVsSource = `//#version 300 es
+            attribute vec3 position;
+            varying vec3 vTexCoord;
+
+            uniform mat4 projectionMatrix;
+            uniform mat4 viewMatrix;
+
+            void main() {
+                vTexCoord = position;
+                gl_Position = projectionMatrix * viewMatrix * vec4(position, 0.01);
+    }
+    `;
+
+// lifted from same repo, at https://github.com/lesnitsky/webgl-month/blob/dev/src/shaders/skybox.f.glsl
+    var skyboxFsSource = `//#version 300 es
+        precision mediump float;
+
+        varying vec3 vTexCoord;
+        uniform samplerCube skybox;
+
+        void main() {
+            gl_FragColor = textureCube(skybox, vTexCoord);
+        }
+    `;
+
+
 //
 // Initialize a shader program, so WebGL knows how to draw our data
 //
@@ -578,7 +608,7 @@ function main() {
 
     // Initialize a shader program; this is where all the lighting
     // for the vertices and so forth is established.
-    const skyboxProgram = initShaderProgram(gl, vsSource, fsSource);
+    const skyboxProgram = {};// = initShaderProgram(gl, skyboxVsSource, skyboxFsSource);
     const mainShaderProgram = initShaderProgram(gl, vsSource, fsSource);
 
     // Collect all the info needed to use the shader program.
@@ -586,6 +616,7 @@ function main() {
     // for aVertexPosition and look up uniform locations.
     const programInfo = {
         program: mainShaderProgram,
+        skyboxProgram: skyboxProgram,
         attribLocations: {
             vertexPosition: gl.getAttribLocation(mainShaderProgram, 'aVertexPosition'),
             textureCoord: gl.getAttribLocation(mainShaderProgram, 'aTextureCoord'),
