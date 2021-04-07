@@ -67,7 +67,7 @@ float srgb(float v)
 
 
     ////var canvas, gl, attribute_vertex_position, quad_buffer;
-    var skygl;
+    var skygl, attribute_vertex_position, quad_buffer;
 
     var skyprogram;
 
@@ -245,9 +245,20 @@ float srgb(float v)
         }
     };
 
+    var useSkybox = function (folderurl) {
+        StageData.skybox = null;
+        isLoaded = false;
+        var cubemap = [];
+        var sides = ["posx", "negx", "posy", "negy", "posz", "negz"];
+        for (var i = 0; i < 6; i++)
+            cubemap.push(folderurl + "/" + sides[i] + ".jpg");//cubemap.push("cubemap" + "/" + sides[i] + ".jpg");
+        load_cubemap(cubemap);
+        StageData.skybox = folderurl;
+    }
+
 
     var initialize = (function () {
-        canvas = document.getElementById("glCanvas");
+        var canvas = document.getElementById("glCanvas");
         skygl = canvas.getContext("webgl");
         if (!skygl)
             skygl = canvas.getContext("experimental-webgl");
@@ -266,11 +277,18 @@ float srgb(float v)
 
         compileSkyboxRenderer();
 
-        var cubemap = [];
-        var sides = ["posx", "negx", "posy", "negy", "posz", "negz"];
-        for (var i = 0; i < 6; i++)
-            cubemap.push("skybox" + "/" + sides[i] + ".jpg");//cubemap.push("cubemap" + "/" + sides[i] + ".jpg");
-        load_cubemap(cubemap);
+        //note from https://learnopengl.com/Advanced-OpenGL/Cubemaps yes its opengl and not webgl but close enough right!
+        //GL_TEXTURE_CUBE_MAP_POSITIVE_X 	Right
+        //GL_TEXTURE_CUBE_MAP_NEGATIVE_X 	Left
+        //GL_TEXTURE_CUBE_MAP_POSITIVE_Y 	Top
+        //GL_TEXTURE_CUBE_MAP_NEGATIVE_Y 	Bottom
+        //GL_TEXTURE_CUBE_MAP_POSITIVE_Z 	Back
+        //GL_TEXTURE_CUBE_MAP_NEGATIVE_Z 	Front
+        //var cubemap = [];
+        //var sides = ["posx", "negx", "posy", "negy", "posz", "negz"];
+        //for (var i = 0; i < 6; i++)
+        //    cubemap.push("penguins (26)" + "/" + sides[i] + ".jpg");//cubemap.push("cubemap" + "/" + sides[i] + ".jpg");
+        //load_cubemap(cubemap);
 
         console.log('starten skyboxxer');
         //draw();
@@ -280,6 +298,7 @@ float srgb(float v)
         //document.addEventListener("mouseup", mouse_up, false);
     })();
 
-    return { 'drawSkybox': drawSkybox}
+    return {
+        'drawSkybox': drawSkybox, 'useSkybox': useSkybox }
 
 })();

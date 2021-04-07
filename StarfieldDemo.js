@@ -23,6 +23,9 @@ const StarfieldDemo = (function () {
     var Init = function () {
         StageData.ticks = 0;
         Makarios.writeToUI();
+        //SkyboxRenderer.useSkybox = null;
+        //StageData.skybox = null;
+
         // Makarios.instantiate(Primitives.shapes["tetrahedron"], 'grumpycss.jpg', disappearingItem, {});
         //Makarios.instantiate(Primitives.shapes["cube"], 'grumpycss.jpg', null, {});//'meeseeks can do.jpg'
 

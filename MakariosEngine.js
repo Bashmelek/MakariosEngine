@@ -7,14 +7,33 @@ const fsSource = `
             varying highp vec2 vTextureCoord;
             varying highp vec3 vLighting;
 
+            uniform mediump float ucelStep;
+
             uniform sampler2D uSampler;
+            //uniform mediump float urandomSeed1;
 
             void main(void) {
-                //gl_FragColor = vColor;//vec4(1.0, 0.0, 0.0, 1.0);
-                ////gl_FragColor = texture2D(uSampler, vTextureCoord);
                 highp vec4 texelColor = texture2D(uSampler, vTextureCoord);
-                //can use texelColor.bgr for fun effects
+
                 gl_FragColor = vec4(texelColor.rgb * vLighting, texelColor.a);
+
+//                if(urandomSeed1 > 1.0){
+//                highp float randy1 = mod((texelColor[0] + texelColor[1] + texelColor[2] + vTextureCoord[0] + vTextureCoord[1]) * urandomSeed1, 20.0);// / 12.0; 
+//                if(randy1 > 10.0)
+//                {
+//                    randy1 -= 20.0;
+//                }
+//    randy1 = min(0.2, randy1 / 320.0);
+//gl_FragColor[0] += randy1;
+//gl_FragColor[1] += randy1;
+//gl_FragColor[2] += randy1;
+//}
+                if(ucelStep > 1.0)
+                {
+                    //ugly with most textures...needs a better way but good enough for now
+                    //gl_FragColor = vec4(1.0, 1.0, 0.0, texelColor.a);;//
+                    gl_FragColor = vec4(ceil(gl_FragColor[0] * ucelStep) / ucelStep, ceil(gl_FragColor[1] * ucelStep) / ucelStep, ceil(gl_FragColor[2] * ucelStep) / ucelStep, gl_FragColor[3]);
+                }
             }
         `;
 
@@ -44,6 +63,9 @@ const vsSource = `
                 else {
                     gl_Position = uProjectionMatrix * uParentMatrix * aVertexPosition;//aVertexPosition;//uProjectionMatrix * uParentMatrix * aVertexPosition;
                 }
+                //gl_Position = uModelViewMatrix * aVertexPosition;
+                //gl_Position[2] = -1.9;
+                //gl_Position = uProjectionMatrix * uModelViewMatrix * aVertexPosition;//vec4(-0.9, -0.9, -0.9, 1.0);
                 //gl_Position[0] += -4.0;
                 //gl_Position[1] += -4.0;
                 //gl_Position[2] += -14.0;
@@ -119,6 +141,7 @@ function loadShader(gl, type, source) {
 
 var ggl = {};
 var gtextureCoordBuffer = {};
+var globalMainProgramInfo = {};
 function initBuffers(gl) {
     ggl = gl;
     // Create a buffer for the square's positions.
@@ -240,6 +263,11 @@ function initBuffers(gl) {
         indices: indexBuffer,
         normal: normalBuffer,
         useParentMatrix: useParentMatrixBuffer,
+
+        positionData: positions,
+        normalData: vertexNormals,
+        indexData: indices,
+        useParentData: useParentMatrix,
     };
 }
 
@@ -367,9 +395,14 @@ function drawScene(gl, programInfo, buffers, deltaTime) {
         //mat4.rotate(modelViewMatrix, modelViewMatrix, cubeRotation * 1.9, [.3, 1, 0]);
     }
 
-    if (StageData.skybox || true) {
+    if (StageData.skybox || false) {
         SkyboxRenderer.drawSkybox(dir, xrot, yrot, modelViewMatrix, projectionMatrix);//(projectionMatrix, modelViewMatrix);
         gl.useProgram(programInfo.program);
+    }
+
+    if (typeof OutlineRenderer !== 'undefined') {
+        OutlineRenderer.drawOutline(modelViewMatrix, projectionMatrix, buffers.positionData, buffers.normalData, buffers.indexData, buffers.useParentData, StageData.objects);
+        gl.useProgram(programInfo.program); //return;
     }
 
 
@@ -496,6 +529,8 @@ function drawScene(gl, programInfo, buffers, deltaTime) {
         modelViewMatrix);
     // Tell WebGL we want to affect texture unit 0
     gl.activeTexture(gl.TEXTURE0);
+    gl.uniform1f(programInfo.uniformLocations.matrixLevel, 0.0);
+    //gl.uniform1f(programInfo.uniformLocations.urandomSeed1, Math.floor(Math.random() * 1000.0));
     RenderObjects(gl, programInfo, StageData.objects, mat4.create()/*modelViewMatrix*/, 0.0, { val: 0 }, mat4.create());
 
     gproj = projectionMatrix;
@@ -551,7 +586,7 @@ function RenderObjects(gl, programInfo, objects, parentmatrix, depth, offsetHold
 
         // Tell the shader we bound the texture to texture unit 0
         gl.uniform1i(programInfo.uniformLocations.uSampler, 0);
-        gl.uniform1f(programInfo.uniformLocations.matrixLevel, depth);
+        //gl.uniform1f(programInfo.uniformLocations.matrixLevel, depth);
         {
             const vertexCount = objects[oj].indices.length;//36;
             const type = gl.UNSIGNED_SHORT;
@@ -568,7 +603,9 @@ function RenderObjects(gl, programInfo, objects, parentmatrix, depth, offsetHold
                 false,
                 mat0);
             //console.log(objects[oj].children[0]);
+            gl.uniform1f(programInfo.uniformLocations.matrixLevel, depth + 1.0);
             RenderObjects(gl, programInfo, objects[oj].children, mat0, depth + 1.0, offsetHolder, thisMatForNorm);
+            gl.uniform1f(programInfo.uniformLocations.matrixLevel, depth);
             gl.uniformMatrix4fv(
                 programInfo.uniformLocations.parentMatrix,
                 false,
@@ -614,12 +651,17 @@ function main() {
             projectionMatrix: gl.getUniformLocation(mainShaderProgram, 'uProjectionMatrix'),
             modelViewMatrix: gl.getUniformLocation(mainShaderProgram, 'uModelViewMatrix'),
             uSampler: gl.getUniformLocation(mainShaderProgram, 'uSampler'),
+            //urandomSeed1: gl.getUniformLocation(mainShaderProgram, 'urandomSeed1'),
+            ucelStep: gl.getUniformLocation(mainShaderProgram, 'ucelStep'),
             normalMatrix: gl.getUniformLocation(mainShaderProgram, 'uNormalMatrix'),
             parentMatrix: gl.getUniformLocation(mainShaderProgram, 'uParentMatrix'),
             matrixLevel: gl.getUniformLocation(mainShaderProgram, 'uMatrixLevel'),
             lightDirection: gl.getUniformLocation(mainShaderProgram, 'uLightDirection'),
         },
     };
+    globalMainProgramInfo = programInfo;
+    const buffers = initBuffers(gl);
+
 
     // Here's where we call the routine that builds all the
     // objects we'll be drawing.
@@ -628,7 +670,6 @@ function main() {
     console.log('startergo');
     theGame.Init();
 
-    const buffers = initBuffers(gl);
     // Load texture
     //const texture = loadTexture(gl, 'grumpycss.jpg');//png?
     //const texture2 = loadTexture(gl, 'meeseeks can do.jpg');//png?
@@ -662,6 +703,7 @@ function main() {
 
         const buffers = initBuffers(gl);
 
+        //globalMainProgramInfo = programInfo;
         drawScene(gl, programInfo, buffers, deltaTime);
 
         requestAnimationFrame(render);
@@ -1054,6 +1096,11 @@ const Makarios = (function () {
     }
     self.destroy = function (inst) {
         StageData.destroy(inst);
+    }
+
+    self.setStepsForCelShading = function (stepCount) {
+        ggl.useProgram(globalMainProgramInfo.program);
+        ggl.uniform1f(globalMainProgramInfo.uniformLocations.ucelStep, stepCount);
     }
 
     self.writeToUI = function (text, pos, font, dontClear) {
