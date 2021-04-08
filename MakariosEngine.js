@@ -143,6 +143,8 @@ var ggl = {};
 var gtextureCoordBuffer = {};
 var globalMainProgramInfo = {};
 var uiState = { hasany: false };
+var halfheight = 240;
+var halfwidth = 320;
 
 function initBuffers(gl) {
     ggl = gl;
@@ -638,6 +640,9 @@ function resizeCanvas() {
         canvas.height = weightedHeight;// height;
         // in this case just render when the window is resized.
         //render();
+
+        halfheight = weightedHeight / 2;
+        halfwidth = weightedWidth / 2;
     }
     if (ui.width != weightedWidth ||
         ui.height != weightedHeight || true) {
@@ -966,8 +971,7 @@ onmousemove = function (e) {
     }
 }
 
-var halfheight = 240;
-var halfwidth = 320;
+
 function getAllScreenCoords(mat, vec3sarray) {
     var psize = vec3sarray.length / 3;
     var transformedArray = new Array(vec3sarray.length);
