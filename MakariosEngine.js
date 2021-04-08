@@ -142,6 +142,8 @@ function loadShader(gl, type, source) {
 var ggl = {};
 var gtextureCoordBuffer = {};
 var globalMainProgramInfo = {};
+var uiState = { hasany: false };
+
 function initBuffers(gl) {
     ggl = gl;
     // Create a buffer for the square's positions.
@@ -616,6 +618,43 @@ function RenderObjects(gl, programInfo, objects, parentmatrix, depth, offsetHold
 
 
 
+//shoutout credit to https://stackoverflow.com/questions/13870677/resize-viewport-canvas-according-to-browser-window-size for this!
+function resizeCanvas() {
+    const canvas = document.querySelector('#glCanvas');
+    const ui = document.querySelector('#uiCanvas');//uiCanvas
+
+    //4:3 ratio
+    //basewidth: 640 4
+    //baseheight: 480 3
+    var weightedWidth = Math.min(window.innerWidth * 0.7, 0.9 * window.innerHeight * 4.0 / 3.0);
+    var weightedHeight = Math.min(window.innerHeight * 0.9, 0.7 * window.innerWidth * 3.0 / 4.0);
+
+    //var width = canvas.clientWidth;
+    //var height = canvas.clientHeight;
+    if (canvas.width != weightedWidth ||
+        canvas.height != weightedHeight || true) {
+        console.log('sizer up!');
+        canvas.width = weightedWidth;//width;
+        canvas.height = weightedHeight;// height;
+        // in this case just render when the window is resized.
+        //render();
+    }
+    if (ui.width != weightedWidth ||
+        ui.height != weightedHeight || true) {
+        ui.width = weightedWidth;//width;
+        ui.height = weightedHeight;//height;
+        if (uiState.hasany) {
+            Makarios.writeToUI();
+        }
+    }
+
+}
+
+window.addEventListener('resize', resizeCanvas);
+
+
+
+
 function main() {
     const canvas = document.querySelector('#glCanvas');
     const ui = document.querySelector('#uiCanvas');//uiCanvas
@@ -661,7 +700,7 @@ function main() {
     };
     globalMainProgramInfo = programInfo;
     const buffers = initBuffers(gl);
-
+    resizeCanvas();
 
     // Here's where we call the routine that builds all the
     // objects we'll be drawing.
@@ -1109,9 +1148,16 @@ const Makarios = (function () {
         gui.clearRect(0, 0, ui.width, ui.height);
         gui.fillStyle = '#DDBB00';//;'yellow';
         //gui.fillRect(10, 10, 100, 100);// + 400 - now * 10000);
-        gui.font = 'bold small-caps 28px serif';
+
+        //base was 28 for height 480 (at 4:3) so 120 - 7
+        var newfontsize = (Math.floor(ui.height * 7.0 / 120.0) * 1).toString();
+        console.log(newfontsize);
+        gui.font = 'bold small-caps ' + newfontsize + 'px serif';
         gui.textBaseline = 'hanging';
-        gui.fillText('Welcome to Makarios Labs', ui.width / 4.2, ui.height / 2.1);
+        gui.textAlign = 'center';
+        //gui.fillText('Welcome to Makarios Labs', ui.width / 4.2, ui.height / 2.1);
+        gui.fillText('Welcome to Makarios Labs', ui.width / 2.0, ui.height / 2.1);
+        uiState.hasany = true;
     }
 
     return self;
