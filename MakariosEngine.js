@@ -350,6 +350,7 @@ var xrot = [1.0, 0.0, 0.0];
 var yrot = [0.0, 1.0, 0.0];
 var dir = [0.0, 0.0, -1.0];
 var updir = [0.0, 1.0, 0.0];
+var camDist;
 
 function drawScene(gl, programInfo, buffers, deltaTime) {
     gl.clearColor(0.0, 0.0, 0.0, 1.0);  // Clear to black, fully opaque
@@ -396,6 +397,7 @@ function drawScene(gl, programInfo, buffers, deltaTime) {
         mat4.translate(modelViewMatrix,     // destination matrix
             modelViewMatrix,     // matrix to translate
             [-0.0, 0.0, -22.0]);  // amount to translate
+        camDist = 22.0;
         //mat4.rotate(modelViewMatrix, modelViewMatrix, cubeRotation * 1.9, [.3, 1, 0]);
     }
 
@@ -815,6 +817,39 @@ window.addEventListener("keyup", function (e) {
     }
 })
 
+//thank you https://developer.mozilla.org/en-US/docs/Web/API/Element/wheel_event
+window.addEventListener("wheel", function (event) {
+
+    var scrollDiff = event.deltaY * 0.01;
+
+    var oldDist = camDist;
+    camDist += scrollDiff;//1.0;
+    //console.log(gmod);
+    //console.log(camDist);
+    if (camDist < 2.0) {
+        camDist = 2.0;
+    } else if (camDist > 70.0) {
+        camDist = 70.0;
+    }
+
+    var distDel = camDist - oldDist;
+    if (distDel == 0.0) {
+        return;
+    }
+
+    //var tra = glMatrix.vec3.create();
+    //mat4.getTranslation(tra, gmod);
+    //var mag = Math.sqrt(tra[0] * tra[0] + tra[1] * tra[1] + tra[2] * tra[2]);
+    //console.log(tra);
+    //var unit = [tra[0] / mag, tra[1] / mag, tra[2] / mag];
+    //var vecDel = [unit[0] * distDel, unit[1] * distDel, unit[2] * distDel]
+
+    gmod[14] -= distDel;
+    //mat4.translate(gmod,     // destination matrix
+    //    gmod,     // matrix to translate
+    //    vecDel);
+})
+
 
 window.addEventListener("click", function (e) {
     //console.log('clicky');
@@ -835,13 +870,13 @@ window.addEventListener("click", function (e) {
         var objmatrix = mat4.create();
         mat4.multiply(objmatrix, basematrix, StageData.objects[objindex].matrix);
 
-        recursiveCheckAllObjectsIfScreenPointHits(StageData.objects[objindex], null, objmatrix, [], hitstuff, { x: e.clientX, y: e.clientY });
+        recursiveCheckAllObjectsIfScreenPointHits(StageData.objects[objindex], null, objmatrix, [], hitstuff, { x: e.clientX, y: e.clientY }, []);
     }
     //console.log(tricount);
     //console.log(hitstuff);
 })
 
-function recursiveCheckAllObjectsIfScreenPointHits(object, parent, itsfullmatrix, inheritedcoords, hitstuff, testpoint) {
+function recursiveCheckAllObjectsIfScreenPointHits(object, parent, itsfullmatrix, inheritedcoords, hitstuff, testpoint, inheritedTextCoordsList) {
 
     var tricount = object.indices.length / 3;
 
@@ -885,52 +920,88 @@ function recursiveCheckAllObjectsIfScreenPointHits(object, parent, itsfullmatrix
         if (rez.didHit) {
             hitstuff.tris.push({ triid: c, z: rez.hitz });
             myhittris.push({ triid: c, z: rez.hitz });
+
+
+            console.log('hit: ' + object.id.toString() + ' at ' + rez.hitz.toString() + ' ' + c.toString())
+            console.log({
+                a: { x: screencoords[object.indices[c * 3 + 0] * 3 + 0], y: screencoords[object.indices[c * 3 + 0] * 3 + 1] },
+                b: { x: screencoords[object.indices[c * 3 + 1] * 3 + 0], y: screencoords[object.indices[c * 3 + 1] * 3 + 1] },
+                c: { x: screencoords[object.indices[c * 3 + 2] * 3 + 0], y: screencoords[object.indices[c * 3 + 2] * 3 + 1] },
+            });
+            if (!beenhit) {
+                hitstuff.objects.push(object.id);
+                beenhit = true;
+                //console.log('hit: ' + object.id.toString() + ' at ' + rez.hitz.toString())
+                //console.log({
+                //    a: { x: screencoords[object.indices[c * 3 + 0] * 3 + 0], y: screencoords[object.indices[c * 3 + 0] * 3 + 1] },
+                //    b: { x: screencoords[object.indices[c * 3 + 1] * 3 + 0], y: screencoords[object.indices[c * 3 + 1] * 3 + 1] },
+                //    c: { x: screencoords[object.indices[c * 3 + 2] * 3 + 0], y: screencoords[object.indices[c * 3 + 2] * 3 + 1] },
+                //});
+            }
         }
-        if (!beenhit) {
-            hitstuff.objects.push(object.id);
-            beenhit = true;
-            //console.log({
-            //    a: { x: screencoords[object.indices[c * 3 + 0] * 3 + 0], y: screencoords[object.indices[c * 3 + 0] * 3 + 1] },
-            //    b: { x: screencoords[object.indices[c * 3 + 1] * 3 + 0], y: screencoords[object.indices[c * 3 + 1] * 3 + 1] },
-            //    c: { x: screencoords[object.indices[c * 3 + 2] * 3 + 0], y: screencoords[object.indices[c * 3 + 2] * 3 + 1] },
-            //});
-        }
+        //this part wasnt commented out...why?
+        //if (!beenhit) {
+        //    hitstuff.objects.push(object.id);
+        //    beenhit = true;
+        //    console.log('hit: ' + object.id.toString())
+        //    console.log({
+        //        a: { x: screencoords[object.indices[c * 3 + 0] * 3 + 0], y: screencoords[object.indices[c * 3 + 0] * 3 + 1] },
+        //        b: { x: screencoords[object.indices[c * 3 + 1] * 3 + 0], y: screencoords[object.indices[c * 3 + 1] * 3 + 1] },
+        //        c: { x: screencoords[object.indices[c * 3 + 2] * 3 + 0], y: screencoords[object.indices[c * 3 + 2] * 3 + 1] },
+        //    });
+        //}
 
     }
 
     if (beenhit) {
         //get closest one in clip space aka normalized device coordinates ndc
-        var lowestztri = { triid: 0, z: 9999 };
+        var lowestztri = { triid: 0, z: 9999.0 };
         for (var zt = 0; zt < myhittris.length; zt++) {
-            if (lowestztri.z > myhittris[zt].z) {
+            if (lowestztri.z > myhittris[zt].z) {//&& myhittris[zt].triid < object.indices.length / 3
                 lowestztri = myhittris[zt];
             }
         }
 
         //var lowest
-        if (lowestztri.z != 9999 && object.indices[lowestztri.triid * 3] >= (parentcoords.length / 3)) {
-            object.textureCoordinates[(object.indices[lowestztri.triid * 3 + 0]) * 2] = object.textureCoordinates[(object.indices[lowestztri.triid * 3 + 0]) * 2] == 1.0 ? 0.0 : 1.0;
-
-            ////const textureCoordBuffer = ggl.createBuffer();
-            ggl.bindBuffer(ggl.ARRAY_BUFFER, gtextureCoordBuffer);
-
-            var textureCoordinates = [];
-            for (var tobs = 0; tobs < StageData.objects.length; tobs++) {
-                if (!StageData.objects[tobs]) { continue; }
-                var oldcount = textureCoordinates.length;
-                textureCoordinates = textureCoordinates.concat(StageData.objects[tobs].textureCoordinates);
-                for (var tobsi = 0; tobsi < StageData.objects[tobs].children.length; tobsi++) {
-                    textureCoordinates = textureCoordinates.concat(StageData.objects[tobs].children[tobsi].textureCoordinates);
+        if (lowestztri.z != 9999.0 && object.indices[lowestztri.triid * 3] >= (parentcoords.length / 3.0)) {
+            if (inheritedTextCoordsList.length > 0) {
+                var indexToUse = (object.indices[lowestztri.triid * 3 + 0]) * 2;
+                var coordsCount = 0;
+                for (var it = 0; it < inheritedTextCoordsList.length; it++) {
+                    if (coordsCount + inheritedTextCoordsList[it].length <= indexToUse) {
+                        coordsCount += inheritedTextCoordsList[it].length;
+                    } else {
+                        inheritedTextCoordsList[it][indexToUse - coordsCount] = inheritedTextCoordsList[it][indexToUse - coordsCount] == 1.0 ? 0.0 : 1.0;
+                        it = inheritedTextCoordsList.length - 1;
+                    }
                 }
+            } else {
+                object.textureCoordinates[(object.indices[lowestztri.triid * 3 + 0]) * 2] = object.textureCoordinates[(object.indices[lowestztri.triid * 3 + 0]) * 2] == 1.0 ? 0.0 : 1.0;
             }
 
-            ggl.bufferData(ggl.ARRAY_BUFFER, new Float32Array(textureCoordinates),
-                ggl.STATIC_DRAW);
+            //don't need to rebind anymore, because we do this all the time yeah?
+            ////const textureCoordBuffer = ggl.createBuffer();
+            //ggl.bindBuffer(ggl.ARRAY_BUFFER, gtextureCoordBuffer);
 
-            if (object.id == 1) {
-                console.log(properCoords[2]);
-                console.log('flippeditfor ' + lowestztri.triid + 'z: ' + lowestztri.z);
-            }
+            //var textureCoordinates = [];
+            //for (var tobs = 0; tobs < StageData.objects.length; tobs++) {
+            //    if (!StageData.objects[tobs]) { continue; }
+            //    var oldcount = textureCoordinates.length;
+            //    textureCoordinates = textureCoordinates.concat(StageData.objects[tobs].textureCoordinates);
+            //    for (var tobsi = 0; tobsi < StageData.objects[tobs].children.length; tobsi++) {
+            //        textureCoordinates = textureCoordinates.concat(StageData.objects[tobs].children[tobsi].textureCoordinates);
+            //    }
+            //}
+
+            //ggl.bufferData(ggl.ARRAY_BUFFER, new Float32Array(textureCoordinates),
+            //    ggl.STATIC_DRAW);
+
+            console.log('flippeditfor ' + lowestztri.triid + 'z: ' + lowestztri.z);
+            console.log('moreinfo: ' + (lowestztri.triid * 3 + 0) + 'z: ' + ((object.indices[lowestztri.triid * 3 + 0]) * 2));
+            //if (object.id == 1) {
+            //    console.log(properCoords[2]);
+            //    console.log('flippeditfor ' + lowestztri.triid + 'z: ' + lowestztri.z);
+            //}
         }
     }
 
@@ -938,7 +1009,10 @@ function recursiveCheckAllObjectsIfScreenPointHits(object, parent, itsfullmatrix
         for (var kid = 0; kid < object.children.length; kid++) {
             var kidmatrix = mat4.create();
             mat4.multiply(kidmatrix, itsfullmatrix, object.children[kid].matrix);
-            recursiveCheckAllObjectsIfScreenPointHits(object.children[kid], object, kidmatrix, properCoords, hitstuff, testpoint)
+            //hmmm need something for chain of parents to support changing their textures?
+            var nextInheritedTextCoords = inheritedTextCoordsList.slice(0);
+            nextInheritedTextCoords.push(object.textureCoordinates);
+            recursiveCheckAllObjectsIfScreenPointHits(object.children[kid], object, kidmatrix, properCoords, hitstuff, testpoint, nextInheritedTextCoords)
         }
     }
 
@@ -1104,7 +1178,7 @@ function IsPointInTriangleIncludeZ(point, tri)/*(px, py, ax, ay, bx, by, cx, cy)
     var dot11 = (v1[0] * v1[0]) + (v1[1] * v1[1]);
     var dot12 = (v1[0] * v2[0]) + (v1[1] * v2[1]);
 
-    var invDenom = 1 / (dot00 * dot11 - dot01 * dot01);
+    var invDenom = 1.0 / (dot00 * dot11 - dot01 * dot01);//whole number was bad?
 
     var u = (dot11 * dot02 - dot01 * dot12) * invDenom;
     var v = (dot00 * dot12 - dot01 * dot02) * invDenom;
@@ -1114,12 +1188,21 @@ function IsPointInTriangleIncludeZ(point, tri)/*(px, py, ax, ay, bx, by, cx, cy)
     if (!result.didHit) {
         return result;
     } else {
-        var startz = tri.a.z;
+        //var startz = tri.a.z;
+        //var cmag = dot00;//Math.sqrt(dot00);
+        //var cproj = dot02 / cmag;
+        //var bmag = dot11;//Math.sqrt(dot11);
+        //var bproj = dot12 / bmag;
+        //result.hitz = bproj * (tri.b.z - startz) + cproj * (tri.c.z - startz) + startz; //console.log(result.hitz)
+
+        //hey i think its better!
         var cmag = dot00;//Math.sqrt(dot00);
-        var cproj = dot02 / cmag;
-        var bmag = dot11;//Math.sqrt(dot11);
-        var bproj = dot12 / bmag;
-        result.hitz = bproj * (tri.b.z - startz) + cproj * (tri.c.z - startz) + startz; //console.log(result.hitz)
+        var cproj = dot02 / cmag;//Math.sqrt(dot02 / cmag);
+        var intermedPoint = { x: cproj * (tri.c.x - tri.a.x) + tri.a.x, y: cproj * (tri.c.y - tri.a.y) + tri.a.y, z: cproj * (tri.c.z - tri.a.z) + tri.a.z };
+        var intermedDistRatio = Math.sqrt((tri.b.x - px) * (tri.b.x - px) + (tri.b.y - py) * (tri.b.y - py)) / Math.sqrt((tri.b.x - intermedPoint.x) * (tri.b.x - intermedPoint.x) + (tri.b.y - intermedPoint.y) * (tri.b.y - intermedPoint.y));
+
+        result.hitz = tri.b.z + (intermedPoint.z - tri.b.z) * intermedDistRatio;
+
         return result;
     }
 }
