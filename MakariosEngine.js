@@ -10,12 +10,15 @@ const fsSource = `
             uniform mediump float ucelStep;
 
             uniform sampler2D uSampler;
+            uniform mediump float ucustomAlpha;
             //uniform mediump float urandomSeed1;
 
             void main(void) {
                 highp vec4 texelColor = texture2D(uSampler, vTextureCoord);
+                
+                //mediump float alphaToUse =  texelColor.a * ucustomAlpha;
 
-                gl_FragColor = vec4(texelColor.rgb * vLighting, texelColor.a);
+                gl_FragColor = vec4(texelColor.rgb * vLighting, texelColor.a * ucustomAlpha);
 
 //                if(urandomSeed1 > 1.0){
 //                highp float randy1 = mod((texelColor[0] + texelColor[1] + texelColor[2] + vTextureCoord[0] + vTextureCoord[1]) * urandomSeed1, 20.0);// / 12.0; 
@@ -536,14 +539,18 @@ function drawScene(gl, programInfo, buffers, deltaTime) {
     // Tell WebGL we want to affect texture unit 0
     gl.activeTexture(gl.TEXTURE0);
     gl.uniform1f(programInfo.uniformLocations.matrixLevel, 0.0);
+
+    //initialized, but really should just be once ever
+    gl.uniform1f(programInfo.uniformLocations.ucustomAlpha, 1.0);
+
     //gl.uniform1f(programInfo.uniformLocations.urandomSeed1, Math.floor(Math.random() * 1000.0));
-    RenderObjects(gl, programInfo, StageData.objects, mat4.create()/*modelViewMatrix*/, 0.0, { val: 0 }, mat4.create());
+    RenderObjects(gl, programInfo, StageData.objects, mat4.create()/*modelViewMatrix*/, 0.0, { offsetval: 0, alpha: 1.0 }, mat4.create());
 
     gproj = projectionMatrix;
     gmod = modelViewMatrix;
 }
 
-function RenderObjects(gl, programInfo, objects, parentmatrix, depth, offsetHolder, baseMatrixForNorm) {
+function RenderObjects(gl, programInfo, objects, parentmatrix, depth, dataHolder, baseMatrixForNorm) {
     for (var oj = 0; oj < objects.length; oj++) {
         if (!objects[oj]) { continue; };
         //const normalMatrix = mat4.create();
@@ -592,12 +599,23 @@ function RenderObjects(gl, programInfo, objects, parentmatrix, depth, offsetHold
 
         // Tell the shader we bound the texture to texture unit 0
         gl.uniform1i(programInfo.uniformLocations.uSampler, 0);
+        var alphaToUse = objects[oj].customprops.customAlpha || 1.0;
+        if (alphaToUse != dataHolder.alpha) {
+            if (alphaToUse != 1.0) {
+                gl.enable(gl.BLEND);
+                gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+            } else {
+                gl.disable(gl.BLEND);
+            }
+            gl.uniform1f(programInfo.uniformLocations.ucustomAlpha, alphaToUse);
+        }
+
         //gl.uniform1f(programInfo.uniformLocations.matrixLevel, depth);
         {
             const vertexCount = objects[oj].indices.length;//36;
             const type = gl.UNSIGNED_SHORT;
             const offset = objects[oj].bufferOffset; //offsetHolder.val;//objects[oj].bufferOffset; //console.log('offset is:' + objects[oj].bufferOffset)
-            offsetHolder.val += objects[oj].indices.length * 2;
+            dataHolder.offsetval += objects[oj].indices.length * 2;
             //if (StageData.ticks % 50 == 0) { console.log('offset is:' + objects[oj].bufferOffset); }
             gl.drawElements(gl.TRIANGLES, vertexCount, type, offset);
             //gl.drawElements(gl.LINES, vertexCount, type, offset);
@@ -610,7 +628,7 @@ function RenderObjects(gl, programInfo, objects, parentmatrix, depth, offsetHold
                 mat0);
             //console.log(objects[oj].children[0]);
             gl.uniform1f(programInfo.uniformLocations.matrixLevel, depth + 1.0);
-            RenderObjects(gl, programInfo, objects[oj].children, mat0, depth + 1.0, offsetHolder, thisMatForNorm);
+            RenderObjects(gl, programInfo, objects[oj].children, mat0, depth + 1.0, dataHolder, thisMatForNorm);
             gl.uniform1f(programInfo.uniformLocations.matrixLevel, depth);
             gl.uniformMatrix4fv(
                 programInfo.uniformLocations.parentMatrix,
@@ -698,6 +716,7 @@ function main() {
             modelViewMatrix: gl.getUniformLocation(mainShaderProgram, 'uModelViewMatrix'),
             uSampler: gl.getUniformLocation(mainShaderProgram, 'uSampler'),
             //urandomSeed1: gl.getUniformLocation(mainShaderProgram, 'urandomSeed1'),
+            ucustomAlpha: gl.getUniformLocation(mainShaderProgram, 'ucustomAlpha'),
             ucelStep: gl.getUniformLocation(mainShaderProgram, 'ucelStep'),
             normalMatrix: gl.getUniformLocation(mainShaderProgram, 'uNormalMatrix'),
             parentMatrix: gl.getUniformLocation(mainShaderProgram, 'uParentMatrix'),
@@ -810,6 +829,7 @@ window.addEventListener("keydown", function (e) {
     //console.log('prezzed ' + e.keyCode);
 })
 window.addEventListener("keyup", function (e) {
+    if (typeof FrameLogic == 'undefined') { return; }
     FrameLogic.keystates[e.keyCode] = false;
     if (e.keyCode == 32) {
         FrameLogic.spaceWasDown.value = false;
@@ -819,6 +839,8 @@ window.addEventListener("keyup", function (e) {
 
 //thank you https://developer.mozilla.org/en-US/docs/Web/API/Element/wheel_event
 window.addEventListener("wheel", function (event) {
+
+    if (StageData.noScroll) { return; }
 
     var scrollDiff = event.deltaY * 0.01;
 

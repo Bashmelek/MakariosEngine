@@ -3,7 +3,8 @@ const StarfieldDemo = (function () {
     var objects = [];
 
     var movemat = null;//glMatrix.mat4.create();
-    var moveline = [ 0, 0, 0.02];
+    var moveline = [0, 0, 0.02];
+    var lastFrameTime = null;
 
     var disappearingItem = function (item) {
 
@@ -14,6 +15,10 @@ const StarfieldDemo = (function () {
         if (!item.customprops.ageCount) {
             item.customprops.ageCount = 0;
         }
+        if (item.customprops.customAlpha < 1.0) {
+            item.customprops.customAlpha += .002;
+        }
+
         item.customprops.ageCount += 1;
         if (item.customprops.ageCount > 6000) {
             Makarios.destroy(item);
@@ -23,6 +28,8 @@ const StarfieldDemo = (function () {
     var Init = function () {
         StageData.ticks = 0;
         Makarios.writeToUI();
+        StageData.noScroll = true;
+        lastFrameTime = Date.now();
         //SkyboxRenderer.useSkybox = null;
         //StageData.skybox = null;
 
@@ -62,7 +69,12 @@ const StarfieldDemo = (function () {
         //glMatrix.mat4.transpose(tempy, tempy);
         glMatrix.mat4.multiply(tempy, tempy, movemat);
 
-        moveline = lin3Transform(tempy, [0.0, 0.0, -0.0004]);// -0.0012]); //[0.0, 0.0, 0.2];//lin3Transform(tempy, [0.0, 0.0, -0.002]);// [0.0, 0.0, -0.002]
+        var oldTime = lastFrameTime;
+        lastFrameTime = Date.now();
+        var timeDelta = lastFrameTime - oldTime;
+        //console.log(timeDelta);
+                                                 //-0.0004
+        moveline = lin3Transform(tempy, [0.0, 0.0, -0.00006 * timeDelta]);// -0.0012]); //[0.0, 0.0, 0.2];//lin3Transform(tempy, [0.0, 0.0, -0.002]);// [0.0, 0.0, -0.002]
 
         if (StageData.ticks % 72 == 0) {//10  //24
 
@@ -74,6 +86,7 @@ const StarfieldDemo = (function () {
             var spawnPoint = linTransform(tempmat, adjustedSpawn);
 
             var obj = Makarios.instantiate(Primitives.shapes["doubletetrahedron"], 'plainsky.jpg', disappearingItem, {});
+            obj.customprops.customAlpha = 0.1;
 
             glMatrix.mat4.translate(obj.matrix,     // destination matrix
                 obj.matrix,     // matrix to translate
