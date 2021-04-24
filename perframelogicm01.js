@@ -30,9 +30,7 @@ const FrameLogic = (function () {
             tryRotateObject(StageData.objects[0], -0.05);
         }
         if (keystates[32]) {
-            console.log(spaceWasDown.value)
             if (!spaceWasDown.value) {
-                console.log('try jump');
                 tryJump(StageData.objects[0]);
                 spaceWasDown.value = true;
             }
@@ -109,16 +107,16 @@ const FrameLogic = (function () {
                         var allowedmove = Math.sqrt(movsquared) - diffor;//how far allowed to move, newdist
                         // (thing to divide original vector by) ^ 2 = (a^2 + b^2) / (newdist ^ 2)
                         var ratior = Math.ceil(Math.sqrt(movsquared / (allowedmove * allowedmove)));
-                        console.log('bump ' + ratior + ' -- ' + diffor);
+                        //console.log('bump ' + ratior + ' -- ' + diffor);
 
                         if (allowedmove < relativeVector[0]) {
-                            console.log('diffx : ' + diffx);
-                            console.log('tofrom: ' + (proby - object.matrix[y]) + ', ' + (probx - object.matrix[x]));
-                            console.log(component + '  ' + tangentAngle + '  ' + lineAngle + ' ' + (other.collider.radius - maxallowedrad + centerdist) + ' ++ ' + diffor + ' ++ ' + other.collider.radius);
-                            console.log('intersectionArcSin ' + Math.asin((other.collider.radius - maxallowedrad + centerdist) / other.collider.radius) + ' aka ' + intersectionArcSin);
-                            console.log('tangentAngle ' + ((Math.PI / 2.0) - intersectionArcSin) + ' aka ' + tangentAngle);
-                            console.log('lineAngle ' + Math.atan((proby - object.matrix[y]) / (probx - object.matrix[x])) + ' aka ' + lineAngle);
-                            console.log('component ' + Math.cos(tangentAngle - lineAngle) + ' aka ' + component);
+                            //console.log('diffx : ' + diffx);
+                            //console.log('tofrom: ' + (proby - object.matrix[y]) + ', ' + (probx - object.matrix[x]));
+                            //console.log(component + '  ' + tangentAngle + '  ' + lineAngle + ' ' + (other.collider.radius - maxallowedrad + centerdist) + ' ++ ' + diffor + ' ++ ' + other.collider.radius);
+                            //console.log('intersectionArcSin ' + Math.asin((other.collider.radius - maxallowedrad + centerdist) / other.collider.radius) + ' aka ' + intersectionArcSin);
+                            //console.log('tangentAngle ' + ((Math.PI / 2.0) - intersectionArcSin) + ' aka ' + tangentAngle);
+                            //console.log('lineAngle ' + Math.atan((proby - object.matrix[y]) / (probx - object.matrix[x])) + ' aka ' + lineAngle);
+                            //console.log('component ' + Math.cos(tangentAngle - lineAngle) + ' aka ' + component);
                             relativeVector = [ (allowedmove - [0.00001]), -component * diffor, 0.0];
                             vec[vectorsMapToRelative[0]] = Math.sign(vec[vectorsMapToRelative[0]]) * relativeVector[0];
                             vec[vectorsMapToRelative[1]] = relativeVector[1];
@@ -126,7 +124,7 @@ const FrameLogic = (function () {
                             probx = object.matrix[x] + (vec[0]);
                             proby = object.matrix[y] + (vec[1]);
                             probz = object.matrix[z] + (vec[2]);
-                            console.log(vec);
+                            //console.log(vec);
                         }
 
                         /* //this might be needed later. PLEASE KEEAAP!!
@@ -229,9 +227,9 @@ const FrameLogic = (function () {
                         //if (diffx < 0) { intersectionArcSin = Math.PI - intersectionArcSin; }
                         var quadAngle = ((Math.atan2(initialrotatedboxcoords[6 * inQuad + 0 + 2] - centerpoint[2], initialrotatedboxcoords[6 * inQuad + 0 + 0] - centerpoint[0]) + (Math.PI * 2.0)) % (Math.PI * 2.0));
                         var tangentAngle = quadAngle;//(Math.PI / 2.0) + intersectionArcSin;
-                        console.log('tangentAngle: ' + tangentAngle * 180.0 / Math.PI);
+                        ////console.log('tangentAngle: ' + tangentAngle * 180.0 / Math.PI);
                         var component = Math.cos(tangentAngle - lineAngle);
-                        console.log('component: ' + component);
+                        ////console.log('component: ' + component);
                         //if (Math.abs(0 - lineAngle) < 0.0001 || Math.abs(Math.PI / 2.0 - lineAngle) < 0.0001) { component = -component; }
                         if (Math.abs(0 - lineAngle) < 0.0001 || Math.abs(-Math.PI / 2.0 - lineAngle) < 0.0001) { component = -component; }
 
@@ -262,8 +260,8 @@ const FrameLogic = (function () {
                             probx = object.matrix[x] + (vec[0]);
                             proby = object.matrix[y] + (vec[1]);
                             probz = object.matrix[z] + (vec[2]);
-                            console.log(object.matrix[x] + ' -- ' + object.matrix[y] + ' -- ' + object.matrix[z]);
-                            console.log(vec);
+                            //console.log(object.matrix[x] + ' -- ' + object.matrix[y] + ' -- ' + object.matrix[z]);
+                            //console.log(vec);
                         }
                     }
 

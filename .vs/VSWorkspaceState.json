@@ -1,8 +1,10 @@
 {
   "ExpandedNodes": [
     "",
-    "\\StarfieldDemoGOLD"
+    "\\SampleModels",
+    "\\SampleModels\\Fox",
+    "\\SampleModels\\Fox\\glTF-Embedded"
   ],
-  "SelectedNode": "\\StarfieldDemo.js",
+  "SelectedNode": "\\loaderApp.js",
   "PreviewInSolutionExplorer": false
 }

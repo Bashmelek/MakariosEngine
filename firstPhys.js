@@ -320,8 +320,8 @@ const MyFirstPhysics = (function () {
         [0, 1, 0]);
     objects[1].useParentMatrix = new Array(objects[1].positions.length / 3).fill().map(x => 0.0);
     //objects[1].useParentMatrix = objects[1].useParentMatrix.map(x => 0.0);
-    objects[0].children = [];
-    objects[1].children = [];
+    objects[0].childrenCustom = [];
+    objects[1].childrenCustom = [];
     initVelocity(objects[0]);
     initVelocity(objects[1]);
 
@@ -353,13 +353,13 @@ const MyFirstPhysics = (function () {
     objects[2].useParentMatrix = new Array(objects[2].positions.length / 3).fill().map(x => 0.0);
     //objects[0].useParentMatrix = objects[0].useParentMatrix.map(x => 0.0);
     objects[2].matrix = mat4.create();
-    objects[2].children = [];
+    objects[2].childrenCustom = [];
     mat4.translate(objects[2].matrix,     // destination matrix
         objects[2].matrix,     // matrix to translate
         [0, -1.0, 0.0]);
 
 
-    objects[0].children.push({
+    objects[0].childrenCustom.push({
         id: 2,
         positions: [
             // latches onto parents Right face
@@ -440,15 +440,15 @@ const MyFirstPhysics = (function () {
             //1.0, 0.0, 0.0
         ]
     });
-    objects[0].children[0].matrix = mat4.create();
-    mat4.rotate(objects[0].children[0].matrix,  // destination matrix
-        objects[0].children[0].matrix,  // matrix to rotate
+    objects[0].childrenCustom[0].matrix = mat4.create();
+    mat4.rotate(objects[0].childrenCustom[0].matrix,  // destination matrix
+        objects[0].childrenCustom[0].matrix,  // matrix to rotate
         .2,   // amount to rotate in radians
         [0, 0, 1]); //101
 
-    objects[0].children[0].useParentMatrix = new Array(objects[0].children[0].positions.length / 3).fill().map(function (x, ind) { return 1.0 }/*return objects[0].children[0].indices[ind] < 24 ? -10.0 : -10.0 }*/);;
+    objects[0].childrenCustom[0].useParentMatrix = new Array(objects[0].childrenCustom[0].positions.length / 3).fill().map(function (x, ind) { return 1.0 }/*return objects[0].children[0].indices[ind] < 24 ? -10.0 : -10.0 }*/);;
     //objects[0].children[0].useParentMatrix = (objects[0].children[0].useParentMatrix2).map(x => 2);//function (x) { return 2/*return objects[0].children[0].indices[ind] < 24 ? 1.0 : 1.0 */ });
-    for (var bs = 0; bs < objects[0].children[0].useParentMatrix.length; bs++) {
+    for (var bs = 0; bs < objects[0].childrenCustom[0].useParentMatrix.length; bs++) {
         //objects[0].children[0].useParentMatrix[bs] = 2 + bs;
     }
 
@@ -470,13 +470,26 @@ const MyFirstPhysics = (function () {
         //ob3.collider = objects[2].collider;
 
 
-        var ob4 = Makarios.instantiateChild(ob1, objects[0].children[0], 'plainsky.jpg', null, {});
-        ob4.matrix = objects[0].children[0].matrix;
+        var ob4 = Makarios.instantiateChild(ob1, objects[0].childrenCustom[0], 'plainsky.jpg', null, {});
+        ob4.matrix = objects[0].childrenCustom[0].matrix;
         //ob1.children.push(ob4);
         console.log(ob4)
 
         initVelocity(ob1);
         initVelocity(ob2);
+
+        //GltfConverter.getPrimitiveFromJsResource('SampleModels/Box/glTF-Embedded/Box.gltf', function (res) { console.log('!'); console.log(res); Primitives.shapes["testbox"] = res; });
+        //setTimeout(function () {
+        //    console.log(Primitives.shapes["testbox"]);
+        //    var ob5 = Makarios.instantiate(Primitives.shapes["testbox"], 'plainsky.jpg', null, {});
+        //    //ob5.matrix = objects[0].matrix;
+        //    console.log(ob5)
+        //}, 1000);
+        //setTimeout(function () {
+        //    var ob5 = Makarios.instantiate(Primitives.shapes["cube"], 'plainsky.jpg', null, {});
+        //    //ob5.matrix = objects[0].matrix;
+        //    console.log(ob5)
+        //}, 1000);
 
         //glMatrix.mat4.translate(StageData.objects[0].matrix,     // destination matrix
         //    StageData.objects[0].matrix,     // matrix to translate

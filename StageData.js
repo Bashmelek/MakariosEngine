@@ -21,14 +21,17 @@ const StageData = (function () {
     var globalAvailabilityContainer = createAvailabilityObject();//{ 'first': null };
     var setNextAvailableIndex = function (holderObj) {
         var avail;
+        var theHeld;
         if (!holderObj) {
             avail = globalAvailabilityContainer;
+            theHeld = objects;
         } else {
             avail = holderObj.availabilityContainer;
+            theHeld = holderObj.children;
         }
         var chainToUse = avail.availabilityChain;
         var oldFirst = avail.firstAvailableIndex;
-        var newFirst = objects.length;
+        var newFirst = theHeld.length;
 
         if (chainToUse.first && chainToUse.first.val < newFirst) {
             newFirst = chainToUse.first.val;
@@ -46,10 +49,26 @@ const StageData = (function () {
         } else {
             avail = parent.availabilityContainer;
             objArray = parent.children;
+            //console.log(objArray);
+            //console.log(avail.firstAvailableIndex);
+            newItem.bla = 'effemall' + Date.now();
+            console.log('!!!!!!!!!!!!!!!!!!!!!!! WOOALERT FOR New child ' + newItem.bla);
         }
+        //console.log('now its a loggin time!!');
 
         newItem.id = avail.firstAvailableIndex;
         objArray[avail.firstAvailableIndex] = newItem;
+
+        //console.log(avail.firstAvailableIndex);
+        //console.log(objArray[avail.firstAvailableIndex]);
+        //console.log(newItem);
+        //console.log(objArray);
+        //console.log(objArray[0]);
+        //console.log('lets get numbers');
+        //console.log(objArray[avail.firstAvailableIndex].positions.length);
+        //console.log(newItem.positions.length);
+
+        //console.log(objArray);
         setNextAvailableIndex(parent);
     };
     var destroy = function (inst) {
@@ -141,6 +160,18 @@ const StageData = (function () {
         var newInst = setupObject(prim, textureUrl, objectOnFrame, customprops);
         newInst.useParentMatrix = new Array(newInst.positions.length / 3).fill().map(function (x, ind) { return 0.0 });
 
+        if (prim.children) {
+            for (var i = 0; i < prim.children.length; i++) {
+                //may eventually need precise onframe on customs for children... todo yo
+                console.log('its kiddo ' + i);
+                console.log(newInst.children);
+                console.log(prim.children[i]);
+                instantiateChild(newInst, prim.children[i], textureUrl, null, {})
+                //console.log(newInst.children[i]);
+                console.log(newInst.children);
+            }
+        }
+
         finalizeInstantiation(newInst);
 
         return newInst;
@@ -157,9 +188,20 @@ const StageData = (function () {
         newInst.useParentMatrix = new Array(newInst.positions.length / 3).fill().map(function (x, ind) { return 1.0 });
 
         newInst.parent = parent;
+
+        if (prim.children) {
+            for (var i = 0; i < prim.children.length; i++) {
+                //may eventually need precise onframe on customs for children... todo yo
+                ////instantiateChild(newInst, prim.children[i], textureUrl, null, {})
+            }
+        }
+
         //parent.children.push(newInst);
         //newInst.
         finalizeInstantiation(newInst, newInst.parent);
+
+        console.log(newInst);
+        console.log(parent);
 
         return newInst;
     };

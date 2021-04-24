@@ -7,6 +7,8 @@ const Primitives = (function () {
     var instantiate = function(prim, globalid, textureUrl){
 		var newInst = {};
         newInst.id = globalid;
+        newInst.matrix = prim.matrix ? mat4.clone(prim.matrix) : mat4.create();
+        newInst.children = [];
 
         if (!prim.isComposite) {
             newInst.positions = new Array(prim.positions.length).fill().map(function (x, ind) { return prim.positions[ind]; });
@@ -34,23 +36,8 @@ const Primitives = (function () {
                 newInst.vertexNormals = newInst.positions.concat(prim.vertexNormals);
             }
         }
-
-
-		//for(var p = 0; p < prim.positions.length; p++){
-		//	newInst.positions[p] = prim.positions[p];
-		//}
-		//for(var p = 0; p < prim.textureCoordinates.length; p++){
-		//	newInst.textureCoordinates[p] = prim.textureCoordinates[p];
-		//}
-		//for(var p = 0; p < prim.indices.length; p++){
-		//	newInst.indices[p] = prim.indices[p];
-		//}
-		//for(var p = 0; p < prim.vertexNormals.length; p++){
-		//	newInst.vertexNormals[p] = prim.vertexNormals[p];
-		//}		
+        
 		newInst.useParentMatrix = new Array(newInst.positions.length / 3).fill().map(x => 0.0);
-		newInst.matrix = mat4.create();
-		newInst.children = [];
 		newInst.isGrounded = true,
         newInst.confirmGrounded = true,
         newInst.velocity = {
@@ -104,7 +91,7 @@ const Primitives = (function () {
             vnorms[3 * prim.indices[3 * f + 2] + 2] = result[2];
         }
         prim.vertexNormals = vnorms;
-        console.log(prim.vertexNormals);
+        ////console.log(prim.vertexNormals);
         return prim.vertexNormals;
     }
 

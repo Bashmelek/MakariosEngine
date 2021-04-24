@@ -16,7 +16,7 @@ const StarfieldDemo = (function () {
             item.customprops.ageCount = 0;
         }
         if (item.customprops.customAlpha < 1.0) {
-            item.customprops.customAlpha += .002;
+            item.customprops.customAlpha += .0002;
         }
 
         item.customprops.ageCount += 1;
