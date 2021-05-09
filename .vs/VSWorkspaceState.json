@@ -3,8 +3,10 @@
     "",
     "\\SampleModels",
     "\\SampleModels\\Fox",
+    "\\SampleModels\\Fox\\glTF",
+    "\\SampleModels\\Fox\\glTF-Binary",
     "\\SampleModels\\Fox\\glTF-Embedded"
   ],
-  "SelectedNode": "\\loaderApp.js",
+  "SelectedNode": "\\StageData.js",
   "PreviewInSolutionExplorer": false
 }

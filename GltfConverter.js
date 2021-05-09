@@ -42,9 +42,13 @@ const GltfConverter = (function () {
 
         object.binaryBuffers = [];
         var theprim = applyNode(object, object.nodes[primaryNodeIndex], glMatrix.mat4.create(), newprim, null);
+        theprim.rootID = 0;
 
-        primTargeterGlobal(theprim);
-        return theprim;
+        var animations = applyAnimations(object);
+
+        var primcombined = { prim: theprim, animations: animations };
+        primTargeterGlobal(primcombined);
+        return primcombined;
     };
 
     var applyNode = function (fullobject, node, parentmatrix, newprim, parentprim) {
@@ -122,6 +126,14 @@ const GltfConverter = (function () {
                         //console.log(posAcc);
                         prim.indices = getBufferFromAccessor(fullobject, inAcc);
                         //console.log(prim.indices);
+                    } else if (meshObj.primitives[0].attributes.POSITION != undefined && meshObj.primitives[0].attributes.POSITION != null) {
+                        //trying this, thank you https://stackoverflow.com/questions/29200787/fastest-way-to-fill-uint16array-with-a-single-value
+                        var i = 0, a = new Uint16Array(prim.positions.length / 3);
+                        while (i < prim.positions.length / 3) a[i] = i++;
+                        prim.indices = a;
+                        console.log('autofilled with');
+                        console.log(prim.positions.length / 3);
+                        console.log(prim.indices);
                     }
                 }
 
@@ -137,11 +149,50 @@ const GltfConverter = (function () {
         if (node.children) {
             for (var t = 0; t < node.children.length; t++) {
                 //console.log('kiddo ' + t);
-                applyNode(fullobject, fullobject.nodes[node.children[t]], glMatrix.mat4.create(), newprim, prim);
+                var childnode = applyNode(fullobject, fullobject.nodes[node.children[t]], glMatrix.mat4.create(), newprim, prim);
+                childnode.rootID = node.children[t];
             }
         }
 
         return prim;
+    };
+
+    var applyAnimations = function (fullobject) {
+        console.log('innus 1us');
+        console.log(fullobject);
+        if (!fullobject.animations) {
+            return;
+        }
+
+        console.log('innus 2us');
+        var anims = [];
+
+        for (var i = 0; i < fullobject.animations.length; i++) {
+            var animation = {};
+            animation.name = fullobject.animations[i].name || i.toString();
+            animation.components = [];
+            for (var c = 0; c < fullobject.animations[i].channels; c++) {
+                var animComp = {};
+                animComp.node = fullobject.animations[i].channels[c].target.node;
+                animComp.type = fullobject.animations[i].channels[c].target.path;
+
+                var inIndex = fullobject.animations[i].samplers[fullobject.animations[i].channels[c].sampler].input;
+                var inAcc = fullobject.accessors[inIndex];
+                anim.keytimes = getBufferFromAccessor(fullobject, inAcc);
+
+
+                var outIndex = fullobject.animations[i].samplers[fullobject.animations[i].channels[c].sampler].output;
+                var outAcc = fullobject.accessors[outIndex];
+                anim.keytimes = getBufferFromAccessor(fullobject, outAcc);
+
+                animation.components.push(animComp);
+            }
+
+            console.log(animation);
+            anims.push(animation);
+        }
+
+        return anims;
     };
 
     var getBufferFromAccessor = function (fullobj, acc) {

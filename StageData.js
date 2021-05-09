@@ -52,7 +52,7 @@ const StageData = (function () {
             //console.log(objArray);
             //console.log(avail.firstAvailableIndex);
             newItem.bla = 'effemall' + Date.now();
-            console.log('!!!!!!!!!!!!!!!!!!!!!!! WOOALERT FOR New child ' + newItem.bla);
+            //console.log('!!!!!!!!!!!!!!!!!!!!!!! WOOALERT FOR New child ' + newItem.bla);
         }
         //console.log('now its a loggin time!!');
 
@@ -140,6 +140,9 @@ const StageData = (function () {
         newInst.matrix = mat4.create();
         newInst.children = [];
         newInst.availabilityContainer = createAvailabilityObject();
+        if (prim.animations) {
+            newInst.animations = prim.animations.slice(0);
+        }
 
         newInst.isGrounded = true,
             newInst.confirmGrounded = true,
@@ -158,17 +161,15 @@ const StageData = (function () {
     var instantiate = function (prim, textureUrl, objectOnFrame, customprops) {
 
         var newInst = setupObject(prim, textureUrl, objectOnFrame, customprops);
+        newInst.rootID = 0;
+        newInst.rootchildren = [];
         newInst.useParentMatrix = new Array(newInst.positions.length / 3).fill().map(function (x, ind) { return 0.0 });
 
         if (prim.children) {
             for (var i = 0; i < prim.children.length; i++) {
                 //may eventually need precise onframe on customs for children... todo yo
-                console.log('its kiddo ' + i);
-                console.log(newInst.children);
-                console.log(prim.children[i]);
-                instantiateChild(newInst, prim.children[i], textureUrl, null, {})
+                instantiateChild(newInst, prim.children[i], textureUrl, null, {}, newInst)
                 //console.log(newInst.children[i]);
-                console.log(newInst.children);
             }
         }
 
@@ -180,10 +181,19 @@ const StageData = (function () {
 
 
 
-    var instantiateChild = function (parent, prim, textureUrl, objectOnFrame, customprops) {
+    var instantiateChild = function (parent, prim, textureUrl, objectOnFrame, customprops, rootnode) {
 
         var newInst = setupObject(prim, textureUrl, objectOnFrame, customprops);
+        if (!rootnode) {
+            var recparent = parent;
+            while (recparent.parent) {
+                recparent = recparent.parent;
+            }
+            rootnode = recparent;
+        }
 
+        newInst.rootID = prim.rootID || rootnode.rootchildren.length;
+        rootnode.rootchildren[newInst.rootID] = newInst;
         newInst.customprops = customprops;
         newInst.useParentMatrix = new Array(newInst.positions.length / 3).fill().map(function (x, ind) { return 1.0 });
 
@@ -192,17 +202,14 @@ const StageData = (function () {
         if (prim.children) {
             for (var i = 0; i < prim.children.length; i++) {
                 //may eventually need precise onframe on customs for children... todo yo
-                ////instantiateChild(newInst, prim.children[i], textureUrl, null, {})
+                instantiateChild(newInst, prim.children[i], textureUrl, null, {}, rootnode)
             }
         }
 
         //parent.children.push(newInst);
         //newInst.
         finalizeInstantiation(newInst, newInst.parent);
-
-        console.log(newInst);
-        console.log(parent);
-
+        
         return newInst;
     };
 

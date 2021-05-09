@@ -3,6 +3,7 @@
 const Primitives = (function () {
     const mat4 = glMatrix.mat4;
     var shapes = {};
+    var animations = [];
 
     var instantiate = function(prim, globalid, textureUrl){
 		var newInst = {};
@@ -311,6 +312,7 @@ const Primitives = (function () {
     return {
         'shapes': shapes,
         'instantiate': instantiate,
-        'getVertextNormals': getVertextNormals
+        'getVertextNormals': getVertextNormals,
+        'animations': animations
     };
 })();

@@ -16,7 +16,15 @@ const TryLoadingPrim = (function () {
         var minloc = 'SampleModels/Minimal.gltf';
         var foxloc = 'SampleModels/Fox/glTF-Embedded/Fox.gltf';
 
-        GltfConverter.getPrimitiveFromJsResource(boxloc, function (res) { console.log('!'); console.log(res); Primitives.shapes["testbox"] = res; });
+        GltfConverter.getPrimitiveFromJsResource(foxloc, function (res) {
+            console.log('!'); console.log(res);
+            Primitives.shapes["testbox"] = res.prim;
+            Primitives.shapes["testbox"].animations = [];
+            for (var a = 0; a < res.animations.length; a++) {
+                Primitives.animations.push(res.animations[a]);
+                Primitives.shapes["testbox"].animations[res.animations[a].name] = Primitives.animations[Primitives.animations.length - 1];
+            }
+        });
         setTimeout(function () {
             console.log(Primitives.shapes["testbox"]);
             var ob5 = Makarios.instantiate(Primitives.shapes["testbox"], 'plainsky.jpg', null, {});
