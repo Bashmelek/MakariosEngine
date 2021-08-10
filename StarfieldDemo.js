@@ -5,6 +5,9 @@ const StarfieldDemo = (function () {
     var movemat = null;//glMatrix.mat4.create();
     var moveline = [0, 0, 0.02];
     var lastFrameTime = null;
+    var numitems = 0;
+    const spawnInterval = 360;
+    var nextTargetVTick = spawnInterval;
 
     var disappearingItem = function (item) {
 
@@ -16,17 +19,19 @@ const StarfieldDemo = (function () {
             item.customprops.ageCount = 0;
         }
         if (item.customprops.customAlpha < 1.0) {
-            item.customprops.customAlpha += .0002;
+            item.customprops.customAlpha += StageData.timeDelta * .00004;//.0002;
         }
 
-        item.customprops.ageCount += 1;
-        if (item.customprops.ageCount > 6000) {
+        item.customprops.ageCount += StageData.timeDelta;//1;
+        if (item.customprops.ageCount > 30000) {//6000 old ticks //30000
             Makarios.destroy(item);
+            numitems -= 1;
         }
     };
 
     var Init = function () {
         StageData.ticks = 0;
+        StageData.vticks = 0;
         Makarios.writeToUI();
         StageData.noScroll = true;
         lastFrameTime = Date.now();
@@ -69,15 +74,17 @@ const StarfieldDemo = (function () {
         //glMatrix.mat4.transpose(tempy, tempy);
         glMatrix.mat4.multiply(tempy, tempy, movemat);
 
-        var oldTime = lastFrameTime;
-        lastFrameTime = Date.now();
-        var timeDelta = lastFrameTime - oldTime;
+        //var oldTime = lastFrameTime;
+        //lastFrameTime = Date.now();
+        //var timeDelta = lastFrameTime - oldTime;
         //console.log(timeDelta);
                                                  //-0.0004
-        moveline = lin3Transform(tempy, [0.0, 0.0, -0.00006 * timeDelta]);// -0.0012]); //[0.0, 0.0, 0.2];//lin3Transform(tempy, [0.0, 0.0, -0.002]);// [0.0, 0.0, -0.002]
+        moveline = lin3Transform(tempy, [0.0, 0.0, -0.00006 * StageData.timeDelta]);// -0.0012]); //[0.0, 0.0, 0.2];//lin3Transform(tempy, [0.0, 0.0, -0.002]);// [0.0, 0.0, -0.002]
 
-        if (StageData.ticks % 72 == 0) {//10  //24
-
+        if (StageData.vticks > nextTargetVTick) {//10  //24  //72
+            nextTargetVTick += spawnInterval;
+            numitems += 1;
+            console.log('created. now at ' + numitems + ' items with ticktime ' + StageData.timeDelta);
             var adjustedSpawn = getRandomSpawnPoint();//lin3TransformMat3(inversedProj, getRandomSpawnPoint()); //[0.01 * 22.0 - 11.0, 0.0 * 16.0 - 8.0, .40];//lin3TransformMat3(inversedProj, getRandomSpawnPoint()); 
 
             var tempmat = mat4.create();

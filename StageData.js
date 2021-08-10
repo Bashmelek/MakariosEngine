@@ -4,6 +4,8 @@ const StageData = (function () {
     var objects = [];
     var options = {};
     var ticks = 0;
+    var vticks = 0;
+    var timedelta = 0;
     var skybox = null;
 
     var firstAvailableIndex = 0;
@@ -51,7 +53,7 @@ const StageData = (function () {
             objArray = parent.children;
             //console.log(objArray);
             //console.log(avail.firstAvailableIndex);
-            newItem.bla = 'effemall' + Date.now();
+            //newItem.bla = 'effemall' + Date.now();
             //console.log('!!!!!!!!!!!!!!!!!!!!!!! WOOALERT FOR New child ' + newItem.bla);
         }
         //console.log('now its a loggin time!!');
@@ -99,6 +101,15 @@ const StageData = (function () {
                 currentLink = currentLink.next;
             }
         }
+
+        //extra leaning to avoid memory leaks eg circular dependency issues
+        //will need to make some things recursive. dont need that today. todo!
+        inst.parent = null;
+        inst.availabilityContainer = null;
+        inst.ObjectOnFrame = null;
+        inst.customprops = null;
+        inst.matrix = null;
+        inst.children = null;
     };
 
     var setupObject = function (prim, textureUrl, objectOnFrame, customprops) {
@@ -174,7 +185,7 @@ const StageData = (function () {
         }
 
         finalizeInstantiation(newInst);
-
+        //console.log('number in array: ' + objects.length)
         return newInst;
     };
 
@@ -220,6 +231,8 @@ const StageData = (function () {
         'instantiateChild': instantiateChild,
         'destroy': destroy,
         'ticks': ticks,
+        'vticks': vticks,
+        'timedelta': timedelta,
         'skybox': skybox
     };
 })();

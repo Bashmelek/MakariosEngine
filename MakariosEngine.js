@@ -143,7 +143,7 @@ function loadShader(gl, type, source) {
 
 
 var ggl = {};
-var gtextureCoordBuffer = {};
+////var gtextureCoordBuffer = {};
 var globalMainProgramInfo = {};
 var uiState = { hasany: false };
 var halfheight = 240;
@@ -179,7 +179,7 @@ function initBuffers(gl) {
 
 
     const textureCoordBuffer = gl.createBuffer();
-    gtextureCoordBuffer = textureCoordBuffer;
+    ////gtextureCoordBuffer = textureCoordBuffer;
     gl.bindBuffer(gl.ARRAY_BUFFER, textureCoordBuffer);
 
     var textureCoordinates = [];
@@ -355,7 +355,7 @@ var dir = [0.0, 0.0, -1.0];
 var updir = [0.0, 1.0, 0.0];
 var camDist;
 
-function drawScene(gl, programInfo, buffers, deltaTime) {
+function drawScene(gl, programInfo, buffers) {  //deltaTime
     gl.clearColor(0.0, 0.0, 0.0, 1.0);  // Clear to black, fully opaque
     gl.clearDepth(1.0);                 // Clear everything
     gl.enable(gl.DEPTH_TEST);           // Enable depth testing
@@ -757,19 +757,22 @@ function main() {
     //gui.textBaseline = 'hanging';
     //gui.fillText('Slayer', 540, 10);
 
+    //var renderdummy = function() {
+    //    requestAnimationFrame(renderdummy);
+    //};
     // Draw the scene repeatedly
     function render(now) {
-        now *= 0.00004;  // convert to seconds
-        const deltaTime = now - then;
-        then = now;
+        //now *= 0.00004;  // convert to seconds
+        //const deltaTime = now - then;
+        //then = now;
 
         //credit to gman at https://stackoverflow.com/questions/13870677/resize-viewport-canvas-according-to-browser-window-size
         gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
 
-        const buffers = initBuffers(gl);
+        var buffers = initBuffers(gl);
 
         //globalMainProgramInfo = programInfo;
-        drawScene(gl, programInfo, buffers, deltaTime);
+        drawScene(gl, programInfo, buffers);//deltaTime
 
         requestAnimationFrame(render);
         //credit thank you https://stackoverflow.com/questions/2142535/how-to-clear-the-canvas-for-redrawing
@@ -779,14 +782,40 @@ function main() {
         //gui.font = 'bold small-caps 24px serif';
         //gui.textBaseline = 'hanging';
         //gui.fillText('Slayer', 540, 10);
+
+        //position: positionBuffer,
+        //textureCoord: textureCoordBuffer,
+        //indices: indexBuffer,
+        //normal: normalBuffer,
+        //useParentMatrix: useParentMatrixBuffer,
+
+        gl.deleteBuffer(buffers.position);
+        gl.deleteBuffer(buffers.textureCoord);
+        gl.deleteBuffer(buffers.indices);
+        gl.deleteBuffer(buffers.normal);
+        gl.deleteBuffer(buffers.useParentMatrix);
+
+        buffers.positions = null;
+        buffers.normalData = vertexNormals = null;
+        buffers.indexData = indices = null;
+        buffers.useParentData = useParentMatrix = null;
+
+        buffers = null;
     }
     requestAnimationFrame(render);
 
     //Important! We used to use FrameLogic within perframelogicm1.js
     ////setInterval(FrameLogic.onFrame, 15);
     //now we use theGame
+    var lastFrameTime = Date.now();
     setInterval(function () {
         StageData.ticks += 1;
+
+        var oldTime = lastFrameTime;
+        lastFrameTime = Date.now();
+        StageData.timeDelta = lastFrameTime - oldTime;
+        StageData.vticks += StageData.timeDelta;
+
         theGame.OnFrame();
         //console.log('click');
         for (var c = 0; c < StageData.objects.length; c++) {
