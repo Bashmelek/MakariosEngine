@@ -1,12 +1,7 @@
 {
   "ExpandedNodes": [
-    "",
-    "\\SampleModels",
-    "\\SampleModels\\Fox",
-    "\\SampleModels\\Fox\\glTF",
-    "\\SampleModels\\Fox\\glTF-Binary",
-    "\\SampleModels\\Fox\\glTF-Embedded"
+    ""
   ],
-  "SelectedNode": "\\StageData.js",
+  "SelectedNode": "\\Entera.js",
   "PreviewInSolutionExplorer": false
 }

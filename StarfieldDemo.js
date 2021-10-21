@@ -23,7 +23,7 @@ const StarfieldDemo = (function () {
         }
 
         item.customprops.ageCount += StageData.timeDelta;//1;
-        if (item.customprops.ageCount > 30000) {//6000 old ticks //30000
+        if (item.customprops.ageCount > 30000) {//6000 old ticks //30000  //1200000
             Makarios.destroy(item);
             numitems -= 1;
         }
@@ -81,10 +81,10 @@ const StarfieldDemo = (function () {
                                                  //-0.0004
         moveline = lin3Transform(tempy, [0.0, 0.0, -0.00006 * StageData.timeDelta]);// -0.0012]); //[0.0, 0.0, 0.2];//lin3Transform(tempy, [0.0, 0.0, -0.002]);// [0.0, 0.0, -0.002]
 
-        if (StageData.vticks > nextTargetVTick) {//10  //24  //72
+        if (StageData.vticks >= nextTargetVTick) {//10  //24  //72
             nextTargetVTick += spawnInterval;
             numitems += 1;
-            console.log('created. now at ' + numitems + ' items with ticktime ' + StageData.timeDelta);
+            //console.log('created. now at ' + numitems + ' items with ticktime ' + StageData.timeDelta);
             var adjustedSpawn = getRandomSpawnPoint();//lin3TransformMat3(inversedProj, getRandomSpawnPoint()); //[0.01 * 22.0 - 11.0, 0.0 * 16.0 - 8.0, .40];//lin3TransformMat3(inversedProj, getRandomSpawnPoint()); 
 
             var tempmat = mat4.create();
@@ -92,7 +92,7 @@ const StarfieldDemo = (function () {
             glMatrix.mat4.invert(tempmat, gmod);
             var spawnPoint = linTransform(tempmat, adjustedSpawn);
 
-            var obj = Makarios.instantiate(Primitives.shapes["doubletetrahedron"], 'plainsky.jpg', disappearingItem, {});
+            var obj = Makarios.instantiate(Primitives.shapes["doubletetrahedron"], 'plainsky.jpg', disappearingItem, {}, nextTargetVTick);
             obj.customprops.customAlpha = 0.1;
 
             glMatrix.mat4.translate(obj.matrix,     // destination matrix

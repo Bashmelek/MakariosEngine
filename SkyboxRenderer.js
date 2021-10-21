@@ -158,10 +158,21 @@ float srgb(float v)
         //glMatrix.mat3.invert(temper, temper);
         //skyg_l.uniformMatrix3fv(uniform_modelViewMatrix, false, temper);
 
+
+
+        //quad_buffer = skygl.createBuffer();
+        //skygl.bindBuffer(skygl.ARRAY_BUFFER, quad_buffer);
+        //var vertices = [1.0, 1.0, -1.0, 1.0, 1.0, -1.0, -1.0, -1.0];
+        //skygl.bufferData(skygl.ARRAY_BUFFER, new Float32Array(vertices), skygl.STATIC_DRAW);
+
         skyg_l.bindBuffer(skyg_l.ARRAY_BUFFER, quad_buffer);
+        //attribute_vertex_position = skygl.getAttribLocation(skyprogram, "attribute_vertex_position");
         skyg_l.vertexAttribPointer(attribute_vertex_position, 2, skyg_l.FLOAT, false, 0, 0);
+
+        //skygl.enableVertexAttribArray(attribute_vertex_position);
         skyg_l.drawArrays(skyg_l.TRIANGLE_STRIP, 0, 4);
         //request++;// = 0;
+        //skyg_l.deleteBuffer(quad_buffer);
     }
 
     var compileSkyboxRenderer = function() {
@@ -203,6 +214,7 @@ float srgb(float v)
         skygl.useProgram(program);
 
         attribute_vertex_position = skygl.getAttribLocation(program, "attribute_vertex_position");
+        //console.log(attribute_vertex_position);
         skygl.enableVertexAttribArray(attribute_vertex_position);
         uniform_camera_up = skygl.getUniformLocation(program, "uniform_camera_up");
         uniform_camera_right = skygl.getUniformLocation(program, "uniform_camera_right");
@@ -274,6 +286,7 @@ float srgb(float v)
         skygl.bindBuffer(skygl.ARRAY_BUFFER, quad_buffer);
         var vertices = [1.0, 1.0, -1.0, 1.0, 1.0, -1.0, -1.0, -1.0];
         skygl.bufferData(skygl.ARRAY_BUFFER, new Float32Array(vertices), skygl.STATIC_DRAW);
+        console.log(quad_buffer);
 
         compileSkyboxRenderer();
 

@@ -456,7 +456,7 @@ const MyFirstPhysics = (function () {
     var Init = function () {
         StageData.ticks = 0;
         SkyboxRenderer.useSkybox('skybox');//"penguins (26)");//StageData.skybox = "penguins (26)";
-        OutlineRenderer.setup();
+        //OutlineRenderer.setup();
         ////Makarios.setStepsForCelShading(4.0);
 
         var ob1 = Makarios.instantiate(objects[0], 'grumpycss.jpg', null, {});
@@ -473,7 +473,7 @@ const MyFirstPhysics = (function () {
         var ob4 = Makarios.instantiateChild(ob1, objects[0].childrenCustom[0], 'plainsky.jpg', null, {});
         ob4.matrix = objects[0].childrenCustom[0].matrix;
         //ob1.children.push(ob4);
-        console.log(ob4)
+        ////console.log(ob4)
 
         initVelocity(ob1);
         initVelocity(ob2);

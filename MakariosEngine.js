@@ -148,18 +148,29 @@ var globalMainProgramInfo = {};
 var uiState = { hasany: false };
 var halfheight = 240;
 var halfwidth = 320;
+var bufferHolder = {
+    positionBuffer: null,
+    textureCoordBuffer: null,
+    indexBuffer: null,
+    normalBuffer: null,
+    useParentMatrixBuffer : null
+};
+
 
 function initBuffers(gl) {
     ggl = gl;
     // Create a buffer for the square's positions.
-    const positionBuffer = gl.createBuffer();
+    if (bufferHolder.positionBuffer == null) {
+        bufferHolder.positionBuffer = gl.createBuffer();
+    }
+    const positionBuffer = bufferHolder.positionBuffer;
 
     // Select the positionBuffer as the one to apply buffer
     // operations to from here out.
     gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
 
     //const positions = ObjData.positions;
-    var positions = [];
+    var positions = []; /*
     for (var pobs = 0; pobs < StageData.objects.length; pobs++) {
         if (!StageData.objects[pobs]) { continue; }
         var oldcount = positions.length;
@@ -167,22 +178,25 @@ function initBuffers(gl) {
         for (var pobsi = 0; pobsi < StageData.objects[pobs].children.length; pobsi++) {
             positions = positions.concat(StageData.objects[pobs].children[pobsi].positions);
         }
-    }
+    } */
 
     //console.log(positions);
     // Now pass the list of positions into WebGL to build the
     // shape. We do this by creating a Float32Array from the
     // JavaScript array, then use it to fill the current buffer.
     gl.bufferData(gl.ARRAY_BUFFER,
-        new Float32Array(positions),
+        new Float32Array(Entera.buffers.positions),
         gl.STATIC_DRAW);
+    //console.log(Entera.positions.length);
 
-
-    const textureCoordBuffer = gl.createBuffer();
+    if (!bufferHolder.textureCoordBuffer) {
+        bufferHolder.textureCoordBuffer = gl.createBuffer();
+    }
+    const textureCoordBuffer = bufferHolder.textureCoordBuffer;
     ////gtextureCoordBuffer = textureCoordBuffer;
     gl.bindBuffer(gl.ARRAY_BUFFER, textureCoordBuffer);
 
-    var textureCoordinates = [];
+    var textureCoordinates = []; /*
     for (var tobs = 0; tobs < StageData.objects.length; tobs++) {
         if (!StageData.objects[tobs]) { continue; }
         var oldcount = textureCoordinates.length;
@@ -190,18 +204,22 @@ function initBuffers(gl) {
         for (var tobsi = 0; tobsi < StageData.objects[tobs].children.length; tobsi++) {
             textureCoordinates = textureCoordinates.concat(StageData.objects[tobs].children[tobsi].textureCoordinates);
         }
-    }
+    } */
 
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(textureCoordinates),
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(Entera.buffers.textureCoordinates),
         gl.STATIC_DRAW);
 
 
-    const indexBuffer = gl.createBuffer();
+    if (!bufferHolder.indexBuffer) {
+        bufferHolder.indexBuffer = gl.createBuffer();
+    }
+    const indexBuffer = bufferHolder.indexBuffer;
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
 
     var indices = [];
     var oldcount = 0;
     var startdex = 0;
+    /*
     for (var obs = 0; obs < StageData.objects.length; obs++) {
         if (!StageData.objects[obs]) { continue; }
         startdex = indices.length;
@@ -219,19 +237,23 @@ function initBuffers(gl) {
             oldcount += StageData.objects[obs].children[oobsi].positions.length;
         }
         oldcount += StageData.objects[obs].positions.length;
-    } //console.log('indz be:'); console.log(indices);
+    } */ //console.log('indz be:'); console.log(indices);
 
 
     // Now send the element array to GL
     gl.bufferData(gl.ELEMENT_ARRAY_BUFFER,
-        new Uint16Array(indices), gl.STATIC_DRAW);
+        new Uint16Array(Entera.buffers.indices), gl.STATIC_DRAW);
 
 
-    const normalBuffer = gl.createBuffer();
+    if (!bufferHolder.normalBuffer) {
+        bufferHolder.normalBuffer = gl.createBuffer();
+    }
+    const normalBuffer = bufferHolder.normalBuffer;
     gl.bindBuffer(gl.ARRAY_BUFFER, normalBuffer);
 
     //const vertexNormals = ObjData.vertexNormals;
     var vertexNormals = [];
+    /*
     for (var vobs = 0; vobs < StageData.objects.length; vobs++) {
         if (!StageData.objects[vobs]) { continue; }
         var oldcount = vertexNormals.length;
@@ -239,19 +261,23 @@ function initBuffers(gl) {
         for (var vobsi = 0; vobsi < StageData.objects[vobs].children.length; vobsi++) {
             vertexNormals = vertexNormals.concat(StageData.objects[vobs].children[vobsi].vertexNormals);
         }
-    }
+    }*/
 
     //vertexNormals = vertexNormals.concat(vertexNormals);
 
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertexNormals),
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(Entera.buffers.vertexNormals),
         gl.STATIC_DRAW);
 
 
-    const useParentMatrixBuffer = gl.createBuffer();
+    if (!bufferHolder.useParentMatrixBuffer) {
+        bufferHolder.useParentMatrixBuffer = gl.createBuffer();
+    }
+    const useParentMatrixBuffer = bufferHolder.useParentMatrixBuffer;
     gl.bindBuffer(gl.ARRAY_BUFFER, useParentMatrixBuffer);
 
     //const vertexNormals = ObjData.vertexNormals;
     var useParentMatrix = [];
+    /*
     for (var pmobs = 0; pmobs < StageData.objects.length; pmobs++) {
         if (!StageData.objects[pmobs]) { continue; }
         var oldcount = useParentMatrix.length;
@@ -259,9 +285,9 @@ function initBuffers(gl) {
         for (var pmobsi = 0; pmobsi < StageData.objects[pmobs].children.length; pmobsi++) {
             useParentMatrix = useParentMatrix.concat(StageData.objects[pmobs].children[pmobsi].useParentMatrix);
         }
-    }
+    }*/
 
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(useParentMatrix),
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(Entera.buffers.useParentMatrix),
         gl.STATIC_DRAW);
 
     return {
@@ -614,8 +640,10 @@ function RenderObjects(gl, programInfo, objects, parentmatrix, depth, dataHolder
         {
             const vertexCount = objects[oj].indices.length;//36;
             const type = gl.UNSIGNED_SHORT;
-            const offset = objects[oj].bufferOffset; //offsetHolder.val;//objects[oj].bufferOffset; //console.log('offset is:' + objects[oj].bufferOffset)
+            const offset = objects[oj].indexOffset;////objects[oj].bufferOffset; //offsetHolder.val;//objects[oj].bufferOffset; //console.log('offset is:' + objects[oj].bufferOffset)
             dataHolder.offsetval += objects[oj].indices.length * 2;
+            //console.log(offset);
+            //console.log(objects[oj]);
             //if (StageData.ticks % 50 == 0) { console.log('offset is:' + objects[oj].bufferOffset); }
             gl.drawElements(gl.TRIANGLES, vertexCount, type, offset);
             //gl.drawElements(gl.LINES, vertexCount, type, offset);
@@ -789,11 +817,19 @@ function main() {
         //normal: normalBuffer,
         //useParentMatrix: useParentMatrixBuffer,
 
-        gl.deleteBuffer(buffers.position);
-        gl.deleteBuffer(buffers.textureCoord);
-        gl.deleteBuffer(buffers.indices);
-        gl.deleteBuffer(buffers.normal);
-        gl.deleteBuffer(buffers.useParentMatrix);
+        //console.log('------');
+        //console.log(gl.getParameter(gl.ARRAY_BUFFER_BINDING));
+        //console.log(gl.getParameter(gl.ELEMENT_ARRAY_BUFFER_BINDING));
+        //gl.deleteBuffer(buffers.position);
+        //gl.deleteBuffer(buffers.textureCoord);
+        //gl.deleteBuffer(buffers.indices);
+        //gl.deleteBuffer(buffers.normal);
+        ////gl.bindBuffer(gl.ARRAY_BUFFER, null);
+        ////gl.bindBuffer(gl.ARRAY_BUFFER, buffers.useParentMatrix);
+        //gl.deleteBuffer(buffers.useParentMatrix);
+        ////gl.bindBuffer(gl.ARRAY_BUFFER, null);
+        //console.log(gl.getParameter(gl.ARRAY_BUFFER_BINDING));
+        //console.log(gl.getParameter(gl.ELEMENT_ARRAY_BUFFER_BINDING));
 
         buffers.positions = null;
         buffers.normalData = vertexNormals = null;
@@ -814,6 +850,9 @@ function main() {
         var oldTime = lastFrameTime;
         lastFrameTime = Date.now();
         StageData.timeDelta = lastFrameTime - oldTime;
+        if (StageData.timeDelta > 500) {
+            StageData.timeDelta = 500;
+        }
         StageData.vticks += StageData.timeDelta;
 
         theGame.OnFrame();
@@ -1265,10 +1304,20 @@ const Makarios = (function () {
 
     self.helloworld = function () { console.log('hello world'); };
 
-    self.instantiate = function (prim, textureUrl, objectOnFrame, customprops) {
-        return StageData.instantiate(prim, textureUrl, objectOnFrame, customprops);
+    self.instantiate = function (prim, textureUrl, objectOnFrame, customprops, idealstartTime) {
+        var newobj = StageData.instantiate(prim, textureUrl, objectOnFrame, customprops);
+        if (idealstartTime != null && StageData.vticks > idealstartTime) {
+            var trueVTicks = StageData.vticks;
+            var trueTimeDelta = StageData.timeDelta;
+            StageData.vticks = idealstartTime;
+            StageData.timeDelta = trueTimeDelta - (trueVTicks - idealstartTime);
+            newobj.ObjectOnFrame(newobj);
+            StageData.vticks = trueVTicks;
+            StageData.timeDelta = trueTimeDelta;
+        }
+        return newobj;
     }
-    self.instantiateChild = function (parent, prim, textureUrl, objectOnFrame, customprops) {
+    self.instantiateChild = function (parent, prim, textureUrl, objectOnFrame, customprops, idealstartTime) {
         return StageData.instantiateChild(parent, prim, textureUrl, objectOnFrame, customprops);
     }
     self.destroy = function (inst) {

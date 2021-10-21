@@ -14,7 +14,7 @@ const StageData = (function () {
 
         return {
             availabilityChain: { 'first': null },
-            firstAvailableIndex : 0
+            firstAvailableIndex: 0
         };
     };
 
@@ -71,6 +71,7 @@ const StageData = (function () {
         //console.log(newItem.positions.length);
 
         //console.log(objArray);
+        //Entera.handleNewObj(newItem);//???????
         setNextAvailableIndex(parent);
     };
     var destroy = function (inst) {
@@ -87,6 +88,7 @@ const StageData = (function () {
         if (!chainToUse.first || chainToUse.first.val > oldindex) {
             chainToUse.first = { 'val': oldindex, 'next': chainToUse.first };
             firstAvailableIndex = oldindex;
+            //avail.firstAvailableIndex = oldindex;
         } else {
             var searching = true;
             var currentLink = chainToUse.first;
@@ -104,6 +106,8 @@ const StageData = (function () {
 
         //extra leaning to avoid memory leaks eg circular dependency issues
         //will need to make some things recursive. dont need that today. todo!
+
+        Entera.handleRemovingObj(inst);
         inst.parent = null;
         inst.availabilityContainer = null;
         inst.ObjectOnFrame = null;
@@ -185,6 +189,14 @@ const StageData = (function () {
         }
 
         finalizeInstantiation(newInst);
+        Entera.handleNewObj(newInst);
+        if (prim.children) {
+            for (var c = 0; c < newInst.children.length; c++) {
+                //may eventually need precise onframe on customs for children... todo yo
+                //instantiateChild(newInst, prim.children[i], textureUrl, null, {}, newInst)
+                Entera.handleNewObj(newInst.children[c]);
+            }
+        }
         //console.log('number in array: ' + objects.length)
         return newInst;
     };
@@ -220,7 +232,8 @@ const StageData = (function () {
         //parent.children.push(newInst);
         //newInst.
         finalizeInstantiation(newInst, newInst.parent);
-        
+        Entera.handleNewObj(newInst);
+
         return newInst;
     };
 
