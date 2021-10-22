@@ -59,22 +59,29 @@ const Entera = (function () {
         var oldFirst = avail.firstAvailableIndex;
         var newFirst = theHeld.length;
 
-        if (chainToUse.first && chainToUse.first.val < newFirst) {
-            newFirst = chainToUse.first.val;
-            chainToUse.first = chainToUse.first.next;
-        }
-        if (!holderObj) { //we will program for general case later
-            for (var c = globalAvailabilityContainer.contiguumIndex; c < contigua.length; c++) {
-                if (contigua[c].end + 1 == newFirst) {
-                    globalAvailabilityContainer.contiguum = contigua[c];
-                    globalAvailabilityContainer.contiguumIndex = c;
-                    c = contigua.length;
-                    //console.log(globalAvailabilityContainer.contiguum);
-                }
-            }
-        }
+        //if (chainToUse.first && chainToUse.first.val < newFirst) {
+        //    newFirst = chainToUse.first.val;
+        //    chainToUse.first = chainToUse.first.next;
+        //}
+        //if (!holderObj) { //we will program for general case later
+        //    for (var c = globalAvailabilityContainer.contiguumIndex; c < contigua.length; c++) {
+        //        if (contigua[c].end + 1 == newFirst) {
+        //            globalAvailabilityContainer.contiguum = contigua[c];
+        //            globalAvailabilityContainer.contiguumIndex = c;
+        //            c = contigua.length;
+        //            //console.log(globalAvailabilityContainer.contiguum);
+        //        }
+        //    }
+        //}
 
-        avail.firstAvailableIndex = newFirst;
+        if (firstContiguum.start > 0) {
+            avail.firstAvailableIndex = firstContiguum.start - 1;
+        } else {
+            avail.firstAvailableIndex = firstContiguum.end + 1;
+        }
+        //console.log('jext to jill: ' + globalAvailabilityContainer.firstAvailableIndex);
+
+        //avail.firstAvailableIndex = newFirst;
         //console.log('fisrt');
         //console.log(globalAvailabilityContainer.firstAvailableIndex);
         //set contiguum and its index
@@ -95,6 +102,12 @@ const Entera = (function () {
         //console.log(cont.flatobjects);
         cont.flatobjects[inst.cindex] = null;//cindex
         globobjects[oldindex] = null;
+        //if (firstContiguum.start > 0) {
+        //    avail.firstAvailableIndex = firstContiguum.start - 1;
+        //} else {
+        //    avail.firstAvailableIndex = firstContiguum.end + 1;
+        //}
+        /*
         if (!chainToUse.first || chainToUse.first.val > oldindex) {
             chainToUse.first = { 'val': oldindex, 'next': chainToUse.first };
             firstAvailableIndex = oldindex;
@@ -112,7 +125,7 @@ const Entera = (function () {
                 }
                 currentLink = currentLink.next;
             }
-        }
+        } */
 
         var splitdex = inst.cindex;
         var positionsCountTracker = 0;
@@ -124,11 +137,16 @@ const Entera = (function () {
         var newc1 = null;
         var newc2 = null;
         console.log('removing...' + inst.cindex + ' from starts with ' + cont.start + ' is global ' + inst.gindex + ' and contindex is ' + contIndex);
+        if (contIndex > 1) {
+            //for (var ci = 0; ci < contigua.length; ci++) {
+            //    console.log('cont of id ' + ci + ' starts with ' + cont[ci].start + ' ends with ' + cont[ci].end);
+            //}
+        }
 
         //
         if(inst.cindex != cont.flatobjects.length - 1) {
             newc2 = createContiguum(inst.gindex + 1, cont.end - inst.gindex, cont.next);
-            console.log('meere starts at ' + newc2.start);
+            //console.log('meere starts at ' + newc2.start);
             newc2.end = cont.end;
 
             //console.log(cont.flatobjects);
@@ -156,34 +174,34 @@ const Entera = (function () {
                 newc2.flatobjects[n].useParentMatrixBufferStart -= useParentCountTracker;
             }
 
-            newc2.positions = cont.positions.slice(inst.positions.length);
-            newc2.textureCoordinates = cont.textureCoordinates.slice(inst.textureCoordinates.length);
-            newc2.indices = cont.indices.slice(inst.indices.length);
-            newc2.vertexNormals = cont.vertexNormals.slice(inst.vertexNormals.length);
-            newc2.useParentMatrix = cont.useParentMatrix.slice(inst.useParentMatrix.length);
+            ////newc2.positions = cont.positions.slice(inst.positions.length);
+            ////newc2.textureCoordinates = cont.textureCoordinates.slice(inst.textureCoordinates.length);
+            ////newc2.indices = cont.indices.slice(inst.indices.length);
+            ////newc2.vertexNormals = cont.vertexNormals.slice(inst.vertexNormals.length);
+            ////newc2.useParentMatrix = cont.useParentMatrix.slice(inst.useParentMatrix.length);
             //console.log(splitdex + 1);
             //console.log(newc2.flatobjects);
             if (inst.cindex != 0) {
                 if (prec) {
                     prec.next = newc2;
                 }
-                console.log('scase 1');
+                //console.log('scase 1');
                 //contigua[contIndex] = newc2;
             } else {
                 if (firstContiguum == cont) {
-                    console.log('scase 44444');
+                    //console.log('scase 44444');
                     contigua[contIndex] = newc2;
                     firstContiguum = newc2;
-                    console.log(contIndex);
-                    console.log(contigua[0]);
-                    console.log(newc2.flatobjects[1]);
+                    //console.log(contIndex);
+                    //console.log(contigua[0]);
+                    //console.log(newc2.flatobjects[1]);
                     globalAvailabilityContainer.contiguum = newc2;
                     globalAvailabilityContainer.contiguumIndex = 0;
                 } else {
                     //if first, but distant one before it?
-                    console.log('scase 005 ');
-                    console.log(inst.cindex);
-                    console.log(cont.flatobjects.length);
+                    //console.log('scase 005 ');
+                    //console.log(inst.cindex);
+                    //console.log(cont.flatobjects.length);
 
                     contigua[contIndex] = newc2;
                     if (prec) {
@@ -191,13 +209,13 @@ const Entera = (function () {
                     }
                 }
             }
-            console.log(newc2.flatobjects[0]);
+            //console.log(newc2.flatobjects[0]);
         }
 
         //
         if (inst.cindex != 0) {
             newc1 = createContiguum(cont.start, inst.cindex, newc2);
-            console.log('thissere starts at ' + newc1.start);
+            //console.log('thissere starts at ' + newc1.start);
             newc1.end = inst.gindex - 1;
 
             newc1.flatobjects = cont.flatobjects.slice(0, splitdex);
@@ -225,8 +243,8 @@ const Entera = (function () {
                 globalAvailabilityContainer.contiguum = newc1;
                 globalAvailabilityContainer.contiguumIndex = 0;
             }
-            console.log(newc1.flatobjects[0]);
-            console.log('next to fill: ' + globalAvailabilityContainer.firstAvailableIndex);
+            //console.log(newc1.flatobjects[0]);
+            //console.log('next to fill: ' + globalAvailabilityContainer.firstAvailableIndex);
         } else if (inst.cindex == cont.flatobjects.length - 1) {
             //if index = 0 and it is the last one. 
             //ie if it is the only one of this cont
@@ -245,7 +263,7 @@ const Entera = (function () {
                     globalAvailabilityContainer.contiguum = contigua[0];
                     globalAvailabilityContainer.contiguumIndex = 0;
                     firstContiguum = contigua[0];
-                    console.log('next to fill: ' + globalAvailabilityContainer.firstAvailableIndex);
+                    //console.log('next to fill: ' + globalAvailabilityContainer.firstAvailableIndex);
                 }
             } else {
                 console.log('scase 8__')
@@ -254,16 +272,44 @@ const Entera = (function () {
         }
 
 
+        if (firstContiguum.start > 0) {
+            globalAvailabilityContainer.firstAvailableIndex = firstContiguum.start - 1;
+        } else {
+            globalAvailabilityContainer.firstAvailableIndex = firstContiguum.end + 1;
+        }
+        //console.log('next to fill better: ' + globalAvailabilityContainer.firstAvailableIndex);
                 
     };
 
     var linkBufferArrays = function () {
         //console.log('linking up');
+        //if (contigua.length > 1) {
+        //    //console.log('cccase many');
+        //    positions = contigua[0].positions;
+        //    textureCoordinates = contigua[0].textureCoordinates;
+        //    indices = contigua[0].indices;
+        //    vertexNormals = contigua[0].vertexNormals;
+        //    useParentMatrix = contigua[0].useParentMatrix;
+        //} else {
+        //    //console.log('cccase unuoo');
+        //    positions = contigua[0].positions.slice(0);
+        //    textureCoordinates = contigua[0].textureCoordinates.slice(0);
+        //    indices = contigua[0].indices.slice(0);
+        //    vertexNormals = contigua[0].vertexNormals.slice(0);
+        //    useParentMatrix = contigua[0].useParentMatrix.slice(0);
+        //}
+
         positions = [];
         textureCoordinates = [];
         indices = [];
         vertexNormals = [];
         useParentMatrix = [];
+
+        //var countything = 0;
+        ////for (var tt = 0; tt < 1000000; tt++) {
+        ////    countything += (tt + Date.now());
+        ////}
+        //console.log(countything);
 
         //console.log(contigua);
         var cIndicesBufferCount = 0;
@@ -274,11 +320,13 @@ const Entera = (function () {
         //console.log('this many conts ' + contigua.length);
 
         for (var c = 0; c < contigua.length; c++) {
-            positions = positions.concat(contigua[c].positions);
-            textureCoordinates = textureCoordinates.concat(contigua[c].textureCoordinates);
-            indices = indices.concat(contigua[c].indices);
-            vertexNormals = vertexNormals.concat(contigua[c].vertexNormals);
-            useParentMatrix = useParentMatrix.concat(contigua[c].useParentMatrix);
+            ////if (c != 0) {
+                positions = positions.concat(contigua[c].positions);
+                textureCoordinates = textureCoordinates.concat(contigua[c].textureCoordinates);
+                indices = indices.concat(contigua[c].indices);
+                vertexNormals = vertexNormals.concat(contigua[c].vertexNormals);
+                useParentMatrix = useParentMatrix.concat(contigua[c].useParentMatrix);
+            ////} //else { continue; }
             //for (var pb = 0; pb < contigua[c].positions.length; pb++) {
             //    positions.push(contigua[c].positions[pb]);
             //}
@@ -297,29 +345,31 @@ const Entera = (function () {
 
             i = 0;
             for (i = 0; i < contigua[c].flatobjects.length; i++) {
-                if (contigua[c].flatobjects[i] == null) {
+                var currentFlatObject = contigua[c].flatobjects[i];
+                if (currentFlatObject == null) {
                     console.log('c:' + c + ' i: ' + i);
                     console.log(contigua[c].flatobjects);
                 }
-                contigua[c].flatobjects[i].indexOffset = (contigua[c].flatobjects[i].indicesBufferStart + cIndicesBufferCount) * 2;
+                var indexOffsetNumber = currentFlatObject.indicesBufferStart + cIndicesBufferCount;
+                currentFlatObject.indexOffset = (indexOffsetNumber) * 2;
 
                 posOffsetDiff = 0;
                 var parPosLength = 0;
-                if (contigua[c].flatobjects[i].parent) {
+                if (currentFlatObject.parent) {
                     posOffsetDiff = 168;//contigua[c].flatobjects[i].positionsBufferStart + contigua[c].
-                    parPosLength = contigua[c].flatobjects[i].parent.positions.length;
+                    parPosLength = currentFlatObject.parent.positions.length;
                 }
-                for (var x = 0; x < contigua[c].flatobjects[i].indices.length; x++) {
-                    if (posOffsetDiff != 0 && contigua[c].flatobjects[i].indices[x] < (contigua[c].flatobjects[i].parent.positions.length / 3)) {
+                for (var x = 0; x < currentFlatObject.indices.length; x++) {
+                    if (posOffsetDiff != 0 && currentFlatObject.indices[x] < (currentFlatObject.parent.positions.length / 3)) {
                         //use parents offset
-                        indices[x + contigua[c].flatobjects[i].indicesBufferStart + cIndicesBufferCount] += ((objPositionsSoFar - posOffsetDiff) / 3);
-                        console.log(indices[x + contigua[c].flatobjects[i].indicesBufferStart + cIndicesBufferCount]);
+                        indices[x + indexOffsetNumber] += ((objPositionsSoFar - posOffsetDiff) / 3);
+                        //console.log(indices[x + indexOffsetNumber]);
                     } else {
                         //use own offset
-                        indices[x + contigua[c].flatobjects[i].indicesBufferStart + cIndicesBufferCount] += ((objPositionsSoFar - parPosLength) / 3);
+                        indices[x + indexOffsetNumber] += ((objPositionsSoFar - parPosLength) / 3);
                     }
                 }
-                objPositionsSoFar += contigua[c].flatobjects[i].positions.length;
+                objPositionsSoFar += currentFlatObject.positions.length;
             }
             cIndicesBufferCount += contigua[c].indices.length;
         }
@@ -333,6 +383,19 @@ const Entera = (function () {
         buffers.indices = indices;
         buffers.vertexNormals = vertexNormals;
         buffers.useParentMatrix = useParentMatrix;
+
+        console.log(indices.length);
+        if (contigua.length > 2) {
+            console.log('error maybe with this many conts ' + contigua.length);
+            for (var ci = 0; ci < contigua.length; ci++) {
+                console.log('cont of id ' + ci + ' starts with ' + contigua[ci].start + ' ends with ' + contigua[ci].end + 'blegn ' + contigua[ci].indices.length);
+            }
+            console.log(indices);
+            console.log(indices[indices.length - 1]);
+        }
+        if (firstContiguum != contigua[0] || globalAvailabilityContainer.contiguum != firstContiguum || globalAvailabilityContainer.contiguumIndex != 0 ) {
+            console.log('evil evil error');
+        }
     };
 
 
@@ -356,7 +419,7 @@ const Entera = (function () {
     };
 
     var joinContigua = function (c1, c2) {
-        if (c1.end == c2.start - 1) {
+        if (true) {//(c1.end == c2.start - 1) {
             //combine
             var c1LastObj = c1.flatobjects[c1.flatobjects.length - 1];
 
@@ -402,14 +465,16 @@ const Entera = (function () {
 
             if (prev) {
                 prev.next = newc;
-            }
-            if (newc.start == 0) {
+            } else if (c1 == firstContiguum) {
                 firstContiguum = newc;
             }
+            //if (newc.start == 0) {
+            //    firstContiguum = newc;
+            //}
 
             return newc;
         }
-
+        console.log('BAD BAD ERROR');
         return null;
     };
 
@@ -423,12 +488,12 @@ const Entera = (function () {
             if (globalAvailabilityContainer.firstAvailableIndex == cont.end + 1) {
                 //console.log('case push');
                 //console.log(cont.positions);
-                console.log('case rezzy');
+                //console.log('case rezzy');
 
                 cont.end += 1;
 
                 obj.cindex = cont.flatobjects.length;
-                obj.gindex = cont.start + obj.cindex;
+                obj.gindex = globalAvailabilityContainer.firstAvailableIndex;//cont.start + obj.cindex;
                 //console.log(obj.cindex);
 
                 cont.flatobjects.push(obj);
@@ -450,9 +515,10 @@ const Entera = (function () {
                     contigua.splice(globalAvailabilityContainer.contiguumIndex, 2, joinContigua(cont, cont.next));
                     //the current contiguum is different, but the index is going to be the same
                     globalAvailabilityContainer.contiguum = contigua[globalAvailabilityContainer.contiguumIndex];
+                    firstContiguum = contigua[0];
                 }
             } else if (globalAvailabilityContainer.firstAvailableIndex == 0) {
-                console.log('case wooly');
+                //console.log('case wooly');
 
                 if ((cont.start - 1) == globalAvailabilityContainer.firstAvailableIndex) {
 
@@ -462,7 +528,7 @@ const Entera = (function () {
                     cont = createContiguum(0, 1, oldcont);
                     contigua.splice(0, 0, cont);
                 }
-                
+
                 obj.cindex = 0;
                 obj.gindex = 0;
 
@@ -491,6 +557,38 @@ const Entera = (function () {
                     }
                 }
 
+            } else if (globalAvailabilityContainer.firstAvailableIndex == cont.start - 1) {
+                console.log('case yaboba');
+                cont.start -= 1;
+
+                obj.cindex = 0;
+                obj.gindex = cont.start;
+                //console.log(obj.cindex);
+
+                cont.flatobjects.splice(0, 0, obj);
+                //globobjects.
+                obj.positionsBufferStart = 0;
+                obj.textureCoordinatesBufferStart = 0;
+                obj.indicesBufferStart = 0;
+                obj.vertexNormalsBufferStart = 0;
+                obj.useParentMatrixBufferStart = 0;
+
+                cont.positions = obj.positions.concat(cont.positions);
+                cont.textureCoordinates = obj.textureCoordinates.concat(cont.textureCoordinates);
+                cont.indices = obj.indices.concat(cont.indices);
+                cont.vertexNormals = obj.vertexNormals.concat(cont.vertexNormals);
+                cont.useParentMatrix = obj.useParentMatrix.concat(cont.useParentMatrix);
+
+                if (cont.flatobjects.length > 1) {
+                    for (var fo = 1; fo < cont.flatobjects.length; fo++) {
+                        cont.flatobjects[fo].cindex += 1;
+                        cont.flatobjects[fo].positionsBufferStart += obj.positions.length;
+                        cont.flatobjects[fo].textureCoordinatesBufferStart += obj.textureCoordinates.length;
+                        cont.flatobjects[fo].indicesBufferStart += obj.indices.length;
+                        cont.flatobjects[fo].vertexNormalsBufferStart += obj.vertexNormals.length;
+                        cont.flatobjects[fo].useParentMatrixBufferStart += obj.useParentMatrix.length;
+                    }
+                }
             } else {
                 console.log('case other');
                 console.log(globalAvailabilityContainer.firstAvailableIndex);
@@ -504,7 +602,7 @@ const Entera = (function () {
         linkBufferArrays();
         //console.log(Date.now() - timestart);
         //console.log(obj);
-        console.log(globalAvailabilityContainer.firstAvailableIndex);
+        //console.log(globalAvailabilityContainer.firstAvailableIndex);
     };
 
     var handleRemovingObj = function (obj) {
@@ -532,8 +630,10 @@ const Entera = (function () {
         var timestart = performance.now();
         linkBufferArrays();
 
-        console.log('timed');
-        console.log(performance.now() - timestart);
+        var timespend = performance.now() - timestart;
+        if (timespend > 6.0) {
+            console.log('dangerously long time of ' + timespend);
+        }
     };
 
     var preInit = function () {
