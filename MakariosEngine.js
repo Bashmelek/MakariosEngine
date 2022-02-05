@@ -1108,14 +1108,38 @@ function recursiveCheckAllObjectsIfScreenPointHits(object, parent, itsfullmatrix
 
 }
 
+var pitch = 0.0;
+var yaw = 0.0;
 onmousemove = function (e) {
 
     //the good code
-    //var rect = document.querySelector('#glCanvas').getBoundingClientRect();
-    if (mouseisdown) {
 
-        mat4.rotate(gmod, gmod, (e.clientX - lastmousedownpoint.x) * 0.001, [gmod[1], gmod[5], gmod[9]]);//[0, 1, 0]);//linTransform(gproj, [0, 1, 0]));// [0, 1, 0]);//linTransform(origmod, [0, 1, 0]));// [0, 1, 0]);
-        mat4.rotate(gmod, gmod, (e.clientY - lastmousedownpoint.y) * 0.001, [gmod[0], gmod[4], gmod[8]]);//[1, 0, 0]);//linTransform(gproj, [1, 0, 0]));// [1, 0, 0]);//linTransform(origmod, [1, 0, 0]));
+    //types
+    //0: free
+    //1: look
+    var camType = 1;
+    if (mouseisdown) {
+        var xdel = (e.clientX - lastmousedownpoint.x) * 0.001;
+        var ydel = (e.clientY - lastmousedownpoint.y) * 0.001;
+
+        if (camType == 0) {
+            mat4.rotate(gmod, gmod, (xdel), [gmod[1], gmod[5], gmod[9]]);//[0, 1, 0]);//linTransform(gproj, [0, 1, 0]));// [0, 1, 0]);//linTransform(origmod, [0, 1, 0]));// [0, 1, 0]);
+            mat4.rotate(gmod, gmod, (ydel) , [gmod[0], gmod[4], gmod[8]]);//[1, 0, 0]);//linTransform(gproj, [1, 0, 0]));// [1, 0, 0]);//linTransform(origmod, [1, 0, 0]));
+        } else if (camType == 1) {
+            var vmat = mat4.create();
+            // Now move the drawing position a bit to where we want to
+            // start drawing the square.
+            mat4.translate(vmat,     // destination matrix
+                vmat,     // matrix to translate
+                [-0.0, 0.0, -22.0]);
+            //mat4.rotate(gmod, gmod, (e.clientY - lastmousedownpoint.y) * 0.001, [gmod[0], gmod[4], gmod[8]]);
+            yaw += xdel;
+            pitch += ydel
+            mat4.rotate(vmat, vmat, yaw, [vmat[1], vmat[5], vmat[9]]);
+            mat4.rotate(gmod, vmat, pitch, [vmat[0], vmat[4], vmat[8]]);
+
+            //mat4.rotate(gmod, gmod, (e.clientY - lastmousedownpoint.y) * 0.001, [gmod[0], gmod[4], gmod[8]]);
+        }
 
         /*var xrotation = glMatrix.mat4.create();
         mat4.rotate(xrotation, xrotation, (e.clientX - lastmousedownpoint.x) * 0.001, [0.0, 1.0, 0.0]);

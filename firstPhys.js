@@ -512,7 +512,13 @@ const MyFirstPhysics = (function () {
     };
 
     var OnFrame = function () {
+
         FrameLogic.onFrame();
+        //objects[0].childrenCustom[0].matrix = mat4.create();
+        mat4.rotate(objects[0].childrenCustom[0].matrix,  // destination matrix
+            objects[0].childrenCustom[0].matrix,  // matrix to rotate
+            -.02,   // amount to rotate in radians
+            [0, 0, 1]); //101
     };
 
     //console.log(objects[0].children[0].indices)

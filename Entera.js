@@ -22,7 +22,8 @@ const Entera = (function () {
         indices: [],
         vertexNormals: [],
         useParentMatrix: [],
-        isBuffered: false
+        isBuffered: false,
+        versionNo : 0
     }
 
 
@@ -254,9 +255,11 @@ const Entera = (function () {
             if (firstContiguum == cont) {
                 if (cont.next) {
                     console.log('scase 60 0');
-                    contigua[0] = cont.next;
+                    ////contigua[0] = cont.next;//??might be good, might not be good
+                    contigua.splice(contIndex, 1);
                     globalAvailabilityContainer.contiguum = cont.next;
                     globalAvailabilityContainer.contiguumIndex = 0;
+                    firstContiguum = contigua[0];
                 } else {//there none?
                     console.log('scase 777')
                     contigua[0] = createContiguum();
@@ -317,10 +320,13 @@ const Entera = (function () {
         var objPositionsSoFar = 0;
         var posOffsetDiff = 0;
         var i;
+        buffers.versionNo += 1;
+        var version = buffers.versionNo;
         //console.log('this many conts ' + contigua.length);
 
-        for (var c = 0; c < contigua.length; c++) {
+        for (var c = 0; c < contigua.length; c++) {                
             ////if (c != 0) {
+                var startContPosIndex = positions.length;
                 positions = positions.concat(contigua[c].positions);
                 textureCoordinates = textureCoordinates.concat(contigua[c].textureCoordinates);
                 indices = indices.concat(contigua[c].indices);
@@ -346,6 +352,8 @@ const Entera = (function () {
             i = 0;
             for (i = 0; i < contigua[c].flatobjects.length; i++) {
                 var currentFlatObject = contigua[c].flatobjects[i];
+                currentFlatObject.versionNo = version;
+                currentFlatObject.startContPosIndex = startContPosIndex;
                 if (currentFlatObject == null) {
                     console.log('c:' + c + ' i: ' + i);
                     console.log(contigua[c].flatobjects);
@@ -355,13 +363,22 @@ const Entera = (function () {
 
                 posOffsetDiff = 0;
                 var parPosLength = 0;
-                if (currentFlatObject.parent) {
-                    posOffsetDiff = 168;//contigua[c].flatobjects[i].positionsBufferStart + contigua[c].
+                if (currentFlatObject.parent && currentFlatObject.parent.versionNo == version) {
+
+                    //todo: update this to make more dynamic??
+                    posOffsetDiff = (objPositionsSoFar) - (currentFlatObject.parent.positionsBufferStart + currentFlatObject.parent.startContPosIndex);// 168;//contigua[c].flatobjects[i].positionsBufferStart + contigua[c].
                     parPosLength = currentFlatObject.parent.positions.length;
+                }
+                if (currentFlatObject.children != null && currentFlatObject.children.length > 0 && currentFlatObject.children[0].versionNo == version) {
+                    //if childobjects already process, better update their indices
+                    //todo: figure out if I even need this, shouldnt this already be loaded?
+                    //maybe have system figure out if it is the right kind, the deformation-shared index
+                    //kind of child, then apply this. then can dynamically add/remove those as well. 
+                    //same with above
                 }
                 for (var x = 0; x < currentFlatObject.indices.length; x++) {
                     if (posOffsetDiff != 0 && currentFlatObject.indices[x] < (currentFlatObject.parent.positions.length / 3)) {
-                        //use parents offset
+                        //use parents offset                        
                         indices[x + indexOffsetNumber] += ((objPositionsSoFar - posOffsetDiff) / 3);
                         //console.log(indices[x + indexOffsetNumber]);
                     } else {
@@ -384,7 +401,7 @@ const Entera = (function () {
         buffers.vertexNormals = vertexNormals;
         buffers.useParentMatrix = useParentMatrix;
 
-        console.log(indices.length);
+        //console.log(indices.length);
         if (contigua.length > 2) {
             console.log('error maybe with this many conts ' + contigua.length);
             for (var ci = 0; ci < contigua.length; ci++) {
@@ -631,6 +648,7 @@ const Entera = (function () {
         linkBufferArrays();
 
         var timespend = performance.now() - timestart;
+        console.log('time of ' + timespend);
         if (timespend > 6.0) {
             console.log('dangerously long time of ' + timespend);
         }
