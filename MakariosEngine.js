@@ -880,13 +880,33 @@ var mouseisdown = false;
 var isdragging = false;
 var dragstartpoint = { x: 0, y: 0 };
 var lastmousedownpoint = { x: 0, y: 0 };
+
+//thank you https://developer.mozilla.org/en-US/docs/Web/API/Pointer_Lock_API for teaching me how to do this
+//and https://stackoverflow.com/questions/6837198/handling-camera-style-mouse-movement-in-javascript-enabling-continuous-mouse-mo#:~:text=The%20issue%3A%20in%20Javascript%2C%20the%20only%20way%20to,mousepad%20in%20any%20direction%20and%20it%20always%20works.
+//and https://stackoverflow.com/questions/36903442/js-pointer-lock
+// for pointing me the way
+var usePointerLock = 1;
+
 window.addEventListener("mousedown", function (e) {
+    if (usePointerLock == 1) {
+        const canvas = document.querySelector('#glCanvas');
+        canvas.requestPointerLock = canvas.requestPointerLock ||
+            canvas.mozRequestPointerLock;
+
+        canvas.requestPointerLock()
+    }
     //console.log('mousedown');
     mouseisdown = true;
     dragstartpoint = { x: e.clientX, y: e.clientY };
     lastmousedownpoint = { x: e.clientX, y: e.clientY };
 })
 window.addEventListener("mouseup", function (e) {
+    if (usePointerLock == 1) {
+        document.exitPointerLock = document.exitPointerLock ||
+            document.mozExitPointerLock;
+        // Attempt to unlock
+        document.exitPointerLock();
+    }
     //console.log('mouseup');
     mouseisdown = false;
 })
@@ -1113,14 +1133,21 @@ var yaw = 0.0;
 onmousemove = function (e) {
 
     //the good code
-
     //types
     //0: free
     //1: look
     var camType = 1;
     if (mouseisdown) {
-        var xdel = (e.clientX - lastmousedownpoint.x) * 0.001;
-        var ydel = (e.clientY - lastmousedownpoint.y) * 0.001;
+        var xdel;
+        var ydel
+        if (usePointerLock == 1) {
+            xdel = (e.movementX) * 0.001;
+            ydel = (e.movementY) * 0.001;
+        } else {
+            xdel = (e.clientX - lastmousedownpoint.x) * 0.001;
+            ydel = (e.clientY - lastmousedownpoint.y) * 0.001;
+            lastmousedownpoint = { x: e.clientX, y: e.clientY };
+        }
 
         if (camType == 0) {
             mat4.rotate(gmod, gmod, (xdel), [gmod[1], gmod[5], gmod[9]]);//[0, 1, 0]);//linTransform(gproj, [0, 1, 0]));// [0, 1, 0]);//linTransform(origmod, [0, 1, 0]));// [0, 1, 0]);
@@ -1154,8 +1181,11 @@ onmousemove = function (e) {
         dir = lin3Transform(yrotation, dir);*/
         //console.log(e.clientX - lastmousedownpoint.x);
 
+        //if (usePointerLock == 1) {
 
-        lastmousedownpoint = { x: e.clientX, y: e.clientY };
+        //} else {
+        //    lastmousedownpoint = { x: e.clientX, y: e.clientY };
+        //}
     }
 }
 
