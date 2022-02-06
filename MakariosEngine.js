@@ -817,9 +817,6 @@ function main() {
         //normal: normalBuffer,
         //useParentMatrix: useParentMatrixBuffer,
 
-        //console.log('------');
-        //console.log(gl.getParameter(gl.ARRAY_BUFFER_BINDING));
-        //console.log(gl.getParameter(gl.ELEMENT_ARRAY_BUFFER_BINDING));
         //gl.deleteBuffer(buffers.position);
         //gl.deleteBuffer(buffers.textureCoord);
         //gl.deleteBuffer(buffers.indices);
@@ -828,8 +825,6 @@ function main() {
         ////gl.bindBuffer(gl.ARRAY_BUFFER, buffers.useParentMatrix);
         //gl.deleteBuffer(buffers.useParentMatrix);
         ////gl.bindBuffer(gl.ARRAY_BUFFER, null);
-        //console.log(gl.getParameter(gl.ARRAY_BUFFER_BINDING));
-        //console.log(gl.getParameter(gl.ELEMENT_ARRAY_BUFFER_BINDING));
 
         buffers.positions = null;
         buffers.normalData = vertexNormals = null;
@@ -868,9 +863,7 @@ function main() {
                 }
             }
         }
-    }, 5);//15
-
-    //console.log(gl.GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS);
+    }, 5);
 
 }
 
@@ -887,34 +880,48 @@ var lastmousedownpoint = { x: 0, y: 0 };
 // for pointing me the way
 var usePointerLock = 1;
 
-window.addEventListener("mousedown", function (e) {
+
+function onTouchOrMouseDown (e) {
     if (usePointerLock == 1) {
         const canvas = document.querySelector('#glCanvas');
         canvas.requestPointerLock = canvas.requestPointerLock ||
             canvas.mozRequestPointerLock;
 
-        canvas.requestPointerLock()
+        canvas.requestPointerLock();
     }
-    //console.log('mousedown');
+    console.log('mousedown');
+    console.log(e);
     mouseisdown = true;
     dragstartpoint = { x: e.clientX, y: e.clientY };
     lastmousedownpoint = { x: e.clientX, y: e.clientY };
-})
-window.addEventListener("mouseup", function (e) {
+}
+
+function onTouchOrMouseUp(e) {
     if (usePointerLock == 1) {
         document.exitPointerLock = document.exitPointerLock ||
             document.mozExitPointerLock;
         // Attempt to unlock
         document.exitPointerLock();
     }
-    //console.log('mouseup');
     mouseisdown = false;
-})
+}
+
+
+//preemptive thanks to https://stackoverflow.com/questions/43714880/do-dom-events-work-with-pointer-lock
+//for the firefox workaround and the rightclick issue
+//will have to implement
+//also thanks https://stackoverflow.com/questions/43928704/mouse-down-event-not-working-on-canvas-control-in-my-wpf-application for the hint
+//regarding which elemet to add the listener
+document.querySelector('#uiCanvas').addEventListener("mousedown", onTouchOrMouseDown)
+window.addEventListener("mouseup", onTouchOrMouseUp)
+//thank you https://developer.mozilla.org/en-US/docs/Web/API/Touch_events for showing me this
+document.querySelector('#uiCanvas').addEventListener("touchstart", onTouchOrMouseDown, false)
+document.querySelector('#uiCanvas').addEventListener("touchend", onTouchOrMouseUp, false)
+document.querySelector('#uiCanvas').addEventListener("touchcancel", onTouchOrMouseUp, false)
 
 
 window.addEventListener("keydown", function (e) {
     FrameLogic.keystates[e.keyCode] = true;
-    //console.log('prezzed ' + e.keyCode);
 })
 window.addEventListener("keyup", function (e) {
     if (typeof FrameLogic == 'undefined') { return; }
@@ -933,9 +940,8 @@ window.addEventListener("wheel", function (event) {
     var scrollDiff = event.deltaY * 0.01;
 
     var oldDist = camDist;
-    camDist += scrollDiff;//1.0;
-    //console.log(gmod);
-    //console.log(camDist);
+    camDist += scrollDiff;
+
     if (camDist < 2.0) {
         camDist = 2.0;
     } else if (camDist > 70.0) {
@@ -952,7 +958,6 @@ window.addEventListener("wheel", function (event) {
 
 
 window.addEventListener("click", function (e) {
-    //console.log('clicky');
 
     var matrices = [];
     var basematrix = mat4.create();
@@ -1059,7 +1064,8 @@ function recursiveCheckAllObjectsIfScreenPointHits(object, parent, itsfullmatrix
 
 var pitch = 0.0;
 var yaw = 0.0;
-onmousemove = function (e) {
+
+function onDrag(e) {
 
     //the good code
     //types
@@ -1069,7 +1075,7 @@ onmousemove = function (e) {
     if (mouseisdown) {
         var xdel;
         var ydel
-        if (usePointerLock == 1) {
+        if (usePointerLock > 0) {
             xdel = (e.movementX) * 0.001;
             ydel = (e.movementY) * 0.001;
         } else {
@@ -1098,6 +1104,10 @@ onmousemove = function (e) {
         }        
     }
 }
+
+
+onmousemove = onDrag;
+document.querySelector('#uiCanvas').addEventListener("touchmove", onDrag, false)
 
 
 function getAllScreenCoords(mat, vec3sarray) {
