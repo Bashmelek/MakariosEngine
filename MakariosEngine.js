@@ -946,18 +946,8 @@ window.addEventListener("wheel", function (event) {
     if (distDel == 0.0) {
         return;
     }
-
-    //var tra = glMatrix.vec3.create();
-    //mat4.getTranslation(tra, gmod);
-    //var mag = Math.sqrt(tra[0] * tra[0] + tra[1] * tra[1] + tra[2] * tra[2]);
-    //console.log(tra);
-    //var unit = [tra[0] / mag, tra[1] / mag, tra[2] / mag];
-    //var vecDel = [unit[0] * distDel, unit[1] * distDel, unit[2] * distDel]
-
+    
     gmod[14] -= distDel;
-    //mat4.translate(gmod,     // destination matrix
-    //    gmod,     // matrix to translate
-    //    vecDel);
 })
 
 
@@ -982,8 +972,6 @@ window.addEventListener("click", function (e) {
 
         recursiveCheckAllObjectsIfScreenPointHits(StageData.objects[objindex], null, objmatrix, [], hitstuff, { x: e.clientX, y: e.clientY }, []);
     }
-    //console.log(tricount);
-    //console.log(hitstuff);
 })
 
 function recursiveCheckAllObjectsIfScreenPointHits(object, parent, itsfullmatrix, inheritedcoords, hitstuff, testpoint, inheritedTextCoordsList) {
@@ -991,34 +979,11 @@ function recursiveCheckAllObjectsIfScreenPointHits(object, parent, itsfullmatrix
     var tricount = object.indices.length / 3;
 
     var parentcoords = parent && parent.positions ? parent.positions : [];
-    var properCoords = [];//getAllScreenCoords(itsfullmatrix, object.positions);
+    var properCoords = [];
 
-    //console.log(object.positions)
     properCoords = getAllScreenCoords(itsfullmatrix, object.positions);
-    //console.log(properCoords)
-    var screencoords = inheritedcoords.concat(properCoords); //console.log(inheritedcoords)
+    var screencoords = inheritedcoords.concat(properCoords);
 
-    /*
-    for (var ac = 0; ac < object.indices.length; ac++) {
-        var indexer = object.indices[ac];
-        var newcoord = [];
-        if (indexer < (parentcoords.length/3)) {
-            newcoord.push(parentcoords[indexer * 3]);//inheritedCoords
-            newcoord.push(parentcoords[indexer * 3 + 1]);
-            newcoord.push(parentcoords[indexer * 3 + 2]); //console.log('old: ' + newcoord);
-
-            screencoords = screencoords.concat(getAllScreenCoords(parentfullmatrix, newcoord));
-        } else {
-            newcoord.push(object.positions[(indexer - (parentcoords.length / 3)) * 3]);//properCoords
-            newcoord.push(object.positions[(indexer - (parentcoords.length/3)) * 3 + 1]);
-            newcoord.push(object.positions[(indexer - (parentcoords.length / 3)) * 3 + 2]); //console.log('new: ' + newcoord);
-
-            screencoords = screencoords.concat(getAllScreenCoords(itsfullmatrix, newcoord));
-        }
-    }*/
-    //console.log(inheritedCoords)
-    //var screencoords = //getAllScreenCoords(parentfullmatrix, inheritedCoords).concat(getAllScreenCoords(itsfullmatrix, properCoords));
-    //console.log(screencoords)
     var beenhit = false;
     var myhittris = [];
     for (var c = 0; c < tricount; c++) {
@@ -1041,25 +1006,9 @@ function recursiveCheckAllObjectsIfScreenPointHits(object, parent, itsfullmatrix
             if (!beenhit) {
                 hitstuff.objects.push(object.id);
                 beenhit = true;
-                //console.log('hit: ' + object.id.toString() + ' at ' + rez.hitz.toString())
-                //console.log({
-                //    a: { x: screencoords[object.indices[c * 3 + 0] * 3 + 0], y: screencoords[object.indices[c * 3 + 0] * 3 + 1] },
-                //    b: { x: screencoords[object.indices[c * 3 + 1] * 3 + 0], y: screencoords[object.indices[c * 3 + 1] * 3 + 1] },
-                //    c: { x: screencoords[object.indices[c * 3 + 2] * 3 + 0], y: screencoords[object.indices[c * 3 + 2] * 3 + 1] },
-                //});
             }
         }
-        //this part wasnt commented out...why?
-        //if (!beenhit) {
-        //    hitstuff.objects.push(object.id);
-        //    beenhit = true;
-        //    console.log('hit: ' + object.id.toString())
-        //    console.log({
-        //        a: { x: screencoords[object.indices[c * 3 + 0] * 3 + 0], y: screencoords[object.indices[c * 3 + 0] * 3 + 1] },
-        //        b: { x: screencoords[object.indices[c * 3 + 1] * 3 + 0], y: screencoords[object.indices[c * 3 + 1] * 3 + 1] },
-        //        c: { x: screencoords[object.indices[c * 3 + 2] * 3 + 0], y: screencoords[object.indices[c * 3 + 2] * 3 + 1] },
-        //    });
-        //}
+
 
     }
 
@@ -1090,28 +1039,8 @@ function recursiveCheckAllObjectsIfScreenPointHits(object, parent, itsfullmatrix
             }
 
             //don't need to rebind anymore, because we do this all the time yeah?
-            ////const textureCoordBuffer = ggl.createBuffer();
-            //ggl.bindBuffer(ggl.ARRAY_BUFFER, gtextureCoordBuffer);
-
-            //var textureCoordinates = [];
-            //for (var tobs = 0; tobs < StageData.objects.length; tobs++) {
-            //    if (!StageData.objects[tobs]) { continue; }
-            //    var oldcount = textureCoordinates.length;
-            //    textureCoordinates = textureCoordinates.concat(StageData.objects[tobs].textureCoordinates);
-            //    for (var tobsi = 0; tobsi < StageData.objects[tobs].children.length; tobsi++) {
-            //        textureCoordinates = textureCoordinates.concat(StageData.objects[tobs].children[tobsi].textureCoordinates);
-            //    }
-            //}
-
-            //ggl.bufferData(ggl.ARRAY_BUFFER, new Float32Array(textureCoordinates),
-            //    ggl.STATIC_DRAW);
-
             console.log('flippeditfor ' + lowestztri.triid + 'z: ' + lowestztri.z);
             console.log('moreinfo: ' + (lowestztri.triid * 3 + 0) + 'z: ' + ((object.indices[lowestztri.triid * 3 + 0]) * 2));
-            //if (object.id == 1) {
-            //    console.log(properCoords[2]);
-            //    console.log('flippeditfor ' + lowestztri.triid + 'z: ' + lowestztri.z);
-            //}
         }
     }
 
@@ -1166,26 +1095,7 @@ onmousemove = function (e) {
             mat4.rotate(gmod, vmat, pitch, [vmat[0], vmat[4], vmat[8]]);
 
             //mat4.rotate(gmod, gmod, (e.clientY - lastmousedownpoint.y) * 0.001, [gmod[0], gmod[4], gmod[8]]);
-        }
-
-        /*var xrotation = glMatrix.mat4.create();
-        mat4.rotate(xrotation, xrotation, (e.clientX - lastmousedownpoint.x) * 0.001, [0.0, 1.0, 0.0]);
-        var yrotation = glMatrix.mat4.create();
-        mat4.rotate(yrotation, yrotation, (e.clientY - lastmousedownpoint.y) * 0.001, [1.0, 0.0, 0.0]);
-
-        xrot = lin3Transform(xrotation, xrot);
-        xrot = lin3Transform(yrotation, xrot);
-        yrot = lin3Transform(xrotation, yrot);
-        yrot = lin3Transform(yrotation, yrot);
-        dir = lin3Transform(xrotation, dir);
-        dir = lin3Transform(yrotation, dir);*/
-        //console.log(e.clientX - lastmousedownpoint.x);
-
-        //if (usePointerLock == 1) {
-
-        //} else {
-        //    lastmousedownpoint = { x: e.clientX, y: e.clientY };
-        //}
+        }        
     }
 }
 
