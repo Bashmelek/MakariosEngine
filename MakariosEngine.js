@@ -881,7 +881,7 @@ var lastmousedownpoint = { x: 0, y: 0 };
 var usePointerLock = 1;
 
 
-function onTouchOrMouseDown (e) {
+function onJustMouseDown (e) {
     if (usePointerLock == 1) {
         const canvas = document.querySelector('#glCanvas');
         canvas.requestPointerLock = canvas.requestPointerLock ||
@@ -889,14 +889,12 @@ function onTouchOrMouseDown (e) {
 
         canvas.requestPointerLock();
     }
-    console.log('mousedown');
-    console.log(e);
     mouseisdown = true;
     dragstartpoint = { x: e.clientX, y: e.clientY };
     lastmousedownpoint = { x: e.clientX, y: e.clientY };
 }
 
-function onTouchOrMouseUp(e) {
+function onJustMouseUp(e) {
     if (usePointerLock == 1) {
         document.exitPointerLock = document.exitPointerLock ||
             document.mozExitPointerLock;
@@ -907,17 +905,34 @@ function onTouchOrMouseUp(e) {
 }
 
 
+var currentTouch = null;
+//and thank you https://stackoverflow.com/questions/12485085/prevent-scrolling-on-mobile-browser-without-preventing-input-focusing
+//for reminding me to follow documentation and use preventDefault()
+function onJustTouchDown(e) {
+    e.preventDefault();
+    mouseisdown = true;
+    currentTouch = e.changedTouches[0];
+
+    dragstartpoint = { x: currentTouch.pageX, y: currentTouch.pageY };
+    lastmousedownpoint = { x: currentTouch.pageX, y: currentTouch.pageY };
+}
+
+function onJustTouchUp(e) {
+    currentTouch = null;
+    mouseisdown = false;
+}
+
 //preemptive thanks to https://stackoverflow.com/questions/43714880/do-dom-events-work-with-pointer-lock
 //for the firefox workaround and the rightclick issue
 //will have to implement
 //also thanks https://stackoverflow.com/questions/43928704/mouse-down-event-not-working-on-canvas-control-in-my-wpf-application for the hint
 //regarding which elemet to add the listener
-document.querySelector('#uiCanvas').addEventListener("mousedown", onTouchOrMouseDown)
-window.addEventListener("mouseup", onTouchOrMouseUp)
+document.querySelector('#uiCanvas').addEventListener("mousedown", onJustMouseDown)
+window.addEventListener("mouseup", onJustMouseUp)
 //thank you https://developer.mozilla.org/en-US/docs/Web/API/Touch_events for showing me this
-document.querySelector('#uiCanvas').addEventListener("touchstart", onTouchOrMouseDown, false)
-document.querySelector('#uiCanvas').addEventListener("touchend", onTouchOrMouseUp, false)
-document.querySelector('#uiCanvas').addEventListener("touchcancel", onTouchOrMouseUp, false)
+document.querySelector('#uiCanvas').addEventListener("touchstart", onJustTouchDown, false)
+document.querySelector('#uiCanvas').addEventListener("touchend", onJustTouchUp, false)
+document.querySelector('#uiCanvas').addEventListener("touchcancel", onJustTouchUp, false)
 
 
 window.addEventListener("keydown", function (e) {
@@ -1106,8 +1121,41 @@ function onDrag(e) {
 }
 
 
+function onTouchDrag(e) {
+    //types
+    //0: free
+    //1: look
+    var camType = 1;
+    if (mouseisdown) {
+        var xdel;
+        var ydel;
+        var latestTouch = e.changedTouches[0];
+
+        xdel = (latestTouch.pageX - lastmousedownpoint.x) * 0.001;
+        ydel = (latestTouch.pageY - lastmousedownpoint.y) * 0.001;
+        lastmousedownpoint = { x: latestTouch.pageX, y: latestTouch.pageY };
+        //console.log(currentTouch);
+
+        if (camType == 0) {
+            mat4.rotate(gmod, gmod, (xdel), [gmod[1], gmod[5], gmod[9]]);
+            mat4.rotate(gmod, gmod, (ydel), [gmod[0], gmod[4], gmod[8]]);
+        } else if (camType == 1) {
+            var vmat = mat4.create();
+            // Now move the drawing position a bit to where we want to
+            // start drawing the square.
+            mat4.translate(vmat,     // destination matrix
+                vmat,     // matrix to translate
+                [-0.0, 0.0, -22.0]);
+            yaw += xdel;
+            pitch += ydel
+            mat4.rotate(vmat, vmat, yaw, [vmat[1], vmat[5], vmat[9]]);
+            mat4.rotate(gmod, vmat, pitch, [vmat[0], vmat[4], vmat[8]]);
+        }
+    }
+}
+
 onmousemove = onDrag;
-document.querySelector('#uiCanvas').addEventListener("touchmove", onDrag, false)
+document.querySelector('#uiCanvas').addEventListener("touchmove", onTouchDrag, false)
 
 
 function getAllScreenCoords(mat, vec3sarray) {

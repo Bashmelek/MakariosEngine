@@ -6,8 +6,16 @@ const StarfieldDemo = (function () {
     var moveline = [0, 0, 0.02];
     var lastFrameTime = null;
     var numitems = 0;
-    const spawnInterval = 360;
+    var isMobile = false;
+    //this is from https://stackoverflow.com/questions/3514784/what-is-the-best-way-to-detect-a-mobile-device
+    //thank you!
+    if (/Mobi/.test(navigator.userAgent)) {
+        // mobile!
+        isMobile = true;
+    }
+    const spawnInterval = isMobile ? 1440 : 360;//360;
     var nextTargetVTick = spawnInterval;
+    var getSpawnPointFunc;
 
     var disappearingItem = function (item) {
 
@@ -35,6 +43,8 @@ const StarfieldDemo = (function () {
         Makarios.writeToUI();
         StageData.noScroll = true;
         lastFrameTime = Date.now();
+
+        getSpawnPointFunc = isMobile ? getRandomSpawnPointMobile : getRandomSpawnPoint;
         //SkyboxRenderer.useSkybox = null;
         //StageData.skybox = null;
 
@@ -64,6 +74,9 @@ const StarfieldDemo = (function () {
     var getRandomSpawnPoint = function () {
         return [Math.random() * 176.0 - 88.0, Math.random() * 128.0 - 64.0, -160.0];//[Math.random() * 110.0 - 55.0, Math.random() * 80.0 - 40.0, 0.70];//[0.01 * 22.0 - 11.0, 0.0 * 16.0 - 8.0, .40];//[1 * 22.0 - 11.0, 1 * 16.0 - 8.0, -40.0];
     };
+    var getRandomSpawnPointMobile = function () {
+        return [Math.random() * 126.0 - 63.0, Math.random() * 63.0 - 32.0, -160.0];//[Math.random() * 110.0 - 55.0, Math.random() * 80.0 - 40.0, 0.70];//[0.01 * 22.0 - 11.0, 0.0 * 16.0 - 8.0, .40];//[1 * 22.0 - 11.0, 1 * 16.0 - 8.0, -40.0];
+    };
 
     var OnFrame = function () {
         //console.log(StageData.ticks % 1000);
@@ -85,7 +98,7 @@ const StarfieldDemo = (function () {
             nextTargetVTick += spawnInterval;
             numitems += 1;
             //console.log('created. now at ' + numitems + ' items with ticktime ' + StageData.timeDelta);
-            var adjustedSpawn = getRandomSpawnPoint();//lin3TransformMat3(inversedProj, getRandomSpawnPoint()); //[0.01 * 22.0 - 11.0, 0.0 * 16.0 - 8.0, .40];//lin3TransformMat3(inversedProj, getRandomSpawnPoint()); 
+            var adjustedSpawn = getSpawnPointFunc();//lin3TransformMat3(inversedProj, getRandomSpawnPoint()); //[0.01 * 22.0 - 11.0, 0.0 * 16.0 - 8.0, .40];//lin3TransformMat3(inversedProj, getRandomSpawnPoint()); 
 
             var tempmat = mat4.create();
 
