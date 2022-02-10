@@ -4,7 +4,7 @@ var MakTextures = {};
 
 const fsSource = `
             //varying lowp vec4 vColor;
-            varying highp vec2 vTextureCoord;
+            varying highp vec3 vTextureCoord;
             varying highp vec3 vLighting;
 
             uniform mediump float ucelStep;
@@ -14,11 +14,11 @@ const fsSource = `
             //uniform mediump float urandomSeed1;
 
             void main(void) {
-                highp vec4 texelColor = texture2D(uSampler, vTextureCoord);
+                highp vec4 texelColor = texture2D(uSampler, vec2(vTextureCoord[0], vTextureCoord[1]));// vTextureCoord);
                 
                 //mediump float alphaToUse =  texelColor.a * ucustomAlpha;
 
-                gl_FragColor = vec4(texelColor.rgb * vLighting, texelColor.a * ucustomAlpha);
+                gl_FragColor = vec4(texelColor.rgb * vLighting, texelColor.a * vTextureCoord[2]);
 
 //                if(urandomSeed1 > 1.0){
 //                highp float randy1 = mod((texelColor[0] + texelColor[1] + texelColor[2] + vTextureCoord[0] + vTextureCoord[1]) * urandomSeed1, 20.0);// / 12.0; 
@@ -45,7 +45,7 @@ const vsSource = `
             attribute vec4 aVertexPosition;
             attribute vec3 aVertexNormal;
             //attribute vec4 aVertexColor;
-            attribute vec2 aTextureCoord;
+            attribute vec3 aTextureCoord;
             attribute float aUseParentMatrix;
 
             uniform mat4 uModelViewMatrix;
@@ -56,7 +56,7 @@ const vsSource = `
             uniform vec3 uLightDirection;
 
             //varying lowp vec4 vColor;
-            varying highp vec2 vTextureCoord;
+            varying highp vec3 vTextureCoord;
             varying highp vec3 vLighting;
 
             void main(void) {
@@ -153,8 +153,12 @@ var bufferHolder = {
     textureCoordBuffer: null,
     indexBuffer: null,
     normalBuffer: null,
-    useParentMatrixBuffer : null
+    useParentMatrixBuffer: null
 };
+
+var performanceStats = {
+    consecutiveSlowObjDraws : 0
+}
 
 
 function initBuffers(gl) {
@@ -206,7 +210,12 @@ function initBuffers(gl) {
         }
     } */
 
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(Entera.buffers.textureCoordinates),
+    var textBuffer = Entera.buffers.textureCoordinates;
+    if (Makarios.UseAlphaInTextureBuffer()) {
+        textBuffer = getTextureCoordsWithAlpha(textBuffer, StageData.objects);
+    }
+
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(textBuffer),
         gl.STATIC_DRAW);
 
 
@@ -302,6 +311,32 @@ function initBuffers(gl) {
         indexData: indices,
         useParentData: useParentMatrix,
     };
+}
+
+function getTextureCoordsWithAlpha(source, objects) {
+    var dest = source.slice(0);
+
+    for (var oj = 0; oj < objects.length; oj++) {
+        if (!objects[oj] || !objects[oj].customprops || objects[oj].customprops.customAlpha == null) { continue; };
+        //console.log('text');
+        getTextureCoordsWithAlphaRecursive(dest, source, objects[oj]);
+    }
+
+    return dest;
+}
+
+function getTextureCoordsWithAlphaRecursive(dest, source, currentObj) {
+    var psize = (currentObj.positionsBufferStart + currentObj.startContPosIndex + currentObj.textureCoordinates.length) / 3;
+    for (var i = (currentObj.positionsBufferStart + currentObj.startContPosIndex) / 3; i < psize; i++) {
+        dest[i * 3 + 2] = currentObj.customprops.customAlpha;
+    }
+
+    if (currentObj.children && currentObj.children.length) {
+        for (var oj = 0; oj < currentObj.children.length; oj++) {
+            if (!currentObj.children[oj]) { continue; };
+            getTransformedPositionBufferRecursive(dest, source, currentObj.children[oj]);
+        }
+    }
 }
 
 
@@ -495,7 +530,7 @@ function drawScene(gl, programInfo, buffers) {  //deltaTime
 
     // tell webgl how to pull out the texture coordinates from buffer
     {
-        const num = 2; // every coordinate composed of 2 values
+        const num = 3; // every coordinate composed of 2 values
         const type = gl.FLOAT; // the data in the buffer is 32 bit float
         const normalize = false; // don't normalize
         const stride = 0; // how many bytes to get from one set to the next
@@ -569,8 +604,23 @@ function drawScene(gl, programInfo, buffers) {  //deltaTime
     //initialized, but really should just be once ever
     gl.uniform1f(programInfo.uniformLocations.ucustomAlpha, 1.0);
 
+    ////singleCallRenderScene(gl, programInfo, StageData.objects, buffers) 
     //gl.uniform1f(programInfo.uniformLocations.urandomSeed1, Math.floor(Math.random() * 1000.0));
-    RenderObjects(gl, programInfo, StageData.objects, mat4.create()/*modelViewMatrix*/, 0.0, { offsetval: 0, alpha: 1.0 }, mat4.create());
+    if (!Makarios.IsGPUTrash()) {
+        var perfStart = performance.now();
+        RenderObjects(gl, programInfo, StageData.objects, mat4.create()/*modelViewMatrix*/, 0.0, { offsetval: 0, alpha: 1.0 }, mat4.create());
+        var performanceResult = performance.now() - perfStart;
+        if (performanceResult > 30) {
+            performanceStats.consecutiveSlowObjDraws += 1;
+            if (performanceStats.consecutiveSlowObjDraws > 50 && Makarios.IsMobileDetected()) {
+                Makarios.SetGPULevel(0);
+            }
+        } else {
+            performanceStats.consecutiveSlowObjDraws = 0;
+        }
+    } else {
+        singleCallRenderScene(gl, programInfo, StageData.objects, buffers);
+    }
 
     gproj = projectionMatrix;
     gmod = modelViewMatrix;
@@ -666,6 +716,95 @@ function RenderObjects(gl, programInfo, objects, parentmatrix, depth, dataHolder
     }
 }
 
+function singleCallRenderScene(gl, programInfo, objects, buffers) {
+    var transformedPositions = getTransformedPositionBuffer(Entera.buffers.positions, objects);
+    if (buffers.position == null) {
+        buffers.position = gl.createBuffer();
+    }
+    //console.log(Entera.buffers.positions)
+    //console.log(transformedPositions)
+    //otherpositionBuffer = gl.createBuffer();
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, buffers.position);
+    //console.log(transformedPositions);
+    gl.bufferData(gl.ARRAY_BUFFER,
+        new Float32Array(transformedPositions),
+        gl.STATIC_DRAW);
+    {
+        const numComponents = 3;  // pull out 3 values x,y,z, per iteration
+        const type = gl.FLOAT;    // the data in the buffer is 32bit floats
+        const normalize = false;  // don't normalize
+        const stride = 0;         // how many bytes to get from one set of values to the next
+        // 0 = use type and numComponents above
+        const offset = 0;         // how many bytes inside the buffer to start from
+        gl.bindBuffer(gl.ARRAY_BUFFER, buffers.position);//console.log(buffers.position[0])
+        gl.vertexAttribPointer(
+            programInfo.attribLocations.vertexPosition,
+            numComponents,
+            type,
+            normalize,
+            stride,
+            offset);
+        gl.enableVertexAttribArray(
+            programInfo.attribLocations.vertexPosition);
+    }
+    var mat0 = mat4.create();
+    gl.uniformMatrix4fv(
+        programInfo.uniformLocations.modelViewMatrix,
+        false,
+        mat0);
+    var thisMatForNorm = mat4.create();
+    var nMat = mat4.create();
+    mat4.invert(nMat, thisMatForNorm);
+    mat4.transpose(nMat, nMat);
+    gl.uniformMatrix4fv(
+        programInfo.uniformLocations.normalMatrix,
+        false,
+        nMat);
+    //if (!objects && objects.length > 1) {
+    //    if (!objects[0].textureImage) {
+    //        objects[0].textureImage = loadTexture(gl, "plainsky.jpg");
+    //    }
+    //    gl.bindTexture(gl.TEXTURE_2D, objects[0].textureImage);
+    //}
+    var textureImagey = loadTexture(gl, "plainsky.jpg");
+    gl.bindTexture(gl.TEXTURE_2D, textureImagey);
+    gl.uniform1i(programInfo.uniformLocations.uSampler, 0);
+    {
+        //const vertexCount = objects[oj].indices.length;//36;
+        const type = gl.UNSIGNED_SHORT;
+        //const offset = objects[oj].indexOffset;////objects[oj].bufferOffset; //offsetHolder.val;//objects[oj].bufferOffset; //console.log('offset is:' + objects[oj].bufferOffset)
+        //dataHolder.offsetval += objects[oj].indices.length * 2;
+        //console.log(offset);
+        //console.log(objects[oj]);
+        //if (StageData.ticks % 50 == 0) { console.log('offset is:' + objects[oj].bufferOffset); }
+        gl.drawElements(gl.TRIANGLES, Entera.buffers.indices.length, type, 0);
+        //gl.drawElements(gl.LINES, vertexCount, type, offset);
+    }
+}
+
+function getTransformedPositionBuffer(source, objects) {
+    var dest = source.slice(0);
+
+    for (var oj = 0; oj < objects.length; oj++) {
+        if (!objects[oj]) { continue; };
+        getTransformedPositionBufferRecursive(dest, source, objects[oj]);
+    }
+
+    return dest;
+}
+
+function getTransformedPositionBufferRecursive(dest, source, currentObj) {
+    linTransformRange(dest, source, currentObj.matrix, currentObj.positionsBufferStart + currentObj.startContPosIndex, currentObj.positionsBufferStart + currentObj.startContPosIndex + currentObj.positions.length, currentObj)
+
+    if (currentObj.children && currentObj.children.length) {
+        for (var oj = 0; oj < currentObj.children.length; oj++) {
+            if (!currentObj.children[oj]) { continue; };
+            getTransformedPositionBufferRecursive(dest, source, currentObj.children[oj]);
+        }
+    }
+}
+
 
 
 //shoutout credit to https://stackoverflow.com/questions/13870677/resize-viewport-canvas-according-to-browser-window-size for this!
@@ -697,7 +836,7 @@ function resizeCanvas() {
         ui.width = weightedWidth;//width;
         ui.height = weightedHeight;//height;
         if (uiState.hasany) {
-            Makarios.writeToUI();
+            Makarios.rewriteToUI();
         }
     }
 
@@ -881,7 +1020,7 @@ var lastmousedownpoint = { x: 0, y: 0 };
 var usePointerLock = 1;
 
 
-function onJustMouseDown (e) {
+function onJustMouseDown(e) {
     if (usePointerLock == 1) {
         const canvas = document.querySelector('#glCanvas');
         canvas.requestPointerLock = canvas.requestPointerLock ||
@@ -967,7 +1106,7 @@ window.addEventListener("wheel", function (event) {
     if (distDel == 0.0) {
         return;
     }
-    
+
     gmod[14] -= distDel;
 })
 
@@ -1047,6 +1186,7 @@ function recursiveCheckAllObjectsIfScreenPointHits(object, parent, itsfullmatrix
                 var indexToUse = (object.indices[lowestztri.triid * 3 + 0]) * 2;
                 var coordsCount = 0;
                 for (var it = 0; it < inheritedTextCoordsList.length; it++) {
+                    if ((indexToUse - coordsCount) % 3 == 2) { continue; }//added for vec3 textcoords with alpha
                     if (coordsCount + inheritedTextCoordsList[it].length <= indexToUse) {
                         coordsCount += inheritedTextCoordsList[it].length;
                     } else {
@@ -1101,7 +1241,7 @@ function onDrag(e) {
 
         if (camType == 0) {
             mat4.rotate(gmod, gmod, (xdel), [gmod[1], gmod[5], gmod[9]]);//[0, 1, 0]);//linTransform(gproj, [0, 1, 0]));// [0, 1, 0]);//linTransform(origmod, [0, 1, 0]));// [0, 1, 0]);
-            mat4.rotate(gmod, gmod, (ydel) , [gmod[0], gmod[4], gmod[8]]);//[1, 0, 0]);//linTransform(gproj, [1, 0, 0]));// [1, 0, 0]);//linTransform(origmod, [1, 0, 0]));
+            mat4.rotate(gmod, gmod, (ydel), [gmod[0], gmod[4], gmod[8]]);//[1, 0, 0]);//linTransform(gproj, [1, 0, 0]));// [1, 0, 0]);//linTransform(origmod, [1, 0, 0]));
         } else if (camType == 1) {
             var vmat = mat4.create();
             // Now move the drawing position a bit to where we want to
@@ -1116,7 +1256,7 @@ function onDrag(e) {
             mat4.rotate(gmod, vmat, pitch, [vmat[0], vmat[4], vmat[8]]);
 
             //mat4.rotate(gmod, gmod, (e.clientY - lastmousedownpoint.y) * 0.001, [gmod[0], gmod[4], gmod[8]]);
-        }        
+        }
     }
 }
 
@@ -1196,6 +1336,26 @@ function linTransform(mat, vec3sarray) {
     }
     //console.log('eet: ' + transformedArray);
     return transformedArray;
+}
+
+function linTransformRange(dest, source, mat, rangeStart, rangeEndExclusive, testobj) {
+    //console.log('from ' + rangeStart + ' to ' + rangeEndExclusive);
+    var psize = rangeEndExclusive / 3;
+    //console.log('from ' + rangeStart + ' to ' + rangeEndExclusive)
+
+    for (var i = (rangeStart / 3); i < psize; i++) {
+        var vstart = i * 3;
+        var rez = [source[vstart] * mat[0] + source[vstart + 1] * mat[4] + source[vstart + 2] * mat[8] + 1.0 * mat[12],
+        source[vstart] * mat[1] + source[vstart + 1] * mat[5] + source[vstart + 2] * mat[9] + 1.0 * mat[13],
+        source[vstart] * mat[2] + source[vstart + 1] * mat[6] + source[vstart + 2] * mat[10] + 1.0 * mat[14],
+        source[vstart] * mat[3] + source[vstart + 1] * mat[7] + source[vstart + 2] * mat[11] + 1.0 * mat[15]];
+        //console.log( (320 + 320 * rez[0]) + ' ,' + (240 + 240 * rez[1]));
+        dest[i * 3] = (rez[0]);
+        dest[i * 3 + 1] = (rez[1]);
+        dest[i * 3 + 2] = (rez[2]);// + rect.top;//why is the +top even there?        
+    }
+    //console.log('eet: ' + transformedArray);
+    //return transformedArray;
 }
 
 
@@ -1325,6 +1485,21 @@ const Makarios = (function () {
     var self = this;
 
     self.helloworld = function () { console.log('hello world'); };
+    self.uiState = {};
+    self._useAlphaInTexture = false;
+    self._useSingleDrawCall = false;
+    self.SetUseAlphaInTextureBuffer = function (val) {
+        _useAlphaInTexture = val;
+    };
+    self.UseAlphaInTextureBuffer = function () {
+        return _useAlphaInTexture;
+    };
+    self.SetUseSingleDrawCall = function (val) {
+        _useSingleDrawCall = val;
+    };
+    self.UseSingleDrawCall = function () {
+        return _useSingleDrawCall;
+    };
 
     self.instantiate = function (prim, textureUrl, objectOnFrame, customprops, idealstartTime) {
         var newobj = StageData.instantiate(prim, textureUrl, objectOnFrame, customprops);
@@ -1352,6 +1527,7 @@ const Makarios = (function () {
     }
 
     self.writeToUI = function (text, pos, font, dontClear) {
+        self.uiState.text = text;
         const ui = document.querySelector('#uiCanvas');
         const gui = ui.getContext('2d');
         gui.clearRect(0, 0, ui.width, ui.height);
@@ -1365,7 +1541,40 @@ const Makarios = (function () {
         gui.textBaseline = 'hanging';
         gui.textAlign = 'center';
         //gui.fillText('Welcome to Makarios Labs', ui.width / 4.2, ui.height / 2.1);
-        gui.fillText('Welcome to Makarios Labs', ui.width / 2.0, ui.height / 2.1);
+        gui.fillText(text, ui.width / 2.0, ui.height / 2.1);
+        uiState.hasany = true;
+    }
+
+    self.IsMobileDetected = function () {
+        if (/Mobi/.test(navigator.userAgent)) {
+            // mobile!
+            return true;
+        }
+    };
+
+    self.gpuLevel = 1;
+    self.SetGPULevel = function (val) {
+        gpuLevel = val;
+    };
+    self.IsGPUTrash = function () {
+        return gpuLevel == 0;
+    };
+
+    self.rewriteToUI = function () {
+        const ui = document.querySelector('#uiCanvas');
+        const gui = ui.getContext('2d');
+        gui.clearRect(0, 0, ui.width, ui.height);
+        gui.fillStyle = '#DDBB00';//;'yellow';
+        //gui.fillRect(10, 10, 100, 100);// + 400 - now * 10000);
+
+        //base was 28 for height 480 (at 4:3) so 120 - 7
+        var newfontsize = (Math.floor(ui.height * 7.0 / 120.0) * 1).toString();
+        console.log(newfontsize);
+        gui.font = 'bold small-caps ' + newfontsize + 'px serif';
+        gui.textBaseline = 'hanging';
+        gui.textAlign = 'center';
+        //gui.fillText('Welcome to Makarios Labs', ui.width / 4.2, ui.height / 2.1);
+        gui.fillText(self.uiState.text, ui.width / 2.0, ui.height / 2.1);
         uiState.hasany = true;
     }
 

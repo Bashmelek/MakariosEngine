@@ -401,7 +401,7 @@ const Entera = (function () {
         buffers.vertexNormals = vertexNormals;
         buffers.useParentMatrix = useParentMatrix;
 
-        //console.log(indices.length);
+        //console.log(buffers.positions);
         if (contigua.length > 2) {
             console.log('error maybe with this many conts ' + contigua.length);
             for (var ci = 0; ci < contigua.length; ci++) {
@@ -526,7 +526,6 @@ const Entera = (function () {
                 cont.indices = cont.indices.concat(obj.indices);
                 cont.vertexNormals = cont.vertexNormals.concat(obj.vertexNormals);
                 cont.useParentMatrix = cont.useParentMatrix.concat(obj.useParentMatrix);
-
                 if (cont.next != null && cont.end == cont.next.start - 1) {
                     //combine
                     contigua.splice(globalAvailabilityContainer.contiguumIndex, 2, joinContigua(cont, cont.next));
@@ -575,7 +574,7 @@ const Entera = (function () {
                 }
 
             } else if (globalAvailabilityContainer.firstAvailableIndex == cont.start - 1) {
-                console.log('case yaboba');
+                console.log('case yaboba');// + globalAvailabilityContainer.firstAvailableIndex);
                 cont.start -= 1;
 
                 obj.cindex = 0;
@@ -622,6 +621,7 @@ const Entera = (function () {
         //console.log(globalAvailabilityContainer.firstAvailableIndex);
     };
 
+    var entDebugMessage = '';
     var handleRemovingObj = function (obj) {
         var flatindex = obj.gindex;//still needs to generalize for with children
 
@@ -648,11 +648,16 @@ const Entera = (function () {
         linkBufferArrays();
 
         var timespend = performance.now() - timestart;
+        entDebugMessage = 'time of ' + timespend;
         console.log('time of ' + timespend);
         if (timespend > 6.0) {
             console.log('dangerously long time of ' + timespend);
         }
     };
+
+    var getEntDebugMessage = function (type) {
+        return entDebugMessage;
+    }
 
     var preInit = function () {
         contigua[0] = createContiguum();
@@ -669,7 +674,7 @@ const Entera = (function () {
     return {
         'handleNewObj': handleNewObj,
         'handleRemovingObj': handleRemovingObj,
-
+        'getEntDebugMessage': getEntDebugMessage,
         'buffers': buffers
     };
 })();

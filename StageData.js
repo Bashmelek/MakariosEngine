@@ -120,7 +120,8 @@ const StageData = (function () {
         var newInst = {};
         if (!prim.isComposite) {
             newInst.positions = new Array(prim.positions.length).fill().map(function (x, ind) { return prim.positions[ind]; });
-            newInst.textureCoordinates = new Array(prim.textureCoordinates.length).fill().map(function (x, ind) { return prim.textureCoordinates[ind]; });
+            var textureMap = Makarios.UseAlphaInTextureBuffer() ? prim.textureCoordinatesWithAlpha : prim.textureCoordinates;
+            newInst.textureCoordinates = new Array(textureMap.length).fill().map(function (x, ind) { return textureMap[ind]; });
             newInst.indices = new Array(prim.indices.length).fill().map(function (x, ind) { return prim.indices[ind]; });
             newInst.vertexNormals = new Array(Primitives.getVertextNormals(prim).length).fill().map(function (x, ind) { return Primitives.getVertextNormals(prim)[ind]; });
         } else {
@@ -144,7 +145,8 @@ const StageData = (function () {
                 //    [0.0, 0.0, 0.0]);
                 //console.log(prim.components[i].type);
                 newInst.positions = newInst.positions.concat(linTransform(compMat, Primitives.shapes[prim.components[i].type].positions));
-                newInst.textureCoordinates = newInst.textureCoordinates.concat(Primitives.shapes[prim.components[i].type].textureCoordinates);
+                var textureMap = Makarios.UseAlphaInTextureBuffer() ? Primitives.shapes[prim.components[i].type].textureCoordinatesWithAlpha : Primitives.shapes[prim.components[i].type].textureCoordinatesWith;
+                newInst.textureCoordinates = newInst.textureCoordinates.concat(textureMap);
                 newInst.indices = newInst.indices.concat(Primitives.shapes[prim.components[i].type].indices.map(function (x, ind) { return Primitives.shapes[prim.components[i].type].indices[ind] + newInst.indices.length; }));
                 newInst.vertexNormals = newInst.vertexNormals.concat(Primitives.getVertextNormals(Primitives.shapes[prim.components[i].type]));//(linTransform(compMat, Primitives.getVertextNormals(Primitives.shapes[prim.components[i].type])));
             }

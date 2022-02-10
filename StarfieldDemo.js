@@ -13,7 +13,7 @@ const StarfieldDemo = (function () {
         // mobile!
         isMobile = true;
     }
-    const spawnInterval = isMobile ? 1440 : 360;//360;
+    const spawnInterval = isMobile ? 1440 : 1;//360;  1440
     var nextTargetVTick = spawnInterval;
     var getSpawnPointFunc;
 
@@ -28,6 +28,14 @@ const StarfieldDemo = (function () {
         }
         if (item.customprops.customAlpha < 1.0) {
             item.customprops.customAlpha += StageData.timeDelta * .00004;//.0002;
+            if (Makarios.UseAlphaInTextureBuffer()) {
+                //console.log(item.customprops.customAlpha)
+                //for (var t = 0; t < (item.textureCoordinates.length / 3); t++) {
+                //    item.textureCoordinates[t * 3 + 2] = item.customprops.customAlpha;
+                //    //hack, as positions = texturecoordssize
+                //    Entera.buffers.textureCoordinates[item.positionsBufferStart + item.startContPosIndex + t * 3 + 2] = item.customprops.customAlpha;
+                //}
+            }
         }
 
         item.customprops.ageCount += StageData.timeDelta;//1;
@@ -40,7 +48,8 @@ const StarfieldDemo = (function () {
     var Init = function () {
         StageData.ticks = 0;
         StageData.vticks = 0;
-        Makarios.writeToUI();
+        Makarios.writeToUI('Welcome to Makarios Labs');
+        Makarios.SetUseAlphaInTextureBuffer(true);
         StageData.noScroll = true;
         lastFrameTime = Date.now();
 
@@ -90,6 +99,7 @@ const StarfieldDemo = (function () {
         //var oldTime = lastFrameTime;
         //lastFrameTime = Date.now();
         //var timeDelta = lastFrameTime - oldTime;
+        //Makarios.writeToUI(timeDelta);
         //console.log(timeDelta);
                                                  //-0.0004
         moveline = lin3Transform(tempy, [0.0, 0.0, -0.00006 * StageData.timeDelta]);// -0.0012]); //[0.0, 0.0, 0.2];//lin3Transform(tempy, [0.0, 0.0, -0.002]);// [0.0, 0.0, -0.002]
@@ -107,10 +117,40 @@ const StarfieldDemo = (function () {
 
             var obj = Makarios.instantiate(Primitives.shapes["doubletetrahedron"], 'plainsky.jpg', disappearingItem, {}, nextTargetVTick);
             obj.customprops.customAlpha = 0.1;
+            if (Makarios.UseAlphaInTextureBuffer()) {
+                //console.log(item.customprops.customAlpha)
+                //for (var t = 0; t < (obj.textureCoordinates.length / 3); t++) {
+                //    obj.textureCoordinates[t * 3 + 2] = obj.customprops.customAlpha;
+                //    //hack, as positions = texturecoordssize
+                //    Entera.buffers.textureCoordinates[obj.positionsBufferStart + obj.startContPosIndex + t * 3 + 2] = obj.customprops.customAlpha;
+                //}
+            }
 
             glMatrix.mat4.translate(obj.matrix,     // destination matrix
                 obj.matrix,     // matrix to translate
                 spawnPoint);
+
+
+
+
+
+            //numitems += 1;
+            ////console.log('created. now at ' + numitems + ' items with ticktime ' + StageData.timeDelta);
+            //var adjustedSpawn = getSpawnPointFunc();//lin3TransformMat3(inversedProj, getRandomSpawnPoint()); //[0.01 * 22.0 - 11.0, 0.0 * 16.0 - 8.0, .40];//lin3TransformMat3(inversedProj, getRandomSpawnPoint()); 
+
+            //var tempmat = mat4.create();
+
+            //glMatrix.mat4.invert(tempmat, gmod);
+            //var spawnPoint = linTransform(tempmat, adjustedSpawn);
+
+            //var obj = Makarios.instantiate(Primitives.shapes["doubletetrahedron"], 'plainsky.jpg', disappearingItem, {}, nextTargetVTick);
+            //obj.customprops.customAlpha = 0.1;
+
+            //glMatrix.mat4.translate(obj.matrix,     // destination matrix
+            //    obj.matrix,     // matrix to translate
+            //    spawnPoint);
+
+            //Makarios.writeToUI(Entera.getEntDebugMessage());
         }
     };
 
