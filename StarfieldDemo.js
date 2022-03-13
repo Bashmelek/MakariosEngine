@@ -13,7 +13,7 @@ const StarfieldDemo = (function () {
         // mobile!
         isMobile = true;
     }
-    const spawnInterval = isMobile ? 1440 : 1;//360;  1440
+    const spawnInterval = isMobile ? 360 : 360;//360;  1440
     var nextTargetVTick = spawnInterval;
     var getSpawnPointFunc;
 
