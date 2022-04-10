@@ -19,12 +19,13 @@ const GltfConverter = (function () {
 
     var primTargeterGlobal = function () { };
     var getPrimitiveFromJsResource = function (uri, targetFunc) {
+        console.log('doing');
         primTargeterGlobal = targetFunc;
         httpGetText(uri, convertFromString)
     };
 
     var convertFromString = function (gltfString) {
-        //console.log(gltfString);
+        console.log('gltfString');
         var asObject = JSON.parse(gltfString);
         return convertJsonToPrimitive(asObject);
     };
@@ -45,6 +46,8 @@ const GltfConverter = (function () {
         theprim.rootID = 0;
 
         var animations = applyAnimations(object);
+        console.log('anims are:');
+        console.log(animations);
 
         var primcombined = { prim: theprim, animations: animations };
         primTargeterGlobal(primcombined);
@@ -79,7 +82,7 @@ const GltfConverter = (function () {
                         var posAcc = fullobject.accessors[posIndex];
                         //console.log(posAcc);
                         prim.positions = getBufferFromAccessor(fullobject, posAcc);
-                        prim.textureCoordinates = [
+                        /*prim.textureCoordinates = [
                             // Front
                             0.0, 1.0, 1.0,//mess up numba 1 face if first says 1.0
                             1.0, 1.0, 1.0,
@@ -110,7 +113,15 @@ const GltfConverter = (function () {
                             1.0, 1.0, 1.0,
                             1.0, 0.0, 1.0,
                             0.0, 0.0, 1.0,
-                        ];
+                        ];*/
+                        prim.textureCoordinates = new Uint16Array(prim.positions.length);
+                        for (var tci = 0; tci < prim.textureCoordinates.length; tci++) {
+                            if (tci % 3 == 0) {
+                                prim.textureCoordinates[tci] = 0.0;
+                            } else {
+                                prim.textureCoordinates[tci] = 1.0;
+                            }
+                        }
                         //console.log(prim.positions);
                     }
                     if (meshObj.primitives[0].attributes.NORMAL != undefined && meshObj.primitives[0].attributes.NORMAL != null) {
@@ -171,20 +182,27 @@ const GltfConverter = (function () {
             var animation = {};
             animation.name = fullobject.animations[i].name || i.toString();
             animation.components = [];
-            for (var c = 0; c < fullobject.animations[i].channels; c++) {
+            for (var c = 0; c < fullobject.animations[i].channels.length; c++) {
                 var animComp = {};
                 animComp.node = fullobject.animations[i].channels[c].target.node;
-                animComp.type = fullobject.animations[i].channels[c].target.path;
+                if (fullobject.animations[i].channels[c].target.path == "rotation") {
+                    animComp.type = Makarios.animTypeRot;
+                } else {
+                    //todo George
+                    animComp.type = 0;
+                }
 
                 var inIndex = fullobject.animations[i].samplers[fullobject.animations[i].channels[c].sampler].input;
                 var inAcc = fullobject.accessors[inIndex];
-                anim.keytimes = getBufferFromAccessor(fullobject, inAcc);
+                animComp.keytimes = getBufferFromAccessor(fullobject, inAcc);
 
 
                 var outIndex = fullobject.animations[i].samplers[fullobject.animations[i].channels[c].sampler].output;
                 var outAcc = fullobject.accessors[outIndex];
-                anim.keytimes = getBufferFromAccessor(fullobject, outAcc);
+                animComp.keydeformations = getBufferFromAccessor(fullobject, outAcc);
 
+                console.log('animComp');
+                console.log(animComp);
                 animation.components.push(animComp);
             }
 
@@ -217,13 +235,15 @@ const GltfConverter = (function () {
         if (acc.componentType == 5123) {//UNSIGNED_SHORT, 2 bytes
             //var intView = new Int32Array(buffer);
             unitSize = 2 * (acc.type == "VEC3" ? 3 :
-                (acc.type == "SCALAR" ? 1 : 1));
+                (acc.type == "VEC4" ? 4 :
+                    (acc.type == "SCALAR" ? 1 : 1)));
             typedArray = Uint16Array;
         } else if (acc.componentType == 5126) { //FLOAT, 4 bytes
             //var floatView = new Float32Array(buffer);
             typedArray = Float32Array;
             unitSize = 4 * (acc.type == "VEC3" ? 3 :
-                (acc.type == "SCALAR" ? 1 : 1));
+                (acc.type == "VEC4" ? 4 :
+                    (acc.type == "SCALAR" ? 1 : 1)));
         }
         var bufferEndSize = Math.min(bv.byteLength, acc.count * unitSize);
         var inc = bv.byteStride ? bv.byteStride : unitSize;
@@ -259,7 +279,9 @@ const GltfConverter = (function () {
             if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
                 //console.log(xmlhttp.responseText);
                 //return xmlhttp.responseText;
+                onLoadText(xmlhttp.responseText, xmlhttp.responseText);//?why again do i need this suddenly now
             } else if (xmlhttp.readyState == 4) {
+                console.log('textloaded');
                 onLoadText(xmlhttp.responseText, xmlhttp.responseText);
             }
         }

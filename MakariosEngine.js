@@ -1,4 +1,6 @@
 const mat4 = glMatrix.mat4;
+const mat3 = glMatrix.mat3;
+const Quaternion = glMatrix.quat;
 
 var MakTextures = {};
 
@@ -18,7 +20,7 @@ const fsSource = `
                 
                 //mediump float alphaToUse =  texelColor.a * ucustomAlpha;
 
-                gl_FragColor = vec4(texelColor.rgb * vLighting, texelColor.a * vTextureCoord[2]);
+                gl_FragColor = vec4(texelColor.rgb * vLighting, texelColor.a * vTextureCoord[2]);//texelColor.a * 1.0
 
 //                if(urandomSeed1 > 1.0){
 //                highp float randy1 = mod((texelColor[0] + texelColor[1] + texelColor[2] + vTextureCoord[0] + vTextureCoord[1]) * urandomSeed1, 20.0);// / 12.0; 
@@ -415,6 +417,8 @@ var yrot = [0.0, 1.0, 0.0];
 var dir = [0.0, 0.0, -1.0];
 var updir = [0.0, 1.0, 0.0];
 var camDist;
+var maxCamDist = 70.0;
+var maxZFar = 160.0;
 
 function drawScene(gl, programInfo, buffers) {  //deltaTime
     gl.clearColor(0.0, 0.0, 0.0, 1.0);  // Clear to black, fully opaque
@@ -435,7 +439,7 @@ function drawScene(gl, programInfo, buffers) {  //deltaTime
     const fieldOfView = 45 * Math.PI / 180;   // in radians
     const aspect = gl.canvas.clientWidth / gl.canvas.clientHeight;
     const zNear = 0.1;
-    const zFar = 160.0;
+    const zFar = maxZFar;
     var projectionMatrix = gproj;
     if (!projectionMatrix) {
         projectionMatrix = mat4.create();
@@ -992,12 +996,18 @@ function main() {
         theGame.OnFrame();
         //console.log('click');
         for (var c = 0; c < StageData.objects.length; c++) {
-            if (StageData.objects[c] && StageData.objects[c].ObjectOnFrame) {
-                StageData.objects[c].ObjectOnFrame(StageData.objects[c]);
+            if (StageData.objects[c]) {
+                if (StageData.objects[c].ObjectOnFrame) {
+                    StageData.objects[c].ObjectOnFrame(StageData.objects[c]);
+                }
+                UpdateObjAnimation(StageData.objects[c]);
                 if (StageData.objects[c] && StageData.objects[c].children) {
                     for (var i = 0; i < StageData.objects[c].children.length; i++) {
                         if (!StageData.objects[c].children[i]) { continue; }
-                        StageData.objects[c].children[i].ObjectOnFrame(StageData.objects[c].children[i]);
+                        if (StageData.objects[c].children[i].ObjectOnFrame) {
+                            StageData.objects[c].children[i].ObjectOnFrame(StageData.objects[c].children[i]);
+                        }
+                        UpdateObjAnimation(StageData.objects[c].children[i]);
                     }
                 }
             }
@@ -1098,8 +1108,8 @@ window.addEventListener("wheel", function (event) {
 
     if (camDist < 2.0) {
         camDist = 2.0;
-    } else if (camDist > 70.0) {
-        camDist = 70.0;
+    } else if (camDist > maxCamDist) {
+        camDist = maxCamDist;
     }
 
     var distDel = camDist - oldDist;
@@ -1248,7 +1258,7 @@ function onDrag(e) {
             // start drawing the square.
             mat4.translate(vmat,     // destination matrix
                 vmat,     // matrix to translate
-                [-0.0, 0.0, -22.0]);
+                [-0.0, 0.0, -camDist]); //negative camdist
             //mat4.rotate(gmod, gmod, (e.clientY - lastmousedownpoint.y) * 0.001, [gmod[0], gmod[4], gmod[8]]);
             yaw += xdel;
             pitch += ydel
@@ -1356,6 +1366,58 @@ function linTransformRange(dest, source, mat, rangeStart, rangeEndExclusive, tes
     }
     //console.log('eet: ' + transformedArray);
     //return transformedArray;
+}
+
+function linTransformRangeWithOffsets(dest, source, mat, sourceStart, sourceEndExclusive, destStart) {
+    //console.log('from ' + rangeStart + ' to ' + rangeEndExclusive);
+    var psize = sourceEndExclusive / 3;
+    //console.log('from ' + rangeStart + ' to ' + rangeEndExclusive)
+
+    for (var i = (sourceStart / 3); i < psize; i++) {
+        var vstart = i * 3;
+        var rez = [source[vstart] * mat[0] + source[vstart + 1] * mat[4] + source[vstart + 2] * mat[8] + 1.0 * mat[12],
+        source[vstart] * mat[1] + source[vstart + 1] * mat[5] + source[vstart + 2] * mat[9] + 1.0 * mat[13],
+        source[vstart] * mat[2] + source[vstart + 1] * mat[6] + source[vstart + 2] * mat[10] + 1.0 * mat[14],
+            source[vstart] * mat[3] + source[vstart + 1] * mat[7] + source[vstart + 2] * mat[11] + 1.0 * mat[15]];
+        var dStart = destStart + i * 3 - sourceStart;
+        //console.log( (320 + 320 * rez[0]) + ' ,' + (240 + 240 * rez[1]));
+        dest[dStart] = (rez[0]);
+        dest[dStart + 1] = (rez[1]);
+        dest[dStart + 2] = (rez[2]);// + rect.top;//why is the +top even there?        
+    }
+    //console.log('eet: ' + transformedArray);
+    //return transformedArray;
+}
+
+function linTransformRangeWithOffsetsMat3(dest, source, mat, sourceStart, sourceEndExclusive, destStart) {
+    //console.log('from ' + rangeStart + ' to ' + rangeEndExclusive);
+    var psize = sourceEndExclusive / 3;
+    //console.log('from ' + rangeStart + ' to ' + rangeEndExclusive)
+
+    for (var i = (sourceStart / 3); i < psize; i++) {
+        var vstart = i * 3;
+        var rez = [source[vstart] * mat[0] + source[vstart + 1] * mat[3] + source[vstart + 2] * mat[6],
+        source[vstart] * mat[1] + source[vstart + 1] * mat[4] + source[vstart + 2] * mat[7],
+        source[vstart] * mat[2] + source[vstart + 1] * mat[5] + source[vstart + 2] * mat[8]];
+        var dStart = destStart + i * 3 - sourceStart;
+        //console.log( (320 + 320 * rez[0]) + ' ,' + (240 + 240 * rez[1]));
+        dest[dStart] = (rez[0]);
+        dest[dStart + 1] = (rez[1]);
+        dest[dStart + 2] = (rez[2]);// + rect.top;//why is the +top even there?        
+    }
+    //console.log('eet: ' + transformedArray);
+    //return transformedArray;
+}
+
+function QuatToEulers(quat) {
+    var eulers = [0.0, 0.0, 0.0];
+    eulers[0] = Math.atan2(2 * (quat[0] * quat[1] + quat[2] * quat[3]), 1 - 2 * (quat[1] * quat[1] + quat[2] * quat[2]));
+    eulers[1] = Math.asin(2 * (quat[0] * quat[2] - quat[3] * quat[1]));
+    eulers[2] = Math.atan2(2 * (quat[0] * quat[3] + quat[1] * quat[2]), 1 - 2 * (quat[2] * quat[2] + quat[3] * quat[3]));
+    eulers[0] = eulers[0] * 180.0 / Math.PI;
+    eulers[1] = eulers[1] * 180.0 / Math.PI;
+    eulers[2] = eulers[2] * 180.0 / Math.PI;
+    return eulers;
 }
 
 
@@ -1479,12 +1541,107 @@ function IsPointInTriangleIncludeZ(point, tri)/*(px, py, ax, ay, bx, by, cx, cy)
     }
 }
 
+function UpdateObjAnimation(obj) {
+
+    if (obj && obj.currentAnimation != null) {
+        //console.log('todo');
+        var anim = obj.prim.animations[obj.currentAnimation];
+        if (anim != null) {
+            obj.animframe += StageData.timeDelta;//(StageData.timeDelta / 4);
+            for (var i = 0; i < anim.components.length; i++) {
+                var primcomp = anim.components[i];
+                if (primcomp.type == Makarios.animTypeRot) {
+                    //var compframe = obj.animframe % primcomp.keytimes[primcomp.keytimes.length - 1];//todelete
+                    obj.animcomps[i].currentframe = obj.animframe % (obj.animcomps[i].endTime + 1);
+                    //console.log(obj.animcomps[i].currentframe);
+                    for (var f = 0; f < primcomp.keytimes.length; f++) {
+                        var realkey = (obj.animcomps[i].currentKey + f) % primcomp.keytimes.length;
+                        //if (obj.animcomps[i].currentframe >= primcomp.keytimes[realkey] * 1000) { console.log('pass 1');}
+                        if (obj.animcomps[i].currentframe >= primcomp.keytimes[realkey] * 1000 &&
+                            ((realkey == (primcomp.keytimes.length - 1)) || (obj.animcomps[i].currentframe < primcomp.keytimes[realkey + 1] * 1000))) {
+                            
+                            obj.animcomps[i].currentKey = realkey;
+                            f = primcomp.keytimes.length;
+                        }
+                    }
+
+                    var quat = [0.0, 0.0, 0.0, 0.0];
+                    var thekey = obj.animcomps[i].currentKey;
+                    //console.log(thekey);
+                    //console.log(primcomp.keydeformations);
+                    if (thekey == (primcomp.keytimes.length - 1) || obj.animcomps[i].currentframe == primcomp.keytimes[thekey] * 1000 ) {
+                        //failsafe, when max should only be at max time
+                        quat = [primcomp.keydeformations[thekey * 4 + 0], primcomp.keydeformations[thekey * 4 + 1],
+                            primcomp.keydeformations[thekey * 4 + 2], primcomp.keydeformations[thekey * 4 + 3]];
+                        var ek = QuatToEulers(quat);
+                        Quaternion.fromEuler(quat, ek[2], ek[1], ek[0]);
+                    } else {
+                        //else interpolate
+                        //for (var d = 0; d < 4; d++) {
+                            //because we arent interpolating the quaternion, just the euler
+                            //var val = primcomp.keydeformations[thekey * 4 + d];// + 
+                                //(primcomp.keydeformations[(thekey + 1) * 4 + d] - primcomp.keydeformations[thekey * 4 + d]) * 
+                                    //((obj.animcomps[i].currentframe - 1000.0 * primcomp.keytimes[thekey]) / ((1000.0 * primcomp.keytimes[(thekey + 1)] - 1000.0 * primcomp.keytimes[thekey])));
+                            //console.log(val);
+                            
+                            //quat[d] = val;
+                        //}
+                        var q0 = quat = [primcomp.keydeformations[thekey * 4 + 0], primcomp.keydeformations[thekey * 4 + 1],
+                        primcomp.keydeformations[thekey * 4 + 2], primcomp.keydeformations[thekey * 4 + 3]];
+                        var q1 = [primcomp.keydeformations[(thekey + 1) * 4 + 0], primcomp.keydeformations[(thekey + 1) * 4 + 1],
+                            primcomp.keydeformations[(thekey + 1) * 4 + 2], primcomp.keydeformations[(thekey + 1) * 4 + 3]];
+                        var e0 = QuatToEulers(q0);
+                        var e1 = QuatToEulers(q1);
+                        var euresult = [0.0, 0.0, 0.0];
+                        for (var g = 0; g < 3; g++) {
+                            //var interpolationDirection = 1.0;
+                            //console.log(e1[g] - e0[g]);
+                            if (Math.abs(e1[g] - e0[g]) > 180.0) {
+                                //interpolationDirection = -1.0;
+                                if (e1[g] < e0[g]) {
+                                    e1[g] += 360.0;
+                                } else if (e1[g] < e0[g]){
+                                    e0[g] += 360.0;
+                                }
+                            }
+                            var val = e0[g] + 
+                                (e1[g] - e0[g]) * 
+                                ((obj.animcomps[i].currentframe - 1000.0 * primcomp.keytimes[thekey]) / ((1000.0 * primcomp.keytimes[(thekey + 1)] - 1000.0 * primcomp.keytimes[thekey])));
+                            euresult[g] = val;
+                        }
+                        //console.log(euresult[0]);
+                        Quaternion.fromEuler(quat, euresult[2], euresult[1], euresult[0]);
+                        //console.log(quat);
+                        //console.log(q0);
+                    }                    
+
+                    var rotMatrix = mat3.create();
+                    mat3.fromQuat(rotMatrix, quat);
+                    //mat3.rotate(rotMatrix, rotMatrix, )
+
+
+                    //console.log(quat);
+                    linTransformRangeWithOffsetsMat3(Entera.buffers.positions, obj.prim.positions,
+                        rotMatrix, obj.startContPosIndex, obj.startContPosIndex + obj.positions.length, obj.positionsBufferStart);
+                    //console.log(obj.prim.positions);
+                    //console.log(Entera.buffers.positions);
+                    //console.log(Entera.buffers.positions[3] * Entera.buffers.positions[3] + Entera.buffers.positions[4] * Entera.buffers.positions[4])
+
+                }
+            }
+        }
+    }
+}
+
 
 
 const Makarios = (function () {
     var self = this;
 
     self.helloworld = function () { console.log('hello world'); };
+
+    self.animTypeRot = 1;
+
     self.uiState = {};
     self._useAlphaInTexture = false;
     self._useSingleDrawCall = false;
@@ -1519,6 +1676,23 @@ const Makarios = (function () {
     }
     self.destroy = function (inst) {
         StageData.destroy(inst);
+    }
+
+    self.SetAnimation = function(obj, animname){
+        obj.currentAnimation = animname;
+        obj.animframe = 0;
+        var anim = obj.prim.animations[obj.currentAnimation];
+        if (anim != null) {
+            obj.animcomps = [];
+            for (var c = 0; c < anim.components.length; c++) {
+                var newcomp = {
+                    currentframe: 0,
+                    currentKey: 0,
+                    endTime: anim.components[c].keytimes[anim.components[c].keytimes.length - 1] * 1000
+                };
+                obj.animcomps.push(newcomp);
+            }
+        }
     }
 
     self.setStepsForCelShading = function (stepCount) {
@@ -1576,6 +1750,13 @@ const Makarios = (function () {
         //gui.fillText('Welcome to Makarios Labs', ui.width / 4.2, ui.height / 2.1);
         gui.fillText(self.uiState.text, ui.width / 2.0, ui.height / 2.1);
         uiState.hasany = true;
+    }
+
+    self.drawImage = function (image) {
+        const ui = document.querySelector('#uiCanvas');
+        const gui = ui.getContext('2d');
+        //with a little thanks to https://stackoverflow.com/questions/8977369/drawing-png-to-a-canvas-element-not-showing-transparency thank you!
+        gui.drawImage(image, 20, 20);
     }
 
     return self;

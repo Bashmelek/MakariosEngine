@@ -11,12 +11,16 @@ const TryLoadingPrim = (function () {
         ////SkyboxRenderer.useSkybox('skybox');//"penguins (26)");//StageData.skybox = "penguins (26)";
         ////OutlineRenderer.setup();
         ////Makarios.setStepsForCelShading(4.0);
+        maxCamDist = 200.0;//global scope, plz fix
+        maxZFar = 300.0;//this global too
                
         var boxloc = 'SampleModels/Box/glTF-Embedded/Box.gltf';
         var minloc = 'SampleModels/Minimal.gltf';
         var foxloc = 'SampleModels/Fox/glTF-Embedded/Fox.gltf';
+        var rotboxloc = 'SampleModels/BoxAnimated/glTF-Embedded/BoxAnimated.gltf';
+        var rottriloc = 'SampleModels/AnimatedTriangle/glTF-Embedded/AnimatedTriangle.gltf';
 
-        GltfConverter.getPrimitiveFromJsResource(foxloc, function (res) {
+        GltfConverter.getPrimitiveFromJsResource(rottriloc, function (res) {
             console.log('!'); console.log(res);
             Primitives.shapes["testbox"] = res.prim;
             Primitives.shapes["testbox"].animations = [];
@@ -28,9 +32,10 @@ const TryLoadingPrim = (function () {
         setTimeout(function () {
             console.log(Primitives.shapes["testbox"]);
             var ob5 = Makarios.instantiate(Primitives.shapes["testbox"], 'plainsky.jpg', null, {});
+            Makarios.SetAnimation(ob5, "0");
             //ob5.matrix = objects[0].matrix;
-            console.log(ob5)
-        }, 1000);
+            console.log(ob5);
+        }, 2000);
 
     };
 

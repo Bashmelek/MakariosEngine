@@ -4,6 +4,8 @@ const MyFirstPhysics = (function () {
     const mat4 = glMatrix.mat4;
     var objects = [];
 
+    var smileyimage;
+    var smileyLoaded = false;
 
     function initVelocity(obj) {
         obj.isGrounded = true,
@@ -478,6 +480,13 @@ const MyFirstPhysics = (function () {
         initVelocity(ob1);
         initVelocity(ob2);
 
+        //with a little thanks to https://stackoverflow.com/questions/8977369/drawing-png-to-a-canvas-element-not-showing-transparency thank you!
+        smileyimage = new Image();
+        smileyimage.src = "Untitled.png"; // can also be a remote URL e.g. http://
+        smileyimage.onload = function () {
+            smileyLoaded = true;
+        };
+
         //GltfConverter.getPrimitiveFromJsResource('SampleModels/Box/glTF-Embedded/Box.gltf', function (res) { console.log('!'); console.log(res); Primitives.shapes["testbox"] = res; });
         //setTimeout(function () {
         //    console.log(Primitives.shapes["testbox"]);
@@ -519,6 +528,11 @@ const MyFirstPhysics = (function () {
             objects[0].childrenCustom[0].matrix,  // matrix to rotate
             -.02,   // amount to rotate in radians
             [0, 0, 1]); //101
+
+        if (smileyLoaded) {
+            Makarios.drawImage(smileyimage);
+            smileyLoaded = false;
+        }
     };
 
     //console.log(objects[0].children[0].indices)
