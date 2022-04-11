@@ -19,14 +19,17 @@ const TryLoadingPrim = (function () {
         var foxloc = 'SampleModels/Fox/glTF-Embedded/Fox.gltf';
         var rotboxloc = 'SampleModels/BoxAnimated/glTF-Embedded/BoxAnimated.gltf';
         var rottriloc = 'SampleModels/AnimatedTriangle/glTF-Embedded/AnimatedTriangle.gltf';
+        var twotriloc = 'SampleModels/SimpleMeshes/glTF-Embedded/SimpleMeshes.gltf';
 
         GltfConverter.getPrimitiveFromJsResource(rottriloc, function (res) {
             console.log('!'); console.log(res);
             Primitives.shapes["testbox"] = res.prim;
             Primitives.shapes["testbox"].animations = [];
-            for (var a = 0; a < res.animations.length; a++) {
-                Primitives.animations.push(res.animations[a]);
-                Primitives.shapes["testbox"].animations[res.animations[a].name] = Primitives.animations[Primitives.animations.length - 1];
+            if (res.animations) {
+                for (var a = 0; a < res.animations.length; a++) {
+                    Primitives.animations.push(res.animations[a]);
+                    Primitives.shapes["testbox"].animations[res.animations[a].name] = Primitives.animations[Primitives.animations.length - 1];
+                }
             }
         });
         setTimeout(function () {

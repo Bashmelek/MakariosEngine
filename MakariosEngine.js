@@ -1411,6 +1411,7 @@ function linTransformRangeWithOffsetsMat3(dest, source, mat, sourceStart, source
 
 function QuatToEulers(quat) {
     var eulers = [0.0, 0.0, 0.0];
+    //all thanks to wikipedia https://en.wikipedia.org/wiki/Conversion_between_quaternions_and_Euler_angles thank you
     eulers[0] = Math.atan2(2 * (quat[0] * quat[1] + quat[2] * quat[3]), 1 - 2 * (quat[1] * quat[1] + quat[2] * quat[2]));
     eulers[1] = Math.asin(2 * (quat[0] * quat[2] - quat[3] * quat[1]));
     eulers[2] = Math.atan2(2 * (quat[0] * quat[3] + quat[1] * quat[2]), 1 - 2 * (quat[2] * quat[2] + quat[3] * quat[3]));

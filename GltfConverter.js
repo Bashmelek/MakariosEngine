@@ -32,17 +32,23 @@ const GltfConverter = (function () {
 
     var convertJsonToPrimitive = function (object) {
         var primaryNodeIndex;
-        var newprim = {};
-
-        for (var s = 0; s < object.scenes.length; s++) {
-            //worry about making this an array later
-            primaryNodeIndex = object.scenes[s].nodes[0];
-        }
+        var newprim = null;
+        
         //test only
         ////primaryNodeIndex = 1;
 
         object.binaryBuffers = [];
-        var theprim = applyNode(object, object.nodes[primaryNodeIndex], glMatrix.mat4.create(), newprim, null);
+        var theprim = null;
+        
+        //for (var s = 0; s < object.scenes.length; s++) {
+        for (var s = 0; s < object.scenes[0].nodes.length; s++) {
+            //worry about making this an array later
+            primaryNodeIndex = object.scenes[0].nodes[s];
+            console.log(primaryNodeIndex);
+            theprim = applyNode(object, object.nodes[primaryNodeIndex], glMatrix.mat4.create(), theprim, null);
+        }
+        console.log('rezults');
+        console.log(theprim);
         theprim.rootID = 0;
 
         var animations = applyAnimations(object);
@@ -56,18 +62,29 @@ const GltfConverter = (function () {
 
     var applyNode = function (fullobject, node, parentmatrix, newprim, parentprim) {
 
-        var prim = {};
-        prim.positions = [];
-        prim.indices = [];
-        prim.vertexNormals = [];
-        prim.textureCoordinates = [];
-        prim.matrix = glMatrix.mat4.create();
+        var prim = newprim;
+        var isnew = false;
+        var orginposlength = 0;
+        if (prim == null) {
+            prim = {};
+            isnew = true;
+            prim.positions = [];
+            prim.indices = [];
+            prim.vertexNormals = [];
+            prim.textureCoordinates = [];
+        } else {
+            orginposlength = prim.positions.length;
+        }
+        //prim.matrix = glMatrix.mat4.create();
+        var primmatrix = glMatrix.mat4.create();
         if (node.matrix && node.matrix[0]) {
             var m = node.matrix;
-            prim.matrix = glMatrix.mat4.fromValues(m[0], m[1], m[2], m[3],
-                                m[4], m[5], m[6], m[7],
-                                m[8], m[9], m[10], m[11],
+            primmatrix = glMatrix.mat4.fromValues(m[0], m[1], m[2], m[3],
+                m[4], m[5], m[6], m[7],
+                m[8], m[9], m[10], m[11],
                 m[12], m[13], m[14], m[15])
+        } else if (node.translation) {
+            glMatrix.mat4.translate(primmatrix, primmatrix, node.translation)
         }
         if (node.mesh != undefined && node.mesh != null) {
             //console.log('mmmmmmmmwhat');
@@ -81,67 +98,72 @@ const GltfConverter = (function () {
                         var posIndex = meshObj.primitives[0].attributes.POSITION;
                         var posAcc = fullobject.accessors[posIndex];
                         //console.log(posAcc);
-                        prim.positions = getBufferFromAccessor(fullobject, posAcc);
-                        /*prim.textureCoordinates = [
-                            // Front
-                            0.0, 1.0, 1.0,//mess up numba 1 face if first says 1.0
-                            1.0, 1.0, 1.0,
-                            1.0, 0.0, 1.0,
-                            0.0, 0.0, 1.0,
-                            // Back
-                            0.0, 1.0, 1.0,
-                            1.0, 1.0, 1.0,
-                            1.0, 0.0, 1.0,
-                            0.0, 0.0, 1.0,
-                            // Top
-                            0.0, 1.0, 1.0,
-                            1.0, 1.0, 1.0,
-                            1.0, 0.0, 1.0,
-                            0.0, 0.0, 1.0,
-                            // Bottom
-                            0.0, 1.0, 1.0,
-                            1.0, 1.0, 1.0,
-                            1.0, 0.0, 1.0,
-                            0.0, 0.0, 1.0,
-                            // Right
-                            0.0, 1.0, 1.0,
-                            1.0, 1.0, 1.0,
-                            1.0, 0.0, 1.0,
-                            0.0, 0.0, 1.0,
-                            // Left
-                            0.0, 1.0, 1.0,
-                            1.0, 1.0, 1.0,
-                            1.0, 0.0, 1.0,
-                            0.0, 0.0, 1.0,
-                        ];*/
-                        prim.textureCoordinates = new Uint16Array(prim.positions.length);
-                        for (var tci = 0; tci < prim.textureCoordinates.length; tci++) {
+                        var posarray = getBufferFromAccessor(fullobject, posAcc);
+                        //todo george put math funcs own section
+                        linTransformRange(posarray, posarray, primmatrix, 0, posarray.length);
+                        if (isnew) {
+                            //console.log(posarray);
+                            prim.positions = posarray;
+                            console.log('orig posez');
+                            console.log(prim.positions);
+                        } else {
+                            console.log(prim.positions);
+                            prim.positions = prim.positions.concat(posarray);
+                            console.log('see new posez');
+                            console.log(prim.positions);
+                        }
+                        
+                        var texarray = new Uint16Array(prim.positions.length);
+                        for (var tci = 0; tci < texarray.length; tci++) {
                             if (tci % 3 == 0) {
-                                prim.textureCoordinates[tci] = 0.0;
+                                texarray[tci] = 0.0;
                             } else {
-                                prim.textureCoordinates[tci] = 1.0;
+                                texarray[tci] = 1.0;
                             }
                         }
-                        //console.log(prim.positions);
+                        if (isnew) {
+                            prim.textureCoordinates = texarray;
+                        } else {
+                            //prim.textureCoordinates = prim.textureCoordinates.concat(texarray);
+                            prim.textureCoordinates = texarray;
+                        }
+
                     }
                     if (meshObj.primitives[0].attributes.NORMAL != undefined && meshObj.primitives[0].attributes.NORMAL != null) {
                         var NORMAL = meshObj.primitives[0].attributes.NORMAL;
                         var normAcc = fullobject.accessors[NORMAL];
                         //console.log(posAcc);
-                        prim.vertexNormals = getBufferFromAccessor(fullobject, normAcc);
+                        var normarray = getBufferFromAccessor(fullobject, normAcc);
+                        if (isnew) {
+                            prim.vertexNormals = normarray;
+                        } else {
+                            prim.vertexNormals = prim.vertexNormals.concat(normarray);
+                        }
                         //console.log(prim.NORMAL);
                     }
                     if (meshObj.primitives[0].indices != undefined && meshObj.primitives[0].indices != null) {
                         var inIndex = meshObj.primitives[0].indices;
                         var inAcc = fullobject.accessors[inIndex];
                         //console.log(posAcc);
-                        prim.indices = getBufferFromAccessor(fullobject, inAcc);
+                        var inarray = getBufferFromAccessor(fullobject, inAcc);
+                        for (var ia = 0; ia < inarray.length; ia++) {
+                            inarray[ia] += orginposlength / 3;
+                        }
+                        if (isnew) {
+                            prim.indices = inarray;
+                        } else {
+                            prim.indices = prim.indices.concat(inarray);
+                        }
                         //console.log(prim.indices);
                     } else if (meshObj.primitives[0].attributes.POSITION != undefined && meshObj.primitives[0].attributes.POSITION != null) {
                         //trying this, thank you https://stackoverflow.com/questions/29200787/fastest-way-to-fill-uint16array-with-a-single-value
-                        var i = 0, a = new Uint16Array(prim.positions.length / 3);
-                        while (i < prim.positions.length / 3) a[i] = i++;
-                        prim.indices = a;
+                        var i = orginposlength / 3, a = new Uint16Array(prim.positions.length / 3 - orginposlength / 3);
+                        while (i < prim.positions.length / 3) a[i - orginposlength / 3] = i++;
+                        if (isnew) {
+                            prim.indices = a;
+                        } else {
+                            prim.indices = prim.indices.concat(a);
+                        }
                         console.log('autofilled with');
                         console.log(prim.positions.length / 3);
                         console.log(prim.indices);
@@ -151,6 +173,7 @@ const GltfConverter = (function () {
             }
         }
 
+
         if (parentprim) {
             prim.parent = parentprim;
             parentprim.children.push(prim);
@@ -158,10 +181,12 @@ const GltfConverter = (function () {
         prim.children = [];
 
         if (node.children) {
+            var innerprim = null;
             for (var t = 0; t < node.children.length; t++) {
                 //console.log('kiddo ' + t);
-                var childnode = applyNode(fullobject, fullobject.nodes[node.children[t]], glMatrix.mat4.create(), newprim, prim);
-                childnode.rootID = node.children[t];
+                innerprim = null;
+                innerprim = applyNode(fullobject, fullobject.nodes[node.children[t]], glMatrix.mat4.create(), innerprim, prim);
+                innerprim.rootID = node.children[t];
             }
         }
 
@@ -201,8 +226,8 @@ const GltfConverter = (function () {
                 var outAcc = fullobject.accessors[outIndex];
                 animComp.keydeformations = getBufferFromAccessor(fullobject, outAcc);
 
-                console.log('animComp');
-                console.log(animComp);
+                //console.log('animComp');
+                //console.log(animComp);
                 animation.components.push(animComp);
             }
 
