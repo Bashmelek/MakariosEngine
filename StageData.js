@@ -167,7 +167,7 @@ const StageData = (function () {
             newInst.velocity = {
                 y: 0.0
             };
-        newInst.textureUrl = textureUrl;
+        newInst.textureUrl = textureUrl == null ? prim.textureUrl : textureUrl;
         newInst.textureImage = null;
 
         newInst.ObjectOnFrame = objectOnFrame;

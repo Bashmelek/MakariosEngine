@@ -20,6 +20,7 @@ const TryLoadingPrim = (function () {
         var rotboxloc = 'SampleModels/BoxAnimated/glTF-Embedded/BoxAnimated.gltf';
         var rottriloc = 'SampleModels/AnimatedTriangle/glTF-Embedded/AnimatedTriangle.gltf';
         var twotriloc = 'SampleModels/SimpleMeshes/glTF-Embedded/SimpleMeshes.gltf';
+        var texloc = 'SampleModels/SimpleTxt.gltf'
 
         GltfConverter.getPrimitiveFromJsResource(rottriloc, function (res) {
             console.log('!'); console.log(res);
@@ -34,7 +35,7 @@ const TryLoadingPrim = (function () {
         });
         setTimeout(function () {
             console.log(Primitives.shapes["testbox"]);
-            var ob5 = Makarios.instantiate(Primitives.shapes["testbox"], 'plainsky.jpg', null, {});
+            var ob5 = Makarios.instantiate(Primitives.shapes["testbox"], Primitives.shapes["testbox"].textureUrl, null, {});//'plainsky.jpg'  Primitives.shapes["testbox"].textureUrl
             Makarios.SetAnimation(ob5, "0");
             //ob5.matrix = objects[0].matrix;
             console.log(ob5);

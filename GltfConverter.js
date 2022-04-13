@@ -94,6 +94,35 @@ const GltfConverter = (function () {
             if (meshObj.primitives && meshObj.primitives.length > 0) {
                 //worry about multiple primitives later
                 if (meshObj.primitives[0].attributes) {
+                    if (fullobject.materials && fullobject.materials.length > 0 && meshObj.primitives[0].material != null) {
+                        var material = fullobject.materials[meshObj.primitives[0].material];
+                        if (material && material.pbrMetallicRoughness && material.pbrMetallicRoughness.baseColorTexture != null) {
+                            //get the image
+                            var imageIndex = material.pbrMetallicRoughness.baseColorTexture.index;
+                            if (fullobject.images[imageIndex] != null) {
+                                console.log('maybe load image');
+                                //const buffStart = ("data:application/octet-stream;base64,").length;
+                                //thank you https://stackoverflow.com/questions/17591148/converting-data-uri-to-image-data for showing how easy datauri is
+                                image = new Image();
+                                image.addEventListener('load', function () {
+                                    //console.log('dotry load image');
+                                    //Makarios.drawImage(image);
+                                    //canvas.width = image.width;
+                                    //canvas.height = image.height;
+                                    //context.drawImage(image, 0, 0, canvas.width, canvas.height);
+                                    //resolve(context.getImageData(0, 0, canvas.width, canvas.height));
+                                }, false);
+                                image.src = fullobject.images[imageIndex].uri;
+                                prim.textureUrl = fullobject.images[imageIndex].uri;
+
+                                //fullobj.binaryBuffers[bv.buffer] = _base64ToArrayBuffer(fullobj.buffers[bv.buffer].uri.substring(buffStart));
+                                //binary = fullobj.binaryBuffers[bv.buffer];
+                            }
+                        }
+                    }
+                    if (!prim.textureUrl) {
+                        prim.textureUrl = "plainsky.jpg"
+                    }
                     if (meshObj.primitives[0].attributes.POSITION != undefined && meshObj.primitives[0].attributes.POSITION != null) {
                         var posIndex = meshObj.primitives[0].attributes.POSITION;
                         var posAcc = fullobject.accessors[posIndex];
@@ -113,12 +142,32 @@ const GltfConverter = (function () {
                             console.log(prim.positions);
                         }
                         
-                        var texarray = new Uint16Array(prim.positions.length);
-                        for (var tci = 0; tci < texarray.length; tci++) {
-                            if (tci % 3 == 0) {
-                                texarray[tci] = 0.0;
-                            } else {
-                                texarray[tci] = 1.0;
+                        var texarray;
+                        if (meshObj.primitives[0].attributes.TEXCOORD_0 != undefined && meshObj.primitives[0].attributes.TEXCOORD_0 != null) {
+                            var texIndex = meshObj.primitives[0].attributes.TEXCOORD_0;
+                            var texAcc = fullobject.accessors[texIndex];
+                            //console.log(posAcc);
+                            texarray = getBufferFromAccessor(fullobject, texAcc);
+                            //console.log('texarray');
+                            //console.log(texarray);
+                            for (var txi = 0; txi < texarray.length; txi++) {
+                                if (txi % 3 == 2) {
+                                    texarray.splice(txi, 0, 1.0);
+                                } else if (txi == texarray.length - 1) {
+                                    texarray.splice(txi, 0, 1.0);
+                                    txi = texarray.length;
+                                }
+                            }
+                        } else {
+                            texarray = new Uint16Array(prim.positions.length);
+                            for (var tci = 0; tci < texarray.length; tci++) {
+                                if (tci % 3 == 0) {
+                                    texarray[tci] = 0.0;
+                                //} else if (tci % 3 == 1) {
+                                //    texarray[tci] = 0.2;
+                                }else {
+                                    texarray[tci] = 1.0;
+                                }
                             }
                         }
                         if (isnew) {
@@ -260,15 +309,17 @@ const GltfConverter = (function () {
         if (acc.componentType == 5123) {//UNSIGNED_SHORT, 2 bytes
             //var intView = new Int32Array(buffer);
             unitSize = 2 * (acc.type == "VEC3" ? 3 :
-                (acc.type == "VEC4" ? 4 :
-                    (acc.type == "SCALAR" ? 1 : 1)));
+                (acc.type == "VEC4" ? 4 :                
+                (acc.type == "VEC2" ? 2 :
+                    (acc.type == "SCALAR" ? 1 : 1))));
             typedArray = Uint16Array;
         } else if (acc.componentType == 5126) { //FLOAT, 4 bytes
             //var floatView = new Float32Array(buffer);
             typedArray = Float32Array;
             unitSize = 4 * (acc.type == "VEC3" ? 3 :
-                (acc.type == "VEC4" ? 4 :
-                    (acc.type == "SCALAR" ? 1 : 1)));
+                (acc.type == "VEC4" ? 4 :                
+                (acc.type == "VEC2" ? 2 :
+                    (acc.type == "SCALAR" ? 1 : 1))));
         }
         var bufferEndSize = Math.min(bv.byteLength, acc.count * unitSize);
         var inc = bv.byteStride ? bv.byteStride : unitSize;

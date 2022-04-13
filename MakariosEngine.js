@@ -373,6 +373,7 @@ function loadTexture(gl, url) {
     const image = new Image();
     //image.crossOrigin = "anonymous";
     image.onload = function () {
+        //console.log(url);
         gl.bindTexture(gl.TEXTURE_2D, texture);
         gl.texImage2D(gl.TEXTURE_2D, level, internalFormat,
             srcFormat, srcType, image);
@@ -391,6 +392,8 @@ function loadTexture(gl, url) {
             gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
         }
     };
+    //console.log('url');
+    //console.log(url);
     image.src = url;
 
     MakTextures[url] = texture;
@@ -672,7 +675,8 @@ function RenderObjects(gl, programInfo, objects, parentmatrix, depth, dataHolder
         //gl.activeTexture(gl.TEXTURE0);
 
         // Bind the texture to texture unit 0
-        if (!objects[oj].textureImage) {
+        if (!objects[oj].textureImage && objects[oj].textureUrl) {
+            //console.log(objects[oj]);
             objects[oj].textureImage = loadTexture(gl, objects[oj].textureUrl);
         }
         gl.bindTexture(gl.TEXTURE_2D, objects[oj].textureImage);
