@@ -126,27 +126,21 @@ const GltfConverter = (function () {
                     if (meshObj.primitives[0].attributes.POSITION != undefined && meshObj.primitives[0].attributes.POSITION != null) {
                         var posIndex = meshObj.primitives[0].attributes.POSITION;
                         var posAcc = fullobject.accessors[posIndex];
-                        //console.log(posAcc);
+                        console.log(posAcc);
                         var posarray = getBufferFromAccessor(fullobject, posAcc);
                         //todo george put math funcs own section
                         linTransformRange(posarray, posarray, primmatrix, 0, posarray.length);
                         if (isnew) {
-                            //console.log(posarray);
                             prim.positions = posarray;
-                            console.log('orig posez');
-                            console.log(prim.positions);
                         } else {
-                            console.log(prim.positions);
                             prim.positions = prim.positions.concat(posarray);
-                            console.log('see new posez');
-                            console.log(prim.positions);
                         }
                         
                         var texarray;
                         if (meshObj.primitives[0].attributes.TEXCOORD_0 != undefined && meshObj.primitives[0].attributes.TEXCOORD_0 != null) {
                             var texIndex = meshObj.primitives[0].attributes.TEXCOORD_0;
                             var texAcc = fullobject.accessors[texIndex];
-                            //console.log(posAcc);
+                            //console.log('TEXCOORD_0');
                             texarray = getBufferFromAccessor(fullobject, texAcc);
                             //console.log('texarray');
                             //console.log(texarray);
@@ -154,12 +148,15 @@ const GltfConverter = (function () {
                                 if (txi % 3 == 2) {
                                     texarray.splice(txi, 0, 1.0);
                                 } else if (txi == texarray.length - 1) {
-                                    texarray.splice(txi, 0, 1.0);
+                                    texarray.splice(txi + 1, 0, 1.0);
                                     txi = texarray.length;
+                                } else if (texarray[txi] < 0) {
+                                    //texarray[txi] = 1.0;
                                 }
+                                if (texarray[txi] < .01) { texarray[txi] = 0.0; }
                             }
                         } else {
-                            texarray = new Uint16Array(prim.positions.length);
+                            texarray = new Float32Array(prim.positions.length);
                             for (var tci = 0; tci < texarray.length; tci++) {
                                 if (tci % 3 == 0) {
                                     texarray[tci] = 0.0;
@@ -171,6 +168,7 @@ const GltfConverter = (function () {
                             }
                         }
                         if (isnew) {
+                           // console.log(texarray);
                             prim.textureCoordinates = texarray;
                         } else {
                             //prim.textureCoordinates = prim.textureCoordinates.concat(texarray);
@@ -189,17 +187,33 @@ const GltfConverter = (function () {
                             prim.vertexNormals = prim.vertexNormals.concat(normarray);
                         }
                         //console.log(prim.NORMAL);
+                    } else {
+                        var normarr = new Float32Array(prim.positions.length);
+                        for (var nci = 0; nci < normarr.length; nci++) {
+                            if (nci % 3 == 0) {
+                                normarr[nci] = 0.0;
+                            //} else if (tci % 3 == 1) {
+                            //    texarray[tci] = 0.2;
+                            }else {
+                                normarr[nci] = 1.0;
+                            }
+                        }
+                        if (isnew) {
+                            prim.vertexNormals = normarr;
+                        } else {
+                            prim.vertexNormals = prim.normarr.concat(normarray);
+                        }
                     }
                     if (meshObj.primitives[0].indices != undefined && meshObj.primitives[0].indices != null) {
                         var inIndex = meshObj.primitives[0].indices;
                         var inAcc = fullobject.accessors[inIndex];
-                        //console.log(posAcc);
+                        console.log(orginposlength);
                         var inarray = getBufferFromAccessor(fullobject, inAcc);
                         for (var ia = 0; ia < inarray.length; ia++) {
                             inarray[ia] += orginposlength / 3;
                         }
                         if (isnew) {
-                            prim.indices = inarray;
+                            prim.indices = inarray;//[0, 1, 2, 1, 3, 2];// inarray;????todo
                         } else {
                             prim.indices = prim.indices.concat(inarray);
                         }
@@ -218,7 +232,30 @@ const GltfConverter = (function () {
                         console.log(prim.indices);
                     }
                 }
+                //add targets used for morph weights
+                if (meshObj.primitives[0].targets != undefined && meshObj.primitives[0].targets != null) {
+                    //
+                    if (prim.morphPosArrays == null) {
+                        prim.morphPosArrays = [];
+                    }
+                    for (var mp = 0; mp < meshObj.primitives[0].targets.length; mp++) {
+                        var mpIndex = meshObj.primitives[0].targets[mp].POSITION;
+                        var mpAcc = fullobject.accessors[mpIndex];
+                        console.log(mpAcc);
+                        var mparray = getBufferFromAccessor(fullobject, mpAcc);
+                        prim.morphPosArrays.push(mparray);
+                    }
+                }
 
+            }
+
+            if (meshObj.weights && meshObj.weights.length > 0) {
+                if (isnew || !prim.weights) {
+                    prim.weights = meshObj.weights.slice(0);
+                } else {
+                    //might need extra logic for notnew
+                    prim.weights = prim.weights.concat(meshObj.weights);
+                }
             }
         }
 
@@ -261,7 +298,10 @@ const GltfConverter = (function () {
                 animComp.node = fullobject.animations[i].channels[c].target.node;
                 if (fullobject.animations[i].channels[c].target.path == "rotation") {
                     animComp.type = Makarios.animTypeRot;
-                } else {
+                } else if (fullobject.animations[i].channels[c].target.path == "weights") {
+                    animComp.type = Makarios.animTypeMorph;
+                }
+                else {
                     //todo George
                     animComp.type = 0;
                 }
@@ -293,9 +333,20 @@ const GltfConverter = (function () {
         var bv = fullobj.bufferViews[acc.bufferView];
         var binary;
         if (fullobj.binaryBuffers[bv.buffer]) {
+            //console.log('casey 0' + bv.buffer);
+            //console.log(fullobj.binaryBuffers[bv.buffer]);
             binary = fullobj.binaryBuffers[bv.buffer];
         } else {
-            const buffStart = ("data:application/octet-stream;base64,").length;
+            var buffStart = 0;//("data:application/octet-stream;base64,").length;// 0;
+            if (fullobj.buffers[bv.buffer].uri.startsWith("data:application/octet-stream;base64,")) {
+                buffStart = ("data:application/octet-stream;base64,").length;
+            } else if (fullobj.buffers[bv.buffer].uri.startsWith("data:image/png;base64,")) {
+                buffStart = ("data:image/png;base64,").length;
+            } else {
+                buffStart = ("data:application/gltf-buffer;base64,").length;
+            }
+
+            //console.log(fullobj.buffers[bv.buffer].uri.substring(buffStart));
             fullobj.binaryBuffers[bv.buffer] = _base64ToArrayBuffer(fullobj.buffers[bv.buffer].uri.substring(buffStart));
             binary = fullobj.binaryBuffers[bv.buffer];
         }
@@ -325,15 +376,35 @@ const GltfConverter = (function () {
         var inc = bv.byteStride ? bv.byteStride : unitSize;
         var addedBytes = 0;
         //console.log(binary);
+        var givenMax = null;
+        var givenMin = null;
         for (var c = start; addedBytes < bufferEndSize; c += inc) {
             var valsToAdd = new typedArray(binary.slice(c, c + unitSize)).slice(0);
             var valsToAddTrue = [];
+
             for (var v = 0; v < valsToAdd.length; v++) {
+
                 valsToAddTrue.push(valsToAdd[v]);
+            }
+
+            if (acc.type == "SCALAR") {
+                if (givenMax == null || givenMax < valsToAddTrue[0]) {
+                    givenMax = valsToAddTrue[0];
+                }
+                if (givenMin == null || givenMin > valsToAddTrue[0]) {
+                    givenMin = valsToAddTrue[0];
+                }
             }
 
             array = array.concat(valsToAddTrue);
             addedBytes += unitSize;
+        }
+        if (acc.type == "SCALAR" && acc.max != null && acc.max[0] != null && givenMax != null && acc.componentType == 5123) {
+            var divisor = givenMax / acc.max[0];
+            //console.log('EEEEEHHH');
+            for (var im = 0; im < array.length; im++) {
+                array[im] = array[im] / divisor;
+            }
         }
 
         //may need to consider bufferview target

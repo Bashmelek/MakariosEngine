@@ -21,8 +21,9 @@ const TryLoadingPrim = (function () {
         var rottriloc = 'SampleModels/AnimatedTriangle/glTF-Embedded/AnimatedTriangle.gltf';
         var twotriloc = 'SampleModels/SimpleMeshes/glTF-Embedded/SimpleMeshes.gltf';
         var texloc = 'SampleModels/SimpleTxt.gltf'
+        var trimorph = 'SampleModels/SimpleMorph/glTF-Embedded/SimpleMorph.gltf'
 
-        GltfConverter.getPrimitiveFromJsResource(rottriloc, function (res) {
+        GltfConverter.getPrimitiveFromJsResource(trimorph, function (res) {
             console.log('!'); console.log(res);
             Primitives.shapes["testbox"] = res.prim;
             Primitives.shapes["testbox"].animations = [];

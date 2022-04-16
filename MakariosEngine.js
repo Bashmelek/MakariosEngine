@@ -1555,16 +1555,17 @@ function UpdateObjAnimation(obj) {
             obj.animframe += StageData.timeDelta;//(StageData.timeDelta / 4);
             for (var i = 0; i < anim.components.length; i++) {
                 var primcomp = anim.components[i];
+                //reset positions from obj.prim.positions
+                for (var pp = 0; pp < obj.prim.positions.length; pp++) {
+                    Entera.buffers.positions[obj.positionsBufferStart + pp] = obj.prim.positions[pp];
+                }
+                //rotation animation
                 if (primcomp.type == Makarios.animTypeRot) {
-                    //var compframe = obj.animframe % primcomp.keytimes[primcomp.keytimes.length - 1];//todelete
                     obj.animcomps[i].currentframe = obj.animframe % (obj.animcomps[i].endTime + 1);
-                    //console.log(obj.animcomps[i].currentframe);
                     for (var f = 0; f < primcomp.keytimes.length; f++) {
                         var realkey = (obj.animcomps[i].currentKey + f) % primcomp.keytimes.length;
-                        //if (obj.animcomps[i].currentframe >= primcomp.keytimes[realkey] * 1000) { console.log('pass 1');}
                         if (obj.animcomps[i].currentframe >= primcomp.keytimes[realkey] * 1000 &&
-                            ((realkey == (primcomp.keytimes.length - 1)) || (obj.animcomps[i].currentframe < primcomp.keytimes[realkey + 1] * 1000))) {
-                            
+                            ((realkey == (primcomp.keytimes.length - 1)) || (obj.animcomps[i].currentframe < primcomp.keytimes[realkey + 1] * 1000))) {                            
                             obj.animcomps[i].currentKey = realkey;
                             f = primcomp.keytimes.length;
                         }
@@ -1572,8 +1573,7 @@ function UpdateObjAnimation(obj) {
 
                     var quat = [0.0, 0.0, 0.0, 0.0];
                     var thekey = obj.animcomps[i].currentKey;
-                    //console.log(thekey);
-                    //console.log(primcomp.keydeformations);
+
                     if (thekey == (primcomp.keytimes.length - 1) || obj.animcomps[i].currentframe == primcomp.keytimes[thekey] * 1000 ) {
                         //failsafe, when max should only be at max time
                         quat = [primcomp.keydeformations[thekey * 4 + 0], primcomp.keydeformations[thekey * 4 + 1],
@@ -1587,9 +1587,6 @@ function UpdateObjAnimation(obj) {
                             //var val = primcomp.keydeformations[thekey * 4 + d];// + 
                                 //(primcomp.keydeformations[(thekey + 1) * 4 + d] - primcomp.keydeformations[thekey * 4 + d]) * 
                                     //((obj.animcomps[i].currentframe - 1000.0 * primcomp.keytimes[thekey]) / ((1000.0 * primcomp.keytimes[(thekey + 1)] - 1000.0 * primcomp.keytimes[thekey])));
-                            //console.log(val);
-                            
-                            //quat[d] = val;
                         //}
                         var q0 = quat = [primcomp.keydeformations[thekey * 4 + 0], primcomp.keydeformations[thekey * 4 + 1],
                         primcomp.keydeformations[thekey * 4 + 2], primcomp.keydeformations[thekey * 4 + 3]];
@@ -1599,10 +1596,7 @@ function UpdateObjAnimation(obj) {
                         var e1 = QuatToEulers(q1);
                         var euresult = [0.0, 0.0, 0.0];
                         for (var g = 0; g < 3; g++) {
-                            //var interpolationDirection = 1.0;
-                            //console.log(e1[g] - e0[g]);
                             if (Math.abs(e1[g] - e0[g]) > 180.0) {
-                                //interpolationDirection = -1.0;
                                 if (e1[g] < e0[g]) {
                                     e1[g] += 360.0;
                                 } else if (e1[g] < e0[g]){
@@ -1614,25 +1608,60 @@ function UpdateObjAnimation(obj) {
                                 ((obj.animcomps[i].currentframe - 1000.0 * primcomp.keytimes[thekey]) / ((1000.0 * primcomp.keytimes[(thekey + 1)] - 1000.0 * primcomp.keytimes[thekey])));
                             euresult[g] = val;
                         }
-                        //console.log(euresult[0]);
                         Quaternion.fromEuler(quat, euresult[2], euresult[1], euresult[0]);
-                        //console.log(quat);
-                        //console.log(q0);
                     }                    
 
                     var rotMatrix = mat3.create();
                     mat3.fromQuat(rotMatrix, quat);
-                    //mat3.rotate(rotMatrix, rotMatrix, )
 
-
-                    //console.log(quat);
                     linTransformRangeWithOffsetsMat3(Entera.buffers.positions, obj.prim.positions,
                         rotMatrix, obj.startContPosIndex, obj.startContPosIndex + obj.positions.length, obj.positionsBufferStart);
-                    //console.log(obj.prim.positions);
-                    //console.log(Entera.buffers.positions);
-                    //console.log(Entera.buffers.positions[3] * Entera.buffers.positions[3] + Entera.buffers.positions[4] * Entera.buffers.positions[4])
 
                 }
+
+                //morph animation aka blendshape aka shapekey
+                if (primcomp.type == Makarios.animTypeMorph) {
+                    //get the "true" frame based on time
+                    obj.animcomps[i].currentframe = obj.animframe % (obj.animcomps[i].endTime + 1);
+                    for (var f = 0; f < primcomp.keytimes.length; f++) {
+                        var realkey = (obj.animcomps[i].currentKey + f) % primcomp.keytimes.length;
+                        if (obj.animcomps[i].currentframe >= primcomp.keytimes[realkey] * 1000 &&
+                            ((realkey == (primcomp.keytimes.length - 1)) || (obj.animcomps[i].currentframe < primcomp.keytimes[realkey + 1] * 1000))) {
+                            obj.animcomps[i].currentKey = realkey;
+                            f = primcomp.keytimes.length;
+                        }
+                    }
+
+                    var newweights = new Float32Array(obj.prim.weights.length);
+                    var thekey = obj.animcomps[i].currentKey;
+                    if (thekey == (primcomp.keytimes.length - 1) || obj.animcomps[i].currentframe == primcomp.keytimes[thekey] * 1000) {
+                        //failsafe, when max should only be at max time
+                        for (var knw = 0; knw < newweights.length; knw++) {
+                            newweights[knw] = primcomp.keydeformations[thekey * obj.prim.weights.length + knw];
+                        }
+                    } else {
+                        //else interpolate
+                        for (var nw = 0; nw < newweights.length; nw++) {
+                            var nowid = thekey * obj.prim.weights.length + nw;
+                            var nexid = (thekey + 1) * obj.prim.weights.length + nw;
+                            
+                            var dev = primcomp.keydeformations[nowid] +
+                                (primcomp.keydeformations[nexid] - primcomp.keydeformations[nowid]) *
+                                ((obj.animcomps[i].currentframe - 1000.0 * primcomp.keytimes[thekey]) / ((1000.0 * primcomp.keytimes[(thekey + 1)] - 1000.0 * primcomp.keytimes[thekey])));
+                            newweights[nw] = dev;//primcomp.keydeformations[thekey * obj.prim.weights.length + nw];
+                        }
+                    }
+
+                    for (var fw = 0; fw < newweights.length; fw++) {
+                        var morphposits = obj.prim.morphPosArrays[fw];
+                        //console.log(morphposits);
+                        for (var mp = 0; mp < morphposits.length; mp++) {
+                            //entera edit
+                            //console.log(morphposits[mp] * newweights[mp])
+                            Entera.buffers.positions[obj.positionsBufferStart + mp] += morphposits[mp] * newweights[fw];
+                        }
+                    }
+                }//morph animation done
             }
         }
     }
@@ -1646,6 +1675,7 @@ const Makarios = (function () {
     self.helloworld = function () { console.log('hello world'); };
 
     self.animTypeRot = 1;
+    self.animTypeMorph = 4;
 
     self.uiState = {};
     self._useAlphaInTexture = false;
