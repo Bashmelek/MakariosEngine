@@ -45,7 +45,7 @@ const GltfConverter = (function () {
             //worry about making this an array later
             primaryNodeIndex = object.scenes[0].nodes[s];
             console.log(primaryNodeIndex);
-            theprim = applyNode(object, object.nodes[primaryNodeIndex], glMatrix.mat4.create(), theprim, null);
+            theprim = applyNode(object, object.nodes[primaryNodeIndex], glMatrix.mat4.create(), primaryNodeIndex, theprim, null);
         }
         console.log('rezults');
         console.log(theprim);
@@ -60,7 +60,7 @@ const GltfConverter = (function () {
         return primcombined;
     };
 
-    var applyNode = function (fullobject, node, parentmatrix, newprim, parentprim) {
+    var applyNode = function (fullobject, node, parentmatrix, nodeIndex, newprim, parentprim) {
 
         var prim = newprim;
         var isnew = false;
@@ -75,16 +75,40 @@ const GltfConverter = (function () {
         } else {
             orginposlength = prim.positions.length;
         }
+        prim.glindex = nodeIndex;
         //prim.matrix = glMatrix.mat4.create();
         var primmatrix = glMatrix.mat4.create();
+        if (fullobject.skins != null && fullobject.skins.length > 0 && fullobject.skins[0] != null && fullobject.skins[0].joints != null &&
+            fullobject.skins[0].joints.length > 0) {
+            for (var so = 0; so < fullobject.skins[0].joints.length; so++) {
+                if (fullobject.skins[0].joints[so] == prim.glindex) {
+                    prim.skellindex = so;
+                    var invmatIndex = fullobject.skins[0].inverseBindMatrices;
+                    var invmatAcc = fullobject.accessors[invmatIndex];
+                    var im = getBufferFromAccessor(fullobject, invmatAcc);
+
+                    prim.inverseBaseMat = glMatrix.mat4.fromValues(im[(so * 16) + 0], im[(so * 16) + 1], im[(so * 16) + 2], im[(so * 16) + 3],
+                        im[(so * 16) + 4], im[(so * 16) + 5], im[(so * 16) + 6], im[(so * 16) + 7],
+                        im[(so * 16) + 8], im[(so * 16) + 9], im[(so * 16) + 10], im[(so * 16) + 11],
+                        im[(so * 16) + 12], im[(so * 16) + 13], im[(so * 16) + 14], im[(so * 16) + 15]);
+                    console.log(prim.inverseBaseMat);
+                }
+            }
+        }
         if (node.matrix && node.matrix[0]) {
             var m = node.matrix;
             primmatrix = glMatrix.mat4.fromValues(m[0], m[1], m[2], m[3],
                 m[4], m[5], m[6], m[7],
                 m[8], m[9], m[10], m[11],
-                m[12], m[13], m[14], m[15])
-        } else if (node.translation) {
+                m[12], m[13], m[14], m[15]);
+        }
+        if (node.translation) {
             glMatrix.mat4.translate(primmatrix, primmatrix, node.translation)
+        }
+        if (node.rotation) {
+            var qm = glMatrix.mat4.create();
+            glMatrix.mat4.fromQuat(qm, node.rotation)
+            glMatrix.mat4.multiply(primmatrix, qm, primmatrix)
         }
         if (node.mesh != undefined && node.mesh != null) {
             //console.log('mmmmmmmmwhat');
@@ -231,6 +255,33 @@ const GltfConverter = (function () {
                         console.log(prim.positions.length / 3);
                         console.log(prim.indices);
                     }
+
+                    //skeleton attributes aka skin: JOINTS_0 and WEIGHTS_0
+                    if (meshObj.primitives[0].attributes.JOINTS_0 != undefined && meshObj.primitives[0].attributes.JOINTS_0 != null) {
+                        var joIndex = meshObj.primitives[0].attributes.JOINTS_0;
+                        console.log(joIndex);
+                        var joAcc = fullobject.accessors[joIndex];
+                        console.log(joAcc);
+                        var joarray = getBufferFromAccessor(fullobject, joAcc);
+                        console.log('JOJOJOJO');
+                        console.log(joarray);
+                        if (isnew) {
+                            prim.skellyjoints = joarray;
+                        } else {
+                            prim.skellyjoints = prim.positions.concat(joarray);
+                        }
+                    }
+                    if (meshObj.primitives[0].attributes.WEIGHTS_0 != undefined && meshObj.primitives[0].attributes.WEIGHTS_0 != null) {
+                        var weiIndex = meshObj.primitives[0].attributes.WEIGHTS_0;
+                        var weiAcc = fullobject.accessors[weiIndex];
+                        var weiarray = getBufferFromAccessor(fullobject, weiAcc);
+                        if (isnew) {
+                            prim.skellyweights = weiarray;
+                        } else {
+                            prim.skellyweights = prim.positions.concat(weiarray);
+                        }
+
+                    }
                 }
                 //add targets used for morph weights
                 if (meshObj.primitives[0].targets != undefined && meshObj.primitives[0].targets != null) {
@@ -258,6 +309,37 @@ const GltfConverter = (function () {
                 }
             }
         }
+        if (node.skin != undefined && node.skin != null) {
+            //todo george skinning stuffing
+            var skinobj = fullobject.skins[node.skin];
+            prim.isSkellyHolder = true;
+            //prim.skellynodes = skinobj.joints;
+            prim.skeletonkey = {};
+            prim.skeletonkey.skellynodes = new Array(skinobj.joints.length).fill().map(function (x, ind) {
+                return {
+                    glindex: skinobj.joints[ind],
+                    skellindex: ind,
+                    nodeobj: null,
+                    skeletonid: node.skin,
+                }
+            });
+            prim.skeletonkey.rootskellynodeindexes = null;
+
+            prim.skeletonkey.glrootskellynodeID = fullobject.skins[node.skin].skeleton;
+            if (prim.skeletonkey.glrootskellynodeID) {
+                for (var sk = 0; sk < skinobj.joints.length; sk++) {
+                    if (skinobj.joints[sk] == prim.skeletonkey.glrootskellynodeID) {
+                        prim.skeletonkey.rootskellynodeindexes = [sk];
+                    }
+                }
+            } else {
+                //else find all joints without parent
+                for (var sk2 = 0; sk2 < skinobj.joints.length; sk2++) {
+                    //todo that thing
+                    prim.skeletonkey.rootskellynodeindexes = findRootSkeletonNodes(fullobject);
+                }
+            }
+        }
 
 
         if (parentprim) {
@@ -271,7 +353,7 @@ const GltfConverter = (function () {
             for (var t = 0; t < node.children.length; t++) {
                 //console.log('kiddo ' + t);
                 innerprim = null;
-                innerprim = applyNode(fullobject, fullobject.nodes[node.children[t]], glMatrix.mat4.create(), innerprim, prim);
+                innerprim = applyNode(fullobject, fullobject.nodes[node.children[t]], glMatrix.mat4.create(), node.children[t], innerprim, prim);
                 innerprim.rootID = node.children[t];
             }
         }
@@ -350,7 +432,7 @@ const GltfConverter = (function () {
             fullobj.binaryBuffers[bv.buffer] = _base64ToArrayBuffer(fullobj.buffers[bv.buffer].uri.substring(buffStart));
             binary = fullobj.binaryBuffers[bv.buffer];
         }
-        var start = (acc.byteOffset + bv.byteOffset);
+        var start = ((acc.byteOffset || 0) + (bv.byteOffset || 0));
         //var numBytes = bv.byteLength;
 
         var unitSize = 1;
@@ -361,16 +443,18 @@ const GltfConverter = (function () {
             //var intView = new Int32Array(buffer);
             unitSize = 2 * (acc.type == "VEC3" ? 3 :
                 (acc.type == "VEC4" ? 4 :                
-                (acc.type == "VEC2" ? 2 :
-                    (acc.type == "SCALAR" ? 1 : 1))));
+                    (acc.type == "VEC2" ? 2 :
+                        (acc.type == "MAT4" ? 16 :
+                    (acc.type == "SCALAR" ? 1 : 1)))));
             typedArray = Uint16Array;
         } else if (acc.componentType == 5126) { //FLOAT, 4 bytes
             //var floatView = new Float32Array(buffer);
             typedArray = Float32Array;
             unitSize = 4 * (acc.type == "VEC3" ? 3 :
                 (acc.type == "VEC4" ? 4 :                
-                (acc.type == "VEC2" ? 2 :
-                    (acc.type == "SCALAR" ? 1 : 1))));
+                    (acc.type == "VEC2" ? 2 :
+                        (acc.type == "MAT4" ? 16 :
+                    (acc.type == "SCALAR" ? 1 : 1)))));
         }
         var bufferEndSize = Math.min(bv.byteLength, acc.count * unitSize);
         var inc = bv.byteStride ? bv.byteStride : unitSize;
@@ -381,6 +465,10 @@ const GltfConverter = (function () {
         for (var c = start; addedBytes < bufferEndSize; c += inc) {
             var valsToAdd = new typedArray(binary.slice(c, c + unitSize)).slice(0);
             var valsToAddTrue = [];
+            //console.log(start);
+            //console.log(c);
+            //console.log(unitSize);
+            //console.log(inc);
 
             for (var v = 0; v < valsToAdd.length; v++) {
 
@@ -406,10 +494,38 @@ const GltfConverter = (function () {
                 array[im] = array[im] / divisor;
             }
         }
-
         //may need to consider bufferview target
         return array;
     }
+
+    var findRootSkeletonNodes = function (fullobj) {
+        var rootskellynodes = [];
+        var memoizedParents = [];
+        var skinobj = fullobj.skins[0];
+
+        for (var s = 0; s < skinobj.joints.length; s++) {
+            //findRootSkeletonNodesRecursive(rootskellynodes, fullobj, memoizedParents);
+            var hasParent = false;
+            for (var i = 0; i < skinobj.joints.length; i++) {
+                if (fullobj.nodes[i].children != null) {
+                    for (var c = 0; c < fullobj.nodes[i].children.length; c++) {
+                        if (fullobj.nodes[i].children[c] == s) {
+                            hasParent = true;
+                        }
+                    }
+                }
+            }
+            if (!hasParent) {
+                rootskellynodes.push(s);
+            }
+        }        
+
+        return rootskellynodes;
+    };
+
+    var findRootSkeletonNodesRecursive = function (results, fullobj, memoizedParents) {
+
+    };
 
 
 

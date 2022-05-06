@@ -1000,21 +1000,25 @@ function main() {
         theGame.OnFrame();
         //console.log('click');
         for (var c = 0; c < StageData.objects.length; c++) {
-            if (StageData.objects[c]) {
-                if (StageData.objects[c].ObjectOnFrame) {
-                    StageData.objects[c].ObjectOnFrame(StageData.objects[c]);
-                }
-                UpdateObjAnimation(StageData.objects[c]);
-                if (StageData.objects[c] && StageData.objects[c].children) {
-                    for (var i = 0; i < StageData.objects[c].children.length; i++) {
-                        if (!StageData.objects[c].children[i]) { continue; }
-                        if (StageData.objects[c].children[i].ObjectOnFrame) {
-                            StageData.objects[c].children[i].ObjectOnFrame(StageData.objects[c].children[i]);
-                        }
-                        UpdateObjAnimation(StageData.objects[c].children[i]);
-                    }
-                }
-            }
+            processObjectOnFrame(StageData.objects[c]);
+            //if (StageData.objects[c]) {
+            //    if (StageData.objects[c].ObjectOnFrame) {
+            //        StageData.objects[c].ObjectOnFrame(StageData.objects[c]);
+            //    }
+            //    UpdateObjAnimation(StageData.objects[c]);
+            //    if (StageData.objects[c] && StageData.objects[c].children) {
+            //        for (var i = 0; i < StageData.objects[c].children.length; i++) {
+            //            if (!StageData.objects[c].children[i]) { continue; }
+            //            if (StageData.objects[c].children[i].ObjectOnFrame) {
+            //                StageData.objects[c].children[i].ObjectOnFrame(StageData.objects[c].children[i]);
+            //            }
+            //            UpdateObjAnimation(StageData.objects[c].children[i]);
+            //        }
+            //    }
+            //}
+        }
+        for (var k = 0; k < StageData.objects.length; k++) {
+            processSkeletalAnimationsComplete(StageData.objects[k]);
         }
     }, 5);
 
@@ -1033,6 +1037,72 @@ var lastmousedownpoint = { x: 0, y: 0 };
 // for pointing me the way
 var usePointerLock = 1;
 
+function processObjectOnFrame(obj) {
+    if (obj) {
+        if (obj.ObjectOnFrame) {
+            obj.ObjectOnFrame(obj);
+        }
+        UpdateObjAnimation(obj);
+        if (obj.children) {
+            for (var i = 0; i < obj.children.length; i++) {
+                processObjectOnFrame(obj.children[i]);
+                //if (!obj.children[i]) { continue; }
+                //if (obj.children[i].ObjectOnFrame) {
+                //    obj.children[i].ObjectOnFrame(obj.children[i]);
+                //}
+                //UpdateObjAnimation(obj.children[i]);
+            }
+        }
+    }
+}
+
+function processSkeletalAnimationsComplete(obj) {
+    if (obj.skeletonkey) {
+        processSkeletalAnimation_Holder(obj, obj.skeletonkey);
+    }
+    for (var i = 0; i < obj.children.length; i++) {        
+        //console.log('lfs');
+        processSkeletalAnimationsComplete(obj.children[i]);
+    }
+}
+
+function processSkeletalAnimation_Holder(obj, thekey) {
+    for (var i = 0; i < obj.prim.skeletonkey.rootskellynodeindexes; i++) {
+        setupSkeletalAnimationMatrix(obj, obj.prim.skeletonkey.skellynodes[obj.prim.skeletonkey.rootskellynodeindexes[i]], thekey, mat4.create(), mat4.create());
+    }
+    applySkeletalMatrixTransforms(obj, thekey)
+}
+
+function setupSkeletalAnimationMatrix(rootobj, obj, thekey, invmat, transmat) {
+    //is this right at all?? todo george
+    mat4.multiply(obj.skellmatrix, obj.prim.inverseBaseMat, obj.skellmatrix);// transmat);
+    var invinv = mat4.create();
+    mat4.invert(invinv, obj.prim.inverseBaseMat);
+    mat4.multiply(obj.skellmatrix, obj.skellmatrix, invinv);
+    mat4.multiply(obj.skellmatrix, obj.skellmatrix, transmat);
+
+    mat4.multiply(invmat, obj.prim.inverseBaseMat, invmat);
+    mat4.multiply(transmat, obj.skellmatrix, transmat);
+
+    for (var i = 0; i < obj.children.length; i++) {
+        setupSkeletalAnimationMatrix(obj.children[i], thekey, invmat, transmat);
+    }
+}
+
+function applySkeletalMatrixTransforms(obj, thekey) {
+    //console.log('anmating');
+    //console.log(obj.skeletonkey);
+    //console.log('before :');
+    //console.log(Entera.buffers.positions);
+    //todo george apply matrices to all them vertices                       obj.prim.positions
+    linTransformRangeWithOffsetsForSkeletonMat3(Entera.buffers.positions, Entera.buffers.positions, obj.startContPosIndex, obj.startContPosIndex + obj.positions.length, obj.positionsBufferStart,
+        obj.skeletonkey, obj.prim.skellyjoints, obj.prim.skellyweights);
+    //console.log(Entera.buffers.positions);
+
+    //example
+    //linTransformRangeWithOffsetsMat3(Entera.buffers.positions, obj.prim.positions,
+    //    rotMatrix, obj.startContPosIndex, obj.startContPosIndex + obj.positions.length, obj.positionsBufferStart);
+}
 
 function onJustMouseDown(e) {
     if (usePointerLock == 1) {
@@ -1413,6 +1483,48 @@ function linTransformRangeWithOffsetsMat3(dest, source, mat, sourceStart, source
     //return transformedArray;
 }
 
+function linTransformRangeWithOffsetsForSkeletonMat3(dest, source, sourceStart, sourceEndExclusive, destStart, skeletonkey, joints, weights) {
+    //console.log('from ' + rangeStart + ' to ' + rangeEndExclusive);
+    var psize = sourceEndExclusive / 3;
+    //console.log('from ' + rangeStart + ' to ' + rangeEndExclusive)
+    var mat = mat4.create();
+
+    for (var i = (sourceStart / 3); i < psize; i++) {
+        var dStart = destStart + i * 3 - sourceStart;
+        var rez = [0.0, 0.0, 0.0, 0.0]
+        for (var w = 0; w < 4; w++) {
+            var weightjointdex = (i - (sourceStart / 3)) * 4 + w;
+            //console.log(weightjointdex);
+            //console.log(weights[weightjointdex]);
+            if (weights[weightjointdex] != 0.0) {
+                //console.log(weightjointdex);
+                //console.log(joints[weightjointdex]);
+                //console.log(skeletonkey.skellynodes[joints[weightjointdex]]);
+                mat4.multiplyScalar(mat, skeletonkey.skellynodes[joints[weightjointdex]].nodeobj.skellmatrix, weights[weightjointdex]);
+                //console.log(mat);
+
+                var vstart = i * 3;
+                //rez = [rez[0] + source[vstart] * mat[0] + source[vstart + 1] * mat[3] + source[vstart + 2] * mat[6],
+                //    rez[1] + source[vstart] * mat[1] + source[vstart + 1] * mat[4] + source[vstart + 2] * mat[7],
+                //    rez[2] + source[vstart] * mat[2] + source[vstart + 1] * mat[5] + source[vstart + 2] * mat[8]];
+                rez = [rez[0] + source[vstart] * mat[0] + source[vstart + 1] * mat[4] + source[vstart + 2] * mat[8] + 1.0 * mat[12],
+                    rez[1] + source[vstart] * mat[1] + source[vstart + 1] * mat[5] + source[vstart + 2] * mat[9] + 1.0 * mat[13],
+                    rez[2] + source[vstart] * mat[2] + source[vstart + 1] * mat[6] + source[vstart + 2] * mat[10] + 1.0 * mat[14],
+                    rez[3] + source[vstart] * mat[3] + source[vstart + 1] * mat[7] + source[vstart + 2] * mat[11] + 1.0 * mat[15]];
+
+                //console.log( (320 + 320 * rez[0]) + ' ,' + (240 + 240 * rez[1]));
+                //dest[dStart] = (rez[0]);
+                //dest[dStart + 1] = (rez[1]);
+               // dest[dStart + 2] = (rez[2]);// + rect.top;//why is the +top even there?   
+            }
+        }
+        dest[dStart] = (rez[0]);
+        dest[dStart + 1] = (rez[1]);
+        dest[dStart + 2] = (rez[2]);
+    }
+}
+
+
 function QuatToEulers(quat) {
     var eulers = [0.0, 0.0, 0.0];
     //all thanks to wikipedia https://en.wikipedia.org/wiki/Conversion_between_quaternions_and_Euler_angles thank you
@@ -1551,6 +1663,7 @@ function UpdateObjAnimation(obj) {
     if (obj && obj.currentAnimation != null) {
         //console.log('todo');
         var anim = obj.prim.animations[obj.currentAnimation];
+        console.log(obj.currentAnimation);
         if (anim != null) {
             obj.animframe += StageData.timeDelta;//(StageData.timeDelta / 4);
             for (var i = 0; i < anim.components.length; i++) {
@@ -1612,7 +1725,12 @@ function UpdateObjAnimation(obj) {
                     }                    
 
                     var rotMatrix = mat3.create();
+                    console.log('setm??');
+                    console.log(obj);
                     mat3.fromQuat(rotMatrix, quat);
+                    if (obj.skellmatrix) {
+                        mat4.fromQuat(obj.skellmatrix, quat);
+                    }
 
                     linTransformRangeWithOffsetsMat3(Entera.buffers.positions, obj.prim.positions,
                         rotMatrix, obj.startContPosIndex, obj.startContPosIndex + obj.positions.length, obj.positionsBufferStart);

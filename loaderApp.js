@@ -22,8 +22,9 @@ const TryLoadingPrim = (function () {
         var twotriloc = 'SampleModels/SimpleMeshes/glTF-Embedded/SimpleMeshes.gltf';
         var texloc = 'SampleModels/SimpleTxt.gltf'
         var trimorph = 'SampleModels/SimpleMorph/glTF-Embedded/SimpleMorph.gltf'
+        var skelloc = 'SampleModels/SimpleSkin/glTF-Embedded/SimpleSkin.gltf'
 
-        GltfConverter.getPrimitiveFromJsResource(trimorph, function (res) {
+        GltfConverter.getPrimitiveFromJsResource(foxloc, function (res) {
             console.log('!'); console.log(res);
             Primitives.shapes["testbox"] = res.prim;
             Primitives.shapes["testbox"].animations = [];
@@ -37,7 +38,7 @@ const TryLoadingPrim = (function () {
         setTimeout(function () {
             console.log(Primitives.shapes["testbox"]);
             var ob5 = Makarios.instantiate(Primitives.shapes["testbox"], Primitives.shapes["testbox"].textureUrl, null, {});//'plainsky.jpg'  Primitives.shapes["testbox"].textureUrl
-            Makarios.SetAnimation(ob5, "0");
+            Makarios.SetAnimation(ob5, "Survey");//"0"
             //ob5.matrix = objects[0].matrix;
             console.log(ob5);
         }, 2000);

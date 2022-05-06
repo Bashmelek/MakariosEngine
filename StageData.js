@@ -125,6 +125,11 @@ const StageData = (function () {
             newInst.textureCoordinates = new Array(textureMap.length).fill().map(function (x, ind) { return textureMap[ind]; });
             newInst.indices = new Array(prim.indices.length).fill().map(function (x, ind) { return prim.indices[ind]; });
             newInst.vertexNormals = new Array(Primitives.getVertextNormals(prim).length).fill().map(function (x, ind) { return Primitives.getVertextNormals(prim)[ind]; });
+
+            //if (prim.skellyjoints != null) {
+            //    //a map of glindexes?. No. make this better
+            //    newInst.skellyjoints = new Array(prim.skellyjoints.length).fill().map(function (x, ind) { return prim.skellyjoints[ind]; });
+            //}
         } else {
             newInst.positions = new Array();
             newInst.textureCoordinates = new Array();
@@ -157,6 +162,11 @@ const StageData = (function () {
         //newInst.useParentMatrix = new Array(newInst.positions.length / 3).fill().map(x => 0.0);
         newInst.matrix = mat4.create();
         newInst.children = [];
+        newInst.glindex = prim.glindex;
+        newInst.skellindex = prim.skellindex;
+        if (newInst.skellindex != null) {
+            newInst.skellmatrix = mat4.create();
+        }
         newInst.availabilityContainer = createAvailabilityObject();
         if (prim.animations) {
             newInst.animations = prim.animations.slice(0);
@@ -175,6 +185,63 @@ const StageData = (function () {
 
         return newInst;
     };
+
+    var mapSkeleton = function (primroot, rootobj, trueprim, trueobj) {
+        var thekey = null;
+        var maybekey = null;
+        if (primroot.skeletonkey && primroot.skeletonkey.skellynodes) {
+            //for (var n = 0; n < primroot.skeletonkey.skellynodes.length; n++) {//rootskellynodeindexes
+
+            if (primroot.skeletonkey && primroot.skeletonkey.skellynodes) {
+                rootobj.skeletonkey = {};
+                rootobj.skeletonkey.skellynodes = new Array(primroot.skeletonkey.skellynodes.length).fill().map(function (x, ind) {
+                    return {
+                        glindex: primroot.skeletonkey.skellynodes[ind].glindex,
+                        skellindex: ind,//should be the same as primroot.skeletonkey.skellynodes[ind].skellindex,
+                        nodeobj: null,
+                        skeletonid: primroot.skeletonkey.skellynodes[ind].skeletonid,
+                    }
+                });
+                thekey = rootobj.skeletonkey;
+            }
+
+            maybekey = mapSkeletonBonesRecursive(primroot, rootobj, trueprim, trueobj, thekey); //(primroot, rootobj, primroot, rootobj, maybekey);//, primroot.skeletonkey.rootskellynodeindexes[n]);
+            //}
+            console.log(thekey);
+        }
+
+
+        for (var c = 0; c < rootobj.children.length; c++) {
+            maybekey = mapSkeleton(rootobj.children[c].prim, rootobj.children[c], trueprim, trueobj);
+        }
+        if (thekey == null && maybekey != null) {
+            thekey = maybekey;
+        }
+
+        return thekey;
+    };
+
+    var mapSkeletonBonesRecursive = function (holderprim, holderobj, currentprim, currentObj, thekey) {
+
+        console.log('chrina see 0');
+        if (thekey && currentObj.skellindex != null) {
+            console.log('chrina see 3 - ' + currentObj.glindex);
+            for (var c = 0; c < thekey.skellynodes.length; c++) {
+                if (thekey.skellynodes[c].glindex == currentObj.glindex) {
+                    thekey.skellynodes[c].nodeobj = currentObj;
+                    break;
+                }
+            }
+        }
+        for (var i = 0; i < currentObj.children.length; i++) {
+            maybekey = mapSkeletonBonesRecursive(holderprim, holderobj, currentprim.children[i], currentObj.children[i], thekey);
+            if (thekey == null && maybekey != null) {
+                thekey = maybekey;
+            }
+        }
+
+        return thekey;
+    }; 
 
     var instantiate = function (prim, textureUrl, objectOnFrame, customprops) {
 
@@ -200,6 +267,7 @@ const StageData = (function () {
                 Entera.handleNewObj(newInst.children[c]);
             }
         }
+        mapSkeleton(prim, newInst, prim, newInst);
         //console.log('number in array: ' + objects.length)
         return newInst;
     };
