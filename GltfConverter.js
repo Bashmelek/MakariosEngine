@@ -72,8 +72,12 @@ const GltfConverter = (function () {
             prim.indices = [];
             prim.vertexNormals = [];
             prim.textureCoordinates = [];
+            prim.glnodeCount = node.nodeIndex;
         } else {
             orginposlength = prim.positions.length;
+            if (prim.glnodeCount < node.nodeIndex) {
+                prim.glnodeCount = node.nodeIndex;
+            }
         }
         prim.glindex = nodeIndex;
         //prim.matrix = glMatrix.mat4.create();
@@ -355,6 +359,9 @@ const GltfConverter = (function () {
                 innerprim = null;
                 innerprim = applyNode(fullobject, fullobject.nodes[node.children[t]], glMatrix.mat4.create(), node.children[t], innerprim, prim);
                 innerprim.rootID = node.children[t];
+                if (innerprim.glnodeCount > prim.nodeIndex) {
+                    prim.glnodeCount = innerprim.glnodeCount;
+                }
             }
         }
 

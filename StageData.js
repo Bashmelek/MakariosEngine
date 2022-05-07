@@ -187,6 +187,9 @@ const StageData = (function () {
     };
 
     var mapSkeleton = function (primroot, rootobj, trueprim, trueobj) {
+        if (rootobj == trueobj && trueobj.glindex != null && trueobj.glnodes == null) {
+            trueobj.glnodes = new Array(trueprim.glnodeCount);
+        }
         var thekey = null;
         var maybekey = null;
         if (primroot.skeletonkey && primroot.skeletonkey.skellynodes) {
@@ -203,11 +206,21 @@ const StageData = (function () {
                     }
                 });
                 thekey = rootobj.skeletonkey;
+                if (rootobj != trueobj) {
+                    trueobj.skeletonkeyref = thekey;
+                }
             }
 
             maybekey = mapSkeletonBonesRecursive(primroot, rootobj, trueprim, trueobj, thekey); //(primroot, rootobj, primroot, rootobj, maybekey);//, primroot.skeletonkey.rootskellynodeindexes[n]);
             //}
             console.log(thekey);
+        }
+        if (trueobj.glnodes != null && rootobj.glindex != null) {
+            trueobj.glnodes[rootobj.glindex] = {
+                glindex: rootobj.glindex,
+                skellindex: rootobj.skellindex,
+                nodeobj: rootobj
+            };
         }
 
 
@@ -268,6 +281,7 @@ const StageData = (function () {
             }
         }
         mapSkeleton(prim, newInst, prim, newInst);
+        
         //console.log('number in array: ' + objects.length)
         return newInst;
     };

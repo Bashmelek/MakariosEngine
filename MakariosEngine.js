@@ -1663,7 +1663,7 @@ function UpdateObjAnimation(obj) {
     if (obj && obj.currentAnimation != null) {
         //console.log('todo');
         var anim = obj.prim.animations[obj.currentAnimation];
-        console.log(obj.currentAnimation);
+        //console.log(obj.currentAnimation);
         if (anim != null) {
             obj.animframe += StageData.timeDelta;//(StageData.timeDelta / 4);
             for (var i = 0; i < anim.components.length; i++) {
@@ -1725,15 +1725,34 @@ function UpdateObjAnimation(obj) {
                     }                    
 
                     var rotMatrix = mat3.create();
-                    console.log('setm??');
-                    console.log(obj);
-                    mat3.fromQuat(rotMatrix, quat);
-                    if (obj.skellmatrix) {
-                        mat4.fromQuat(obj.skellmatrix, quat);
-                    }
+                    if (obj.animcomps[i].node != null) {
+                        var animobjglindex = obj.animcomps[i].node;
+                        var animobjskellindex = obj.animcomps[i].skellindex;
+                        //console.log(obj.glnodes[animobjglindex].nodeobj);
+                        //if (animobjskellindex != null && obj.skeletonkey != null && obj.skeletonkey.skellynodes[animobjskellindex] &&
+                        //    obj.skeletonkey.skellynodes[animobjskellindex].nodeobj && obj.skeletonkey.skellynodes[animobjskellindex].nodeobj.skellmatrix) {
+                        //    var skellobj = obj.skeletonkey.skellynodes[animobjskellindex].nodeobj;
+                        //    console.log(skellobj);
+                        if (animobjglindex != null && obj.glnodes[animobjglindex] != null && obj.glnodes[animobjglindex].nodeobj != null && obj.glnodes[animobjglindex].nodeobj.skellmatrix) {
+                            var skellobj = obj.glnodes[animobjglindex].nodeobj;//obj.skeletonkey.skellynodes[animobjskellindex].nodeobj;
+                            //console.log(skellobj);
+                            //var ek = QuatToEulers(quat);
+                            //Quaternion.fromEuler(quat, ek[2], ek[1], ek[0]);
+                            mat4.fromQuat(skellobj.skellmatrix, quat);
+                        } else {
+                            var nodalobj = obj.glnodes[obj.animcomps[i].node].nodeobj;
+                            //console.log(obj.glnodes[obj.animcomps[i].node]);
+                            //console.log(nodalobj);
+                            mat3.fromQuat(rotMatrix, quat);
+                            linTransformRangeWithOffsetsMat3(Entera.buffers.positions, nodalobj.prim.positions,
+                                rotMatrix, nodalobj.startContPosIndex, nodalobj.startContPosIndex + nodalobj.positions.length, nodalobj.positionsBufferStart);
+                        }
 
-                    linTransformRangeWithOffsetsMat3(Entera.buffers.positions, obj.prim.positions,
-                        rotMatrix, obj.startContPosIndex, obj.startContPosIndex + obj.positions.length, obj.positionsBufferStart);
+                    } else {
+                        console.log(obj.animcomps[i]);
+                        linTransformRangeWithOffsetsMat3(Entera.buffers.positions, obj.prim.positions,
+                            rotMatrix, obj.startContPosIndex, obj.startContPosIndex + obj.positions.length, obj.positionsBufferStart);
+                    }
 
                 }
 
@@ -1841,7 +1860,9 @@ const Makarios = (function () {
                 var newcomp = {
                     currentframe: 0,
                     currentKey: 0,
-                    endTime: anim.components[c].keytimes[anim.components[c].keytimes.length - 1] * 1000
+                    endTime: anim.components[c].keytimes[anim.components[c].keytimes.length - 1] * 1000,
+                    node: anim.components[c].node,
+                    skellindex: anim.components[c].node != null ? obj.glnodes[anim.components[c].node].skellindex : null
                 };
                 obj.animcomps.push(newcomp);
             }
