@@ -1072,9 +1072,11 @@ function processSkeletalAnimationsComplete(obj) {
 }
 
 function processSkeletalAnimation_Holder(obj, thekey) {
+    ////console.log(obj.prim.skeletonkey.rootskellynodeindexes);
     for (var i = 0; i < obj.prim.skeletonkey.rootskellynodeindexes.length; i++) {
         //console.log(obj.prim.skeletonkey.rootskellynodeindexes[i]);
         //console.log(obj.prim.skeletonkey.skellynodes[0]);
+        ////console.log(obj.skeletonkey.skellynodes[obj.prim.skeletonkey.rootskellynodeindexes[i]].glindex + ' isroot');
         setupSkeletalAnimationMatrix(obj, obj.skeletonkey.skellynodes[obj.prim.skeletonkey.rootskellynodeindexes[i]].nodeobj, thekey, mat4.create(), mat4.create());
     }
     applySkeletalMatrixTransforms(obj, thekey)
@@ -1082,10 +1084,12 @@ function processSkeletalAnimation_Holder(obj, thekey) {
 
 function setupSkeletalAnimationMatrix(rootobj, obj, thekey, invmat, transmat) {
     //is this right at all?? todo george
-    //console.log(obj);
-    //console.log(obj.prim);
-    //console.log(obj.prim.inverseBaseMat);
 
+    //obj.skellmatrix = mat4.clone(obj.prim.inverseBaseMat);
+    //mat4.multiplyScalar(obj.skellmatrix, obj.skellmatrix, 1.0);
+
+    //old way 1
+    
     ////mat4.multiply(invmat, obj.prim.inverseBaseMat, invmat);
     var orginalsm = mat4.clone(obj.skellmatrix);
 
@@ -1102,8 +1106,10 @@ function setupSkeletalAnimationMatrix(rootobj, obj, thekey, invmat, transmat) {
     ////mat4.multiply(obj.skellmatrix, transmat, obj.skellmatrix);
     //mat4.multiply(transmat, transmat, obj.skellmatrix);
 
-    console.log(obj.prim.name + ' aka ' + obj.glindex);
-    console.log(obj.skellmatrix);
+    ////console.log(obj.prim.name + ' aka ' + obj.glindex);
+    ////console.log(obj.skellmatrix);
+    
+    // end of old way 1
 
     for (var i = 0; i < obj.children.length; i++) {
         setupSkeletalAnimationMatrix(rootobj, obj.children[i], thekey, invmat, transmat);

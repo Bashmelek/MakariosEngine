@@ -340,10 +340,12 @@ const GltfConverter = (function () {
                 }
             } else {
                 //else find all joints without parent
-                for (var sk2 = 0; sk2 < skinobj.joints.length; sk2++) {
+                ////for (var sk2 = 0; sk2 < skinobj.joints.length; sk2++) {
                     //todo that thing
+                    //console.log('i am the holder');
+                    //console.log(prim);
                     prim.skeletonkey.rootskellynodeindexes = findRootSkeletonNodes(fullobject);
-                }
+                ////}
             }
         }
 
@@ -518,7 +520,7 @@ const GltfConverter = (function () {
             for (var i = 0; i < skinobj.joints.length; i++) {
                 if (fullobj.nodes[i].children != null) {
                     for (var c = 0; c < fullobj.nodes[i].children.length; c++) {
-                        if (fullobj.nodes[i].children[c] == s) {
+                        if (fullobj.nodes[i].children[c] == skinobj.joints[s]) {
                             hasParent = true;
                         }
                     }
