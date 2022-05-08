@@ -73,6 +73,7 @@ const GltfConverter = (function () {
             prim.vertexNormals = [];
             prim.textureCoordinates = [];
             prim.glnodeCount = node.nodeIndex;
+            prim.name = node.name;
         } else {
             orginposlength = prim.positions.length;
             if (prim.glnodeCount < node.nodeIndex) {
@@ -95,6 +96,7 @@ const GltfConverter = (function () {
                         im[(so * 16) + 4], im[(so * 16) + 5], im[(so * 16) + 6], im[(so * 16) + 7],
                         im[(so * 16) + 8], im[(so * 16) + 9], im[(so * 16) + 10], im[(so * 16) + 11],
                         im[(so * 16) + 12], im[(so * 16) + 13], im[(so * 16) + 14], im[(so * 16) + 15]);
+                    console.log('prim.inverseBaseMat');
                     console.log(prim.inverseBaseMat);
                 }
             }
@@ -112,7 +114,7 @@ const GltfConverter = (function () {
         if (node.rotation) {
             var qm = glMatrix.mat4.create();
             glMatrix.mat4.fromQuat(qm, node.rotation)
-            glMatrix.mat4.multiply(primmatrix, qm, primmatrix)
+            glMatrix.mat4.multiply(primmatrix, primmatrix, qm)
         }
         if (node.mesh != undefined && node.mesh != null) {
             //console.log('mmmmmmmmwhat');

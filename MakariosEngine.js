@@ -78,7 +78,11 @@ const vsSource = `
                 vTextureCoord = aTextureCoord;
 
                 // Apply lighting effect
+
                 highp vec3 ambientLight = vec3(0.2, 0.2, 0.2);
+                //if(aVertexPosition[3] == 1.0){
+                //    ambientLight = vec3(1.0/0.0, 0.0, 0.0);
+                //}
                 highp vec3 directionalLightColor = vec3(1, 1, 1);
                 highp vec3 directionalVector = normalize(uLightDirection);// normalize(vec3(0.85, 0.8, 0.75));
                 highp vec4 transformedNormal = uNormalMatrix  * vec4(aVertexNormal, 1.0);
@@ -1017,6 +1021,7 @@ function main() {
             //    }
             //}
         }
+        console.log('all the skel');
         for (var k = 0; k < StageData.objects.length; k++) {
             processSkeletalAnimationsComplete(StageData.objects[k]);
         }
@@ -1067,25 +1072,41 @@ function processSkeletalAnimationsComplete(obj) {
 }
 
 function processSkeletalAnimation_Holder(obj, thekey) {
-    for (var i = 0; i < obj.prim.skeletonkey.rootskellynodeindexes; i++) {
-        setupSkeletalAnimationMatrix(obj, obj.prim.skeletonkey.skellynodes[obj.prim.skeletonkey.rootskellynodeindexes[i]], thekey, mat4.create(), mat4.create());
+    for (var i = 0; i < obj.prim.skeletonkey.rootskellynodeindexes.length; i++) {
+        //console.log(obj.prim.skeletonkey.rootskellynodeindexes[i]);
+        //console.log(obj.prim.skeletonkey.skellynodes[0]);
+        setupSkeletalAnimationMatrix(obj, obj.skeletonkey.skellynodes[obj.prim.skeletonkey.rootskellynodeindexes[i]].nodeobj, thekey, mat4.create(), mat4.create());
     }
     applySkeletalMatrixTransforms(obj, thekey)
 }
 
 function setupSkeletalAnimationMatrix(rootobj, obj, thekey, invmat, transmat) {
     //is this right at all?? todo george
-    mat4.multiply(obj.skellmatrix, obj.prim.inverseBaseMat, obj.skellmatrix);// transmat);
+    //console.log(obj);
+    //console.log(obj.prim);
+    //console.log(obj.prim.inverseBaseMat);
+
+    ////mat4.multiply(invmat, obj.prim.inverseBaseMat, invmat);
+    var orginalsm = mat4.clone(obj.skellmatrix);
+
+    mat4.multiply(obj.skellmatrix, obj.skellmatrix, obj.prim.inverseBaseMat);// transmat);
+    mat4.multiply(obj.skellmatrix, obj.skellmatrix, transmat);
+    //mat4.multiply(transmat, transmat, orginalsm);
+
+    ////mat4.multiply(obj.skellmatrix, obj.prim.inverseBaseMat, obj.skellmatrix);
     var invinv = mat4.create();
     mat4.invert(invinv, obj.prim.inverseBaseMat);
-    mat4.multiply(obj.skellmatrix, obj.skellmatrix, invinv);
-    mat4.multiply(obj.skellmatrix, obj.skellmatrix, transmat);
+    ////mat4.multiply(obj.skellmatrix, obj.skellmatrix, invinv);
+    mat4.multiply(obj.skellmatrix, invinv, obj.skellmatrix);
 
-    mat4.multiply(invmat, obj.prim.inverseBaseMat, invmat);
-    mat4.multiply(transmat, obj.skellmatrix, transmat);
+    ////mat4.multiply(obj.skellmatrix, transmat, obj.skellmatrix);
+    //mat4.multiply(transmat, transmat, obj.skellmatrix);
+
+    console.log(obj.prim.name + ' aka ' + obj.glindex);
+    console.log(obj.skellmatrix);
 
     for (var i = 0; i < obj.children.length; i++) {
-        setupSkeletalAnimationMatrix(obj.children[i], thekey, invmat, transmat);
+        setupSkeletalAnimationMatrix(rootobj, obj.children[i], thekey, invmat, transmat);
     }
 }
 
@@ -1499,23 +1520,21 @@ function linTransformRangeWithOffsetsForSkeletonMat3(dest, source, sourceStart, 
             if (weights[weightjointdex] != 0.0) {
                 //console.log(weightjointdex);
                 //console.log(joints[weightjointdex]);
-                //console.log(skeletonkey.skellynodes[joints[weightjointdex]]);
+                //console.log(weights[weightjointdex]);
                 mat4.multiplyScalar(mat, skeletonkey.skellynodes[joints[weightjointdex]].nodeobj.skellmatrix, weights[weightjointdex]);
                 //console.log(mat);
 
                 var vstart = i * 3;
-                //rez = [rez[0] + source[vstart] * mat[0] + source[vstart + 1] * mat[3] + source[vstart + 2] * mat[6],
-                //    rez[1] + source[vstart] * mat[1] + source[vstart + 1] * mat[4] + source[vstart + 2] * mat[7],
-                //    rez[2] + source[vstart] * mat[2] + source[vstart + 1] * mat[5] + source[vstart + 2] * mat[8]];
                 rez = [rez[0] + source[vstart] * mat[0] + source[vstart + 1] * mat[4] + source[vstart + 2] * mat[8] + 1.0 * mat[12],
                     rez[1] + source[vstart] * mat[1] + source[vstart + 1] * mat[5] + source[vstart + 2] * mat[9] + 1.0 * mat[13],
-                    rez[2] + source[vstart] * mat[2] + source[vstart + 1] * mat[6] + source[vstart + 2] * mat[10] + 1.0 * mat[14],
+                    rez[2] + source[vstart] * mat[2] + source[vstart + 1] * mat[6] + source[vstart + 2] * mat[10] + 1.0* mat[14],
                     rez[3] + source[vstart] * mat[3] + source[vstart + 1] * mat[7] + source[vstart + 2] * mat[11] + 1.0 * mat[15]];
 
-                //console.log( (320 + 320 * rez[0]) + ' ,' + (240 + 240 * rez[1]));
-                //dest[dStart] = (rez[0]);
-                //dest[dStart + 1] = (rez[1]);
-               // dest[dStart + 2] = (rez[2]);// + rect.top;//why is the +top even there?   
+
+
+                //rez = [rez[0] + source[vstart] * mat[0] + source[vstart + 1] * mat[4] + source[vstart + 2] * mat[8],
+                //rez[1] + source[vstart] * mat[1] + source[vstart + 1] * mat[5] + source[vstart + 2] * mat[9],
+                //rez[2] + source[vstart] * mat[2] + source[vstart + 1] * mat[6] + source[vstart + 2] * mat[10]];
             }
         }
         dest[dStart] = (rez[0]);
@@ -1701,27 +1720,38 @@ function UpdateObjAnimation(obj) {
                                 //(primcomp.keydeformations[(thekey + 1) * 4 + d] - primcomp.keydeformations[thekey * 4 + d]) * 
                                     //((obj.animcomps[i].currentframe - 1000.0 * primcomp.keytimes[thekey]) / ((1000.0 * primcomp.keytimes[(thekey + 1)] - 1000.0 * primcomp.keytimes[thekey])));
                         //}
+                        //interpolation method 2??
+                        ////var q0 = quat = [primcomp.keydeformations[thekey * 4 + 0], primcomp.keydeformations[thekey * 4 + 1],
+                        ////primcomp.keydeformations[thekey * 4 + 2], primcomp.keydeformations[thekey * 4 + 3]];
+                        ////var q1 = [primcomp.keydeformations[(thekey + 1) * 4 + 0], primcomp.keydeformations[(thekey + 1) * 4 + 1],
+                        ////    primcomp.keydeformations[(thekey + 1) * 4 + 2], primcomp.keydeformations[(thekey + 1) * 4 + 3]];
+                        ////var e0 = QuatToEulers(q0);
+                        ////var e1 = QuatToEulers(q1);
+                        ////var euresult = [0.0, 0.0, 0.0];
+                        ////for (var g = 0; g < 3; g++) {
+                        ////    if (Math.abs(e1[g] - e0[g]) > 180.0) {
+                        ////        if (e1[g] < e0[g]) {
+                        ////            e1[g] += 360.0;
+                        ////        } else if (e1[g] < e0[g]){
+                        ////            e0[g] += 360.0;
+                        ////        }
+                        ////    }
+                        ////    var val = e0[g] + 
+                        ////        (e1[g] - e0[g]) * 
+                        ////        ((obj.animcomps[i].currentframe - 1000.0 * primcomp.keytimes[thekey]) / ((1000.0 * primcomp.keytimes[(thekey + 1)] - 1000.0 * primcomp.keytimes[thekey])));
+                        ////    euresult[g] = val;
+                        ////}
+                        ////Quaternion.fromEuler(quat, -euresult[2], euresult[1], -euresult[0]);//euresult[2], -euresult[1], -euresult[0]);
+                        //end interpolation method 2
+
+                        //thank you with a little help from https://github.khronos.org/glTF-Tutorials/gltfTutorial/gltfTutorial_007_Animations.html
+                        //they say to use: interpolationValue = (currentTime - previousTime) / (nextTime - previousTime)
+                        var interpolScale = (obj.animcomps[i].currentframe - 1000.0 * primcomp.keytimes[thekey]) / (1000.0 * primcomp.keytimes[(thekey + 1)] - 1000.0 * primcomp.keytimes[thekey])
                         var q0 = quat = [primcomp.keydeformations[thekey * 4 + 0], primcomp.keydeformations[thekey * 4 + 1],
                         primcomp.keydeformations[thekey * 4 + 2], primcomp.keydeformations[thekey * 4 + 3]];
                         var q1 = [primcomp.keydeformations[(thekey + 1) * 4 + 0], primcomp.keydeformations[(thekey + 1) * 4 + 1],
                             primcomp.keydeformations[(thekey + 1) * 4 + 2], primcomp.keydeformations[(thekey + 1) * 4 + 3]];
-                        var e0 = QuatToEulers(q0);
-                        var e1 = QuatToEulers(q1);
-                        var euresult = [0.0, 0.0, 0.0];
-                        for (var g = 0; g < 3; g++) {
-                            if (Math.abs(e1[g] - e0[g]) > 180.0) {
-                                if (e1[g] < e0[g]) {
-                                    e1[g] += 360.0;
-                                } else if (e1[g] < e0[g]){
-                                    e0[g] += 360.0;
-                                }
-                            }
-                            var val = e0[g] + 
-                                (e1[g] - e0[g]) * 
-                                ((obj.animcomps[i].currentframe - 1000.0 * primcomp.keytimes[thekey]) / ((1000.0 * primcomp.keytimes[(thekey + 1)] - 1000.0 * primcomp.keytimes[thekey])));
-                            euresult[g] = val;
-                        }
-                        Quaternion.fromEuler(quat, euresult[2], euresult[1], euresult[0]);
+                        Quaternion.slerp(quat, q0, q1, interpolScale);
                     }                    
 
                     var rotMatrix = mat3.create();
@@ -1737,8 +1767,10 @@ function UpdateObjAnimation(obj) {
                             var skellobj = obj.glnodes[animobjglindex].nodeobj;//obj.skeletonkey.skellynodes[animobjskellindex].nodeobj;
                             //console.log(skellobj);
                             //var ek = QuatToEulers(quat);
-                            //Quaternion.fromEuler(quat, ek[2], ek[1], ek[0]);
-                            mat4.fromQuat(skellobj.skellmatrix, quat);
+                            //Quaternion.fromEuler(quat, ek[2], -ek[1], -ek[0]);
+                            //if (animobjglindex > 8) {
+                                mat4.fromQuat(skellobj.skellmatrix, quat);
+                            //}
                         } else {
                             var nodalobj = obj.glnodes[obj.animcomps[i].node].nodeobj;
                             //console.log(obj.glnodes[obj.animcomps[i].node]);
