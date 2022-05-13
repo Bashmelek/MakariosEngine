@@ -38,7 +38,7 @@ const TryLoadingPrim = (function () {
         setTimeout(function () {
             console.log(Primitives.shapes["testbox"]);
             var ob5 = Makarios.instantiate(Primitives.shapes["testbox"], Primitives.shapes["testbox"].textureUrl, null, {});//'plainsky.jpg'  Primitives.shapes["testbox"].textureUrl
-            Makarios.SetAnimation(ob5, "0");//"0"    Survey
+            Makarios.SetAnimation(ob5, "0");//"0"    Survey  Run
             //ob5.matrix = objects[0].matrix;
             console.log(ob5);
         }, 2000);

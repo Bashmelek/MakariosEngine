@@ -394,10 +394,15 @@ const Entera = (function () {
         //console.log(indices);
         //console.log(positions);
 
+        //blechtest todo forget this
+        //for (var b = 0; b < indices.length; b++) {
+            //indices[b] = indices >>> 0;
+        //}
+
         buffers.isBuffered = false;
         buffers.positions = positions;
         buffers.textureCoordinates = textureCoordinates;
-        buffers.indices = indices;
+        buffers.indices = indices;//new Uint32Array();//
         buffers.vertexNormals = vertexNormals;
         buffers.useParentMatrix = useParentMatrix;
 
@@ -526,7 +531,9 @@ const Entera = (function () {
                 cont.indices = cont.indices.concat(obj.indices);
                 cont.vertexNormals = cont.vertexNormals.concat(obj.vertexNormals);
                 cont.useParentMatrix = cont.useParentMatrix.concat(obj.useParentMatrix);
+                //console.log(obj.textureCoordinates.length);
                 if (cont.next != null && cont.end == cont.next.start - 1) {
+                    console.log('????');
                     //combine
                     contigua.splice(globalAvailabilityContainer.contiguumIndex, 2, joinContigua(cont, cont.next));
                     //the current contiguum is different, but the index is going to be the same
@@ -612,7 +619,7 @@ const Entera = (function () {
                 return;
             }
         }
-
+        //console.log(obj.textureCoordinatesBufferStart);
         globobjects[globalAvailabilityContainer.firstAvailableIndex] = obj;
         setNextAvailableIndex(null);//obj.parent); parenting?
         linkBufferArrays();

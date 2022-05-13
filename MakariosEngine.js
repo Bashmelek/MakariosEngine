@@ -257,7 +257,7 @@ function initBuffers(gl) {
 
     // Now send the element array to GL
     gl.bufferData(gl.ELEMENT_ARRAY_BUFFER,
-        new Uint16Array(Entera.buffers.indices), gl.STATIC_DRAW);
+        new Uint32Array(Entera.buffers.indices), gl.STATIC_DRAW);
 
 
     if (!bufferHolder.normalBuffer) {
@@ -699,15 +699,16 @@ function RenderObjects(gl, programInfo, objects, parentmatrix, depth, dataHolder
         }
 
         //gl.uniform1f(programInfo.uniformLocations.matrixLevel, depth);
-        {
+        {            
+            //console.log(ext);
             const vertexCount = objects[oj].indices.length;//36;
-            const type = gl.UNSIGNED_SHORT;
+            const type = gl.UNSIGNED_INT;//gl.UNSIGNED_INT; //gl.UNSIGNED_SHORT;//gl.UNSIGNED_INT;
             const offset = objects[oj].indexOffset;////objects[oj].bufferOffset; //offsetHolder.val;//objects[oj].bufferOffset; //console.log('offset is:' + objects[oj].bufferOffset)
-            dataHolder.offsetval += objects[oj].indices.length * 2;
+            dataHolder.offsetval += objects[oj].indices.length * 4;//2;
             //console.log(offset);
             //console.log(objects[oj]);
             //if (StageData.ticks % 50 == 0) { console.log('offset is:' + objects[oj].bufferOffset); }
-            gl.drawElements(gl.TRIANGLES, vertexCount, type, offset);
+            gl.drawElements(gl.TRIANGLES, vertexCount, type, offset * 2);
             //gl.drawElements(gl.LINES, vertexCount, type, offset);
         }
 
@@ -784,7 +785,7 @@ function singleCallRenderScene(gl, programInfo, objects, buffers) {
     gl.uniform1i(programInfo.uniformLocations.uSampler, 0);
     {
         //const vertexCount = objects[oj].indices.length;//36;
-        const type = gl.UNSIGNED_SHORT;
+        const type = gl.UNSIGNED_INT;//gl.UNSIGNED_SHORT;
         //const offset = objects[oj].indexOffset;////objects[oj].bufferOffset; //offsetHolder.val;//objects[oj].bufferOffset; //console.log('offset is:' + objects[oj].bufferOffset)
         //dataHolder.offsetval += objects[oj].indices.length * 2;
         //console.log(offset);
@@ -870,7 +871,8 @@ function main() {
         alert('DERE NO GEE ELL! YA BROWZER NEEDZ SUM SAHPPORT!!');
         return;
     }
-
+    //thank you q9f and ratchet freak https://computergraphics.stackexchange.com/questions/3637/how-to-use-32-bit-integers-for-element-indices-in-webgl-1-0
+    var ext = gl.getExtension('OES_element_index_uint');
     gl.clearColor(0.0, 1.0, 1.0, 1.0);
     gl.clear(gl.COLOR_BUFFER_BIT);
 
@@ -1021,10 +1023,17 @@ function main() {
             //    }
             //}
         }
-        console.log('all the skel');
-        for (var k = 0; k < StageData.objects.length; k++) {
+        //console.log(StageData.objects.length);
+        var k = 0;
+        for (k = 0; k < StageData.objects.length; k++) {
+            if (!StageData.objects[k]) { continue; }
             processSkeletalAnimationsComplete(StageData.objects[k]);
         }
+        for (k = 0; k < StageData.objects.length; k++) {
+            if (!StageData.objects[k]) { continue; }
+            resetSkeletalAnimationsComplete(StageData.objects[k]);
+        }
+
     }, 5);
 
 }
@@ -1072,7 +1081,7 @@ function processSkeletalAnimationsComplete(obj) {
 }
 
 function processSkeletalAnimation_Holder(obj, thekey) {
-    ////console.log(obj.prim.skeletonkey.rootskellynodeindexes);
+    //console.log(obj.prim.skeletonkey.rootskellynodeindexes);
     for (var i = 0; i < obj.prim.skeletonkey.rootskellynodeindexes.length; i++) {
         //console.log(obj.prim.skeletonkey.rootskellynodeindexes[i]);
         //console.log(obj.prim.skeletonkey.skellynodes[0]);
@@ -1085,11 +1094,71 @@ function processSkeletalAnimation_Holder(obj, thekey) {
 function setupSkeletalAnimationMatrix(rootobj, obj, thekey, invmat, transmat) {
     //is this right at all?? todo george
 
-    //obj.skellmatrix = mat4.clone(obj.prim.inverseBaseMat);
-    //mat4.multiplyScalar(obj.skellmatrix, obj.skellmatrix, 1.0);
+    //obj.skellmatrix = mat4.create();
+    ////mat4.multiply(obj.skellmatrix, obj.skellmatrix, obj.prim.inverseBaseMat);
+
+    //mat4.multiply(obj.skellmatrix, obj.skellmatrix, transmat);
+    //var invinv = mat4.create();
+    //mat4.invert(invinv, obj.prim.inverseBaseMat);
+    //mat4.multiply(obj.skellmatrix, invinv, obj.skellmatrix);
+
+
+    //strategy 4. here we go and good luck!
+    obj.skellmatrix = mat4.create();//mat4.create();
+    if (obj.prim.primmatrix) {
+        //mat4.clone(obj.skellmatrix, obj.prim.primmatrix);
+    }
+    //console.log(obj.skellmatrix);
+    //if (obj.applyanimscale) {
+    //    mat4.multiply(obj.skellmatrix, obj.matscale, obj.skellmatrix);
+    //} else if (obj.prim.primmatscale) {
+    //    mat4.multiply(obj.skellmatrix, obj.prim.primmatscale, obj.skellmatrix);
+    //}
+    if (obj.prim.primmatrot) {
+        mat4.multiply(obj.skellmatrix, obj.skellmatrix, obj.prim.primmatrot);
+    }
+    if (obj.applyanimrot) {
+        mat4.multiply(obj.skellmatrix, obj.matrot, obj.skellmatrix);
+    } /*else if (obj.prim.primmatrot) {
+        mat4.multiply(obj.skellmatrix, obj.prim.primmatrot, obj.skellmatrix);
+    }*/
+
+    //if (obj.prim.primmattran) {
+    //    mat4.multiply(obj.skellmatrix, obj.skellmatrix, obj.prim.primmattran);
+    //} 
+    //if (obj.applyanimtran) {
+    //    mat4.multiply(obj.skellmatrix, obj.mattran, obj.skellmatrix);
+    //}
+    /*else if (obj.prim.primmattran) {
+        console.log(obj.prim.primmattran);
+        mat4.multiply(obj.skellmatrix, obj.prim.primmattran, obj.skellmatrix);
+    } else {
+        console.log(transmat);
+    }*/
+    mat4.multiply(obj.skellmatrix, obj.prim.inverseBaseMat, obj.skellmatrix);
+    //mat4.multiply(obj.skellmatrix, transmat, obj.skellmatrix);
+    var curmat = mat4.create();
+    curmat = mat4.clone(obj.skellmatrix);
+
+    ////var curmat = mat4.create();
+    ////var invparentBase = mat4.create();
+    ////mat4.multiply(obj.skellmatrix, transmat, obj.skellmatrix);
+    ////mat4.invert(invparentBase, invmat);
+    ////mat4.multiply(curmat, invparentBase, obj.prim.primmatrix);
+    ////mat4.multiply(obj.skellmatrix, transmat, obj.skellmatrix);
+    ////mat4.clone(curmat, obj.skellmatrix);
+
+    //var curmat = mat4.create();
+    //var invparentBase = mat4.create();
+    //mat4.multiply(obj.skellmatrix, transmat, obj.skellmatrix);
+    //mat4.invert(invparentBase, invmat);
+    //mat4.multiply(curmat, invparentBase, obj.prim.inverseBaseMat);
+    //mat4.multiply(obj.skellmatrix, curmat, obj.skellmatrix);
+    //mat4.clone(curmat, obj.skellmatrix);
+
 
     //old way 1
-    
+    /*
     ////mat4.multiply(invmat, obj.prim.inverseBaseMat, invmat);
     var orginalsm = mat4.clone(obj.skellmatrix);
 
@@ -1107,28 +1176,51 @@ function setupSkeletalAnimationMatrix(rootobj, obj, thekey, invmat, transmat) {
     //mat4.multiply(transmat, transmat, obj.skellmatrix);
 
     ////console.log(obj.prim.name + ' aka ' + obj.glindex);
-    ////console.log(obj.skellmatrix);
-    
+    ////console.log(obj.skellindex);
+    */
     // end of old way 1
 
+    //old way abridged
+    //mat4.multiply(obj.skellmatrix, obj.skellmatrix, obj.prim.inverseBaseMat);// transmat);
+    //mat4.multiply(obj.skellmatrix, obj.skellmatrix, transmat);
+    //var invinv = mat4.create();
+    //mat4.invert(invinv, obj.prim.inverseBaseMat);
+    //mat4.multiply(obj.skellmatrix, invinv, obj.skellmatrix);
+
     for (var i = 0; i < obj.children.length; i++) {
-        setupSkeletalAnimationMatrix(rootobj, obj.children[i], thekey, invmat, transmat);
+        setupSkeletalAnimationMatrix(rootobj, obj.children[i], thekey, obj.prim.inverseBaseMat, curmat);
     }
 }
 
 function applySkeletalMatrixTransforms(obj, thekey) {
-    //console.log('anmating');
-    //console.log(obj.skeletonkey);
-    //console.log('before :');
-    //console.log(Entera.buffers.positions);
-    //todo george apply matrices to all them vertices                       obj.prim.positions
     linTransformRangeWithOffsetsForSkeletonMat3(Entera.buffers.positions, Entera.buffers.positions, obj.startContPosIndex, obj.startContPosIndex + obj.positions.length, obj.positionsBufferStart,
         obj.skeletonkey, obj.prim.skellyjoints, obj.prim.skellyweights);
-    //console.log(Entera.buffers.positions);
+}
 
-    //example
-    //linTransformRangeWithOffsetsMat3(Entera.buffers.positions, obj.prim.positions,
-    //    rotMatrix, obj.startContPosIndex, obj.startContPosIndex + obj.positions.length, obj.positionsBufferStart);
+
+function resetSkeletalAnimationsComplete(obj) {
+    if (obj.skeletonkey) {
+        resetSkeletalAnimation_Holder(obj, obj.skeletonkey);
+    }
+    for (var i = 0; i < obj.children.length; i++) {
+        resetSkeletalAnimationsComplete(obj.children[i]);
+    }
+}
+
+function resetSkeletalAnimation_Holder(obj, thekey) {
+    for (var i = 0; i < obj.prim.skeletonkey.rootskellynodeindexes.length; i++) {
+        resetSkeletalAnimationItems(obj, obj.skeletonkey.skellynodes[obj.prim.skeletonkey.rootskellynodeindexes[i]].nodeobj, thekey);
+    }
+}
+
+function resetSkeletalAnimationItems(rootobj, obj, thekey) {
+
+    obj.applyanimscale = 0;
+    obj.applyanimrot = 0;
+    obj.applyanimtran = 0;
+    for (var i = 0; i < obj.children.length; i++) {
+        resetSkeletalAnimationItems(rootobj, obj.children[i], thekey);
+    }
 }
 
 function onJustMouseDown(e) {
@@ -1716,8 +1808,8 @@ function UpdateObjAnimation(obj) {
                         //failsafe, when max should only be at max time
                         quat = [primcomp.keydeformations[thekey * 4 + 0], primcomp.keydeformations[thekey * 4 + 1],
                             primcomp.keydeformations[thekey * 4 + 2], primcomp.keydeformations[thekey * 4 + 3]];
-                        var ek = QuatToEulers(quat);
-                        Quaternion.fromEuler(quat, ek[2], ek[1], ek[0]);
+                        //var ek = QuatToEulers(quat);
+                        //Quaternion.fromEuler(quat, ek[2], ek[1], ek[0]);
                     } else {
                         //else interpolate
                         //for (var d = 0; d < 4; d++) {
@@ -1775,7 +1867,9 @@ function UpdateObjAnimation(obj) {
                             //var ek = QuatToEulers(quat);
                             //Quaternion.fromEuler(quat, ek[2], -ek[1], -ek[0]);
                             //if (animobjglindex > 8) {
-                                mat4.fromQuat(skellobj.skellmatrix, quat);
+                            skellobj.applyanimrot = 1;
+                            mat4.fromQuat(skellobj.skellmatrix, quat);
+                            mat4.fromQuat(skellobj.matrot, quat);
                             //}
                         } else {
                             var nodalobj = obj.glnodes[obj.animcomps[i].node].nodeobj;
@@ -1790,6 +1884,89 @@ function UpdateObjAnimation(obj) {
                         console.log(obj.animcomps[i]);
                         linTransformRangeWithOffsetsMat3(Entera.buffers.positions, obj.prim.positions,
                             rotMatrix, obj.startContPosIndex, obj.startContPosIndex + obj.positions.length, obj.positionsBufferStart);
+                    }
+
+                }
+
+
+
+                //translation animation
+                if (primcomp.type == Makarios.animTypeTrans) {
+                    obj.animcomps[i].currentframe = obj.animframe % (obj.animcomps[i].endTime + 1);
+                    for (var f = 0; f < primcomp.keytimes.length; f++) {
+                        var realkey = (obj.animcomps[i].currentKey + f) % primcomp.keytimes.length;
+                        if (obj.animcomps[i].currentframe >= primcomp.keytimes[realkey] * 1000 &&
+                            ((realkey == (primcomp.keytimes.length - 1)) || (obj.animcomps[i].currentframe < primcomp.keytimes[realkey + 1] * 1000))) {
+                            obj.animcomps[i].currentKey = realkey;
+                            f = primcomp.keytimes.length;
+                        }
+                    }
+
+                    var vec = [0.0, 0.0, 0.0];
+                    var thekey = obj.animcomps[i].currentKey;
+
+                    if (thekey == (primcomp.keytimes.length - 1) || obj.animcomps[i].currentframe == primcomp.keytimes[thekey] * 1000) {
+                        //failsafe, when max should only be at max time
+                        vec = [primcomp.keydeformations[thekey * 3 + 0], primcomp.keydeformations[thekey * 3 + 1],
+                        primcomp.keydeformations[thekey * 3 + 2]];
+                    } else {
+                        //else interpolate
+                        for (var d = 0; d < 3; d++) {
+                        var val = primcomp.keydeformations[thekey * 3 + d] + 
+                            (primcomp.keydeformations[(thekey + 1) * 3 + d] - primcomp.keydeformations[thekey * 3 + d]) * 
+                                ((obj.animcomps[i].currentframe - 1000.0 * primcomp.keytimes[thekey]) / ((1000.0 * primcomp.keytimes[(thekey + 1)] - 1000.0 * primcomp.keytimes[thekey])));
+                            vec[d] = val;
+                        }
+                        //interpolation method 2??
+                        ////var q0 = quat = [primcomp.keydeformations[thekey * 4 + 0], primcomp.keydeformations[thekey * 4 + 1],
+                        ////primcomp.keydeformations[thekey * 4 + 2], primcomp.keydeformations[thekey * 4 + 3]];
+                        ////var q1 = [primcomp.keydeformations[(thekey + 1) * 4 + 0], primcomp.keydeformations[(thekey + 1) * 4 + 1],
+                        ////    primcomp.keydeformations[(thekey + 1) * 4 + 2], primcomp.keydeformations[(thekey + 1) * 4 + 3]];
+                        ////var e0 = QuatToEulers(q0);
+                        ////var e1 = QuatToEulers(q1);
+                        ////var euresult = [0.0, 0.0, 0.0];
+                        ////for (var g = 0; g < 3; g++) {
+                        ////    if (Math.abs(e1[g] - e0[g]) > 180.0) {
+                        ////        if (e1[g] < e0[g]) {
+                        ////            e1[g] += 360.0;
+                        ////        } else if (e1[g] < e0[g]){
+                        ////            e0[g] += 360.0;
+                        ////        }
+                        ////    }
+                        ////    var val = e0[g] + 
+                        ////        (e1[g] - e0[g]) * 
+                        ////        ((obj.animcomps[i].currentframe - 1000.0 * primcomp.keytimes[thekey]) / ((1000.0 * primcomp.keytimes[(thekey + 1)] - 1000.0 * primcomp.keytimes[thekey])));
+                        ////    euresult[g] = val;
+                        ////}
+                        //end interpolation method 2
+                    }
+
+                    var transMatrix = mat3.create();
+                    if (obj.animcomps[i].node != null) {
+                        var animobjglindex = obj.animcomps[i].node;
+                        var animobjskellindex = obj.animcomps[i].skellindex;
+                        if (animobjglindex != null && obj.glnodes[animobjglindex] != null && obj.glnodes[animobjglindex].nodeobj != null && obj.glnodes[animobjglindex].nodeobj.skellmatrix) {
+                            var skellobj = obj.glnodes[animobjglindex].nodeobj;
+                            //console.log(vec);
+                            mat4.translate(skellobj.skellmatrix, skellobj.skellmatrix, vec);
+                            skellobj.applyanimtran = 1;
+                            mat4.translate(transMatrix, transMatrix, vec);
+                            skellobj.mattran = mat4.create();
+                            mat4.translate(skellobj.mattran, skellobj.mattran, vec);
+                            //}
+                        } else {
+                            var nodalobj = obj.glnodes[obj.animcomps[i].node].nodeobj;
+                            //console.log(obj.glnodes[obj.animcomps[i].node]);
+                            //console.log(nodalobj);
+                            mat4.translate(transMatrix, transMatrix, vec);
+                            linTransformRangeWithOffsets(Entera.buffers.positions, nodalobj.prim.positions,
+                                transMatrix, nodalobj.startContPosIndex, nodalobj.startContPosIndex + nodalobj.positions.length, nodalobj.positionsBufferStart);
+                        }
+
+                    } else {
+                        mat4.translate(transMatrix, transMatrix, vec);
+                        linTransformRangeWithOffsets(Entera.buffers.positions, obj.prim.positions,
+                            transMatrix, obj.startContPosIndex, obj.startContPosIndex + obj.positions.length, obj.positionsBufferStart);
                     }
 
                 }
@@ -1850,6 +2027,8 @@ const Makarios = (function () {
     self.helloworld = function () { console.log('hello world'); };
 
     self.animTypeRot = 1;
+    self.animTypeTrans = 2;
+    self.animTypeScale = 3;
     self.animTypeMorph = 4;
 
     self.uiState = {};

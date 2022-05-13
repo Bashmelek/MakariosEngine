@@ -83,6 +83,9 @@ const GltfConverter = (function () {
         prim.glindex = nodeIndex;
         //prim.matrix = glMatrix.mat4.create();
         var primmatrix = glMatrix.mat4.create();
+        var primmatscale = null;
+        var primmatrot = null;
+        var primmattran = null;
         if (fullobject.skins != null && fullobject.skins.length > 0 && fullobject.skins[0] != null && fullobject.skins[0].joints != null &&
             fullobject.skins[0].joints.length > 0) {
             for (var so = 0; so < fullobject.skins[0].joints.length; so++) {
@@ -109,13 +112,21 @@ const GltfConverter = (function () {
                 m[12], m[13], m[14], m[15]);
         }
         if (node.translation) {
-            glMatrix.mat4.translate(primmatrix, primmatrix, node.translation)
+            primmattran = glMatrix.mat4.create();
+            glMatrix.mat4.translate(primmattran, primmattran, node.translation);
+            glMatrix.mat4.translate(primmatrix, primmatrix, node.translation);
         }
         if (node.rotation) {
-            var qm = glMatrix.mat4.create();
-            glMatrix.mat4.fromQuat(qm, node.rotation)
-            glMatrix.mat4.multiply(primmatrix, primmatrix, qm)
+            primmatrot = glMatrix.mat4.create();
+            glMatrix.mat4.fromQuat(primmatrot, node.rotation);
+            glMatrix.mat4.multiply(primmatrix, primmatrix, primmatrot);
         }
+        prim.primmatrix = primmatrix;
+        prim.primmatscale = primmatscale;
+        prim.primmatrot = primmatrot;
+        prim.primmattran = primmattran;
+        console.log('prim.primmattran');
+        console.log(prim.primmattran);
         if (node.mesh != undefined && node.mesh != null) {
             //console.log('mmmmmmmmwhat');
             //console.log(node);
@@ -393,6 +404,8 @@ const GltfConverter = (function () {
                     animComp.type = Makarios.animTypeRot;
                 } else if (fullobject.animations[i].channels[c].target.path == "weights") {
                     animComp.type = Makarios.animTypeMorph;
+                } else if (fullobject.animations[i].channels[c].target.path == "translation") {
+                    animComp.type = Makarios.animTypeTrans;
                 }
                 else {
                     //todo George

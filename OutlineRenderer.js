@@ -146,7 +146,7 @@ const OutlineRenderer = (function () {
         const indexBuffer = wgl.createBuffer();
         wgl.bindBuffer(wgl.ELEMENT_ARRAY_BUFFER, indexBuffer);
         wgl.bufferData(wgl.ELEMENT_ARRAY_BUFFER,
-            new Uint16Array(indices), wgl.STATIC_DRAW);
+            new Uint32Array(indices), wgl.STATIC_DRAW);
 
         const useParent = wgl.createBuffer();
         wgl.bindBuffer(wgl.ARRAY_BUFFER, useParent);
@@ -212,7 +212,7 @@ const OutlineRenderer = (function () {
 
         const vertexCount = obj.indices.length;
         const offset = obj.bufferOffset;
-        wgl.drawElements(wgl.TRIANGLES, vertexCount, wgl.UNSIGNED_SHORT, offset);
+        wgl.drawElements(wgl.TRIANGLES, vertexCount, wgl.UNSIGNED_INT, offset * 2);//UNSIGNED_SHORT
 
         if (obj.children && obj.children.length > 0) {
             wgl.uniformMatrix4fv(
@@ -313,6 +313,8 @@ const OutlineRenderer = (function () {
             return;
         }
 
+        //thank you q9f and ratchet freak https://computergraphics.stackexchange.com/questions/3637/how-to-use-32-bit-integers-for-element-indices-in-webgl-1-0
+        var ext = wgl.getExtension('OES_element_index_uint');
         wgl.clearColor(0.0, 0.0, 0.0, 1.0);
 
         vertex_buffer = wgl.createBuffer();

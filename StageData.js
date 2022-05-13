@@ -167,6 +167,14 @@ const StageData = (function () {
         if (newInst.skellindex != null) {
             newInst.skellmatrix = mat4.create();
         }
+
+        newInst.matscale = prim.primmatscale ? mat4.create() : null;
+        newInst.matrot = prim.primmatrot ? mat4.create() : null;
+        newInst.mattran = prim.primmattran ? mat4.create() : null;
+        newInst.applyanimscale = 0;
+        newInst.applyanimrot = 0;
+        newInst.applyanimtran = 0;
+
         newInst.availabilityContainer = createAvailabilityObject();
         if (prim.animations) {
             newInst.animations = prim.animations.slice(0);
