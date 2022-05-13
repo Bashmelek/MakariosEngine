@@ -1091,94 +1091,38 @@ function processSkeletalAnimation_Holder(obj, thekey) {
     applySkeletalMatrixTransforms(obj, thekey)
 }
 
-function setupSkeletalAnimationMatrix(rootobj, obj, thekey, invmat, transmat) {
+function setupSkeletalAnimationMatrix(rootobj, obj, thekey, invmat, poschain) {// transmat) {
     //is this right at all?? todo george
 
-    //obj.skellmatrix = mat4.create();
-    ////mat4.multiply(obj.skellmatrix, obj.skellmatrix, obj.prim.inverseBaseMat);
-
-    //mat4.multiply(obj.skellmatrix, obj.skellmatrix, transmat);
-    //var invinv = mat4.create();
-    //mat4.invert(invinv, obj.prim.inverseBaseMat);
-    //mat4.multiply(obj.skellmatrix, invinv, obj.skellmatrix);
-
-
     //strategy 4. here we go and good luck!
-    obj.skellmatrix = mat4.create();//mat4.create();
-    if (obj.prim.primmatrix) {
-        //mat4.clone(obj.skellmatrix, obj.prim.primmatrix);
-    }
-    //console.log(obj.skellmatrix);
-    //if (obj.applyanimscale) {
-    //    mat4.multiply(obj.skellmatrix, obj.matscale, obj.skellmatrix);
-    //} else if (obj.prim.primmatscale) {
-    //    mat4.multiply(obj.skellmatrix, obj.prim.primmatscale, obj.skellmatrix);
-    //}
-    if (obj.prim.primmatrot) {
-        mat4.multiply(obj.skellmatrix, obj.skellmatrix, obj.prim.primmatrot);
+    var newcomp = mat4.clone(poschain);
+
+    obj.skellmatrix = mat4.create();
+
+    if (obj.applyanimtran) {
+        mat4.multiply(obj.skellmatrix, obj.skellmatrix, obj.mattran);
+        mat4.multiply(newcomp, newcomp, obj.mattran);
+    } else if (obj.prim.primmattran) {
+        mat4.multiply(obj.skellmatrix, obj.skellmatrix, obj.prim.primmattran);
+        mat4.multiply(newcomp, newcomp, obj.prim.primmattran);
     }
     if (obj.applyanimrot) {
-        mat4.multiply(obj.skellmatrix, obj.matrot, obj.skellmatrix);
-    } /*else if (obj.prim.primmatrot) {
-        mat4.multiply(obj.skellmatrix, obj.prim.primmatrot, obj.skellmatrix);
-    }*/
+        mat4.multiply(obj.skellmatrix, obj.skellmatrix, obj.matrot);
+        mat4.multiply(newcomp, newcomp, obj.matrot);
+    } else if (obj.prim.primmatrot) {
+        mat4.multiply(obj.skellmatrix, obj.skellmatrix, obj.prim.primmatrot);
+        mat4.multiply(newcomp, newcomp, obj.prim.primmatrot);
+    }
+    if (obj.applyanimscale) {
+        mat4.multiply(obj.skellmatrix, obj.skellmatrix, obj.matscale);
+        mat4.multiply(newcomp, newcomp, obj.matscale);
+    } else if (obj.prim.primmatscale) {
+        mat4.multiply(obj.skellmatrix, obj.skellmatrix, obj.prim.primmatscale);
+        mat4.multiply(newcomp, newcomp, obj.prim.primmatscale);
+    }
+    mat4.multiply(obj.skellmatrix, obj.skellmatrix, obj.prim.inverseBaseMat);
+    mat4.multiply(obj.skellmatrix, poschain, obj.skellmatrix);
 
-    //if (obj.prim.primmattran) {
-    //    mat4.multiply(obj.skellmatrix, obj.skellmatrix, obj.prim.primmattran);
-    //} 
-    //if (obj.applyanimtran) {
-    //    mat4.multiply(obj.skellmatrix, obj.mattran, obj.skellmatrix);
-    //}
-    /*else if (obj.prim.primmattran) {
-        console.log(obj.prim.primmattran);
-        mat4.multiply(obj.skellmatrix, obj.prim.primmattran, obj.skellmatrix);
-    } else {
-        console.log(transmat);
-    }*/
-    mat4.multiply(obj.skellmatrix, obj.prim.inverseBaseMat, obj.skellmatrix);
-    //mat4.multiply(obj.skellmatrix, transmat, obj.skellmatrix);
-    var curmat = mat4.create();
-    curmat = mat4.clone(obj.skellmatrix);
-
-    ////var curmat = mat4.create();
-    ////var invparentBase = mat4.create();
-    ////mat4.multiply(obj.skellmatrix, transmat, obj.skellmatrix);
-    ////mat4.invert(invparentBase, invmat);
-    ////mat4.multiply(curmat, invparentBase, obj.prim.primmatrix);
-    ////mat4.multiply(obj.skellmatrix, transmat, obj.skellmatrix);
-    ////mat4.clone(curmat, obj.skellmatrix);
-
-    //var curmat = mat4.create();
-    //var invparentBase = mat4.create();
-    //mat4.multiply(obj.skellmatrix, transmat, obj.skellmatrix);
-    //mat4.invert(invparentBase, invmat);
-    //mat4.multiply(curmat, invparentBase, obj.prim.inverseBaseMat);
-    //mat4.multiply(obj.skellmatrix, curmat, obj.skellmatrix);
-    //mat4.clone(curmat, obj.skellmatrix);
-
-
-    //old way 1
-    /*
-    ////mat4.multiply(invmat, obj.prim.inverseBaseMat, invmat);
-    var orginalsm = mat4.clone(obj.skellmatrix);
-
-    mat4.multiply(obj.skellmatrix, obj.skellmatrix, obj.prim.inverseBaseMat);// transmat);
-    mat4.multiply(obj.skellmatrix, obj.skellmatrix, transmat);
-    //mat4.multiply(transmat, transmat, orginalsm);
-
-    ////mat4.multiply(obj.skellmatrix, obj.prim.inverseBaseMat, obj.skellmatrix);
-    var invinv = mat4.create();
-    mat4.invert(invinv, obj.prim.inverseBaseMat);
-    ////mat4.multiply(obj.skellmatrix, obj.skellmatrix, invinv);
-    mat4.multiply(obj.skellmatrix, invinv, obj.skellmatrix);
-
-    ////mat4.multiply(obj.skellmatrix, transmat, obj.skellmatrix);
-    //mat4.multiply(transmat, transmat, obj.skellmatrix);
-
-    ////console.log(obj.prim.name + ' aka ' + obj.glindex);
-    ////console.log(obj.skellindex);
-    */
-    // end of old way 1
 
     //old way abridged
     //mat4.multiply(obj.skellmatrix, obj.skellmatrix, obj.prim.inverseBaseMat);// transmat);
@@ -1188,7 +1132,7 @@ function setupSkeletalAnimationMatrix(rootobj, obj, thekey, invmat, transmat) {
     //mat4.multiply(obj.skellmatrix, invinv, obj.skellmatrix);
 
     for (var i = 0; i < obj.children.length; i++) {
-        setupSkeletalAnimationMatrix(rootobj, obj.children[i], thekey, obj.prim.inverseBaseMat, curmat);
+        setupSkeletalAnimationMatrix(rootobj, obj.children[i], thekey, obj.prim.inverseBaseMat, newcomp);
     }
 }
 
@@ -1868,7 +1812,7 @@ function UpdateObjAnimation(obj) {
                             //Quaternion.fromEuler(quat, ek[2], -ek[1], -ek[0]);
                             //if (animobjglindex > 8) {
                             skellobj.applyanimrot = 1;
-                            mat4.fromQuat(skellobj.skellmatrix, quat);
+                            ////mat4.fromQuat(skellobj.skellmatrix, quat);
                             mat4.fromQuat(skellobj.matrot, quat);
                             //}
                         } else {

@@ -99,8 +99,8 @@ const GltfConverter = (function () {
                         im[(so * 16) + 4], im[(so * 16) + 5], im[(so * 16) + 6], im[(so * 16) + 7],
                         im[(so * 16) + 8], im[(so * 16) + 9], im[(so * 16) + 10], im[(so * 16) + 11],
                         im[(so * 16) + 12], im[(so * 16) + 13], im[(so * 16) + 14], im[(so * 16) + 15]);
-                    console.log('prim.inverseBaseMat');
-                    console.log(prim.inverseBaseMat);
+                    //console.log('prim.inverseBaseMat');
+                    //console.log(prim.inverseBaseMat);
                 }
             }
         }
@@ -125,8 +125,8 @@ const GltfConverter = (function () {
         prim.primmatscale = primmatscale;
         prim.primmatrot = primmatrot;
         prim.primmattran = primmattran;
-        console.log('prim.primmattran');
-        console.log(prim.primmattran);
+        //console.log('prim.primmattran');
+        //console.log(prim.primmattran);
         if (node.mesh != undefined && node.mesh != null) {
             //console.log('mmmmmmmmwhat');
             //console.log(node);
