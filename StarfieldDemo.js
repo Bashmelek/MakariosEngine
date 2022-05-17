@@ -53,6 +53,20 @@ const StarfieldDemo = (function () {
         StageData.noScroll = true;
         lastFrameTime = Date.now();
 
+
+        //var foxloc = 'SampleModels/Fox/glTF-Embedded/Fox.gltf';
+        //GltfConverter.getPrimitiveFromJsResource(foxloc, function (res) {
+        //    console.log('!'); console.log(res);
+        //    Primitives.shapes["testbox"] = res.prim;
+        //    Primitives.shapes["testbox"].animations = [];
+        //    if (res.animations) {
+        //        for (var a = 0; a < res.animations.length; a++) {
+        //            Primitives.animations.push(res.animations[a]);
+        //            Primitives.shapes["testbox"].animations[res.animations[a].name] = Primitives.animations[Primitives.animations.length - 1];
+        //        }
+        //    }
+        //});
+
         getSpawnPointFunc = isMobile ? getRandomSpawnPointMobile : getRandomSpawnPoint;
         //SkyboxRenderer.useSkybox = null;
         //StageData.skybox = null;
@@ -104,7 +118,7 @@ const StarfieldDemo = (function () {
                                                  //-0.0004
         moveline = lin3Transform(tempy, [0.0, 0.0, -0.00006 * StageData.timeDelta]);// -0.0012]); //[0.0, 0.0, 0.2];//lin3Transform(tempy, [0.0, 0.0, -0.002]);// [0.0, 0.0, -0.002]
 
-        if (StageData.vticks >= nextTargetVTick) {//10  //24  //72
+        if (StageData.vticks >= nextTargetVTick) {// && Date.now() > lastFrameTime + 7000) {//10  //24  //72
             nextTargetVTick += spawnInterval;
             numitems += 1;
             //console.log('created. now at ' + numitems + ' items with ticktime ' + StageData.timeDelta);

@@ -217,34 +217,6 @@ const GltfConverter = (function () {
                         }
 
                     }
-                    if (meshObj.primitives[0].attributes.NORMAL != undefined && meshObj.primitives[0].attributes.NORMAL != null) {
-                        var NORMAL = meshObj.primitives[0].attributes.NORMAL;
-                        var normAcc = fullobject.accessors[NORMAL];
-                        //console.log(posAcc);
-                        var normarray = getBufferFromAccessor(fullobject, normAcc);
-                        if (isnew) {
-                            prim.vertexNormals = normarray;
-                        } else {
-                            prim.vertexNormals = prim.vertexNormals.concat(normarray);
-                        }
-                        //console.log(prim.NORMAL);
-                    } else {
-                        var normarr = new Float32Array(prim.positions.length);
-                        for (var nci = 0; nci < normarr.length; nci++) {
-                            if (nci % 3 == 0) {
-                                normarr[nci] = 0.0;
-                            //} else if (tci % 3 == 1) {
-                            //    texarray[tci] = 0.2;
-                            }else {
-                                normarr[nci] = 1.0;
-                            }
-                        }
-                        if (isnew) {
-                            prim.vertexNormals = normarr;
-                        } else {
-                            prim.vertexNormals = prim.normarr.concat(normarray);
-                        }
-                    }
                     if (meshObj.primitives[0].indices != undefined && meshObj.primitives[0].indices != null) {
                         var inIndex = meshObj.primitives[0].indices;
                         var inAcc = fullobject.accessors[inIndex];
@@ -271,6 +243,36 @@ const GltfConverter = (function () {
                         console.log('autofilled with');
                         console.log(prim.positions.length / 3);
                         console.log(prim.indices);
+                    }
+
+                    if (meshObj.primitives[0].attributes.NORMAL != undefined && meshObj.primitives[0].attributes.NORMAL != null) {
+                        var NORMAL = meshObj.primitives[0].attributes.NORMAL;
+                        var normAcc = fullobject.accessors[NORMAL];
+                        //console.log(posAcc);
+                        var normarray = getBufferFromAccessor(fullobject, normAcc);
+                        if (isnew) {
+                            prim.vertexNormals = normarray;
+                        } else {
+                            prim.vertexNormals = prim.vertexNormals.concat(normarray);
+                        }
+                        //console.log(prim.NORMAL);
+                    } else {
+                        var normarr = calculateNorms(prim.positions, prim.indices);
+                        //var normarr = new Float32Array(prim.positions.length);
+                        //for (var nci = 0; nci < normarr.length; nci++) {
+                        //    if (nci % 3 == 2) {
+                        //        normarr[nci] = 1.0;
+                        //    //} else if (tci % 3 == 1) {
+                        //    //    texarray[tci] = 0.2;
+                        //    }else {
+                        //        normarr[nci] = 0.0;
+                        //    }
+                        //}
+                        if (isnew) {
+                            prim.vertexNormals = normarr;
+                        } else {
+                            prim.vertexNormals = prim.normarr.concat(normarray);
+                        }
                     }
 
                     //skeleton attributes aka skin: JOINTS_0 and WEIGHTS_0
@@ -550,6 +552,66 @@ const GltfConverter = (function () {
     var findRootSkeletonNodesRecursive = function (results, fullobj, memoizedParents) {
 
     };
+
+    function calculateNorms(pos, ind) {
+        var normarr = new Float32Array(pos.length);
+
+        for (var i = 0; i < ind.length; i += 3) {
+
+            var v1 = [pos[(i + 1) * 3 + 0] - pos[i * 3 + 0], pos[(i + 1) * 3 + 1] - pos[i * 3 + 1], pos[(i + 1) * 3 + 2] - pos[i * 3 + 2]];
+            var v2 = [pos[(i + 2) * 3 + 0] - pos[i * 3 + 0], pos[(i + 2) * 3 + 1] - pos[i * 3 + 1], pos[(i + 2) * 3 + 2] - pos[i * 3 + 2]];
+            var vx = [0.0, 0.0, 0.0];
+            var vres = [0.0, 0.0, 0.0];
+            //console.log(vres);
+            glMatrix.vec3.normalize(vres, glMatrix.vec3.cross(vx, v1, v2));
+            normarr[i * 3 + 0] = vres[0];
+            normarr[(i + 1) * 3 + 0] = vres[0];
+            normarr[(i + 2) * 3 + 0] = vres[0];
+
+            normarr[i * 3 + 0] = vres[1];
+            normarr[(i + 1) * 3 + 0] = vres[1];
+            normarr[(i + 2) * 3 + 0] = vres[1];
+
+            normarr[i * 3 + 2] = vres[2];
+            normarr[(i + 1) * 3 + 2] = vres[2];
+            normarr[(i + 2) * 3 + 2] = vres[2];
+        }
+
+        if (false || true) {
+            var finnorm = normarr.slice(0);
+            for (var c = 0; c < ind.length; c++) {
+                //smooth shading
+                var ishare = [];
+                var newv = [0.0, 0.0, 0.0];
+                //for (var s = 0; s < ind.length; s++) {
+                for (var s = 0; s < ind.length; s += 3) {
+                    if (ind[s] == ind[c] || ind[s + 1] == ind[c] || ind[s + 2] == ind[c] || 
+                        (pos[s * 3 + 0] == pos[c * 3 + 0] && pos[s * 3 + 1] == pos[c * 3 + 1] && pos[s * 3 + 2] == pos[c * 3 + 2]) ||
+                        (pos[(s + 1) * 3 + 0] == pos[c * 3 + 0] && pos[(s + 1) * 3 + 1] == pos[c * 3 + 1] && pos[(s + 1) * 3 + 2] == pos[c * 3 + 2]) ||
+                        (pos[(s + 2) * 3 + 0] == pos[c * 3 + 0] && pos[(s + 2) * 3 + 1] == pos[c * 3 + 1] && pos[(s + 2) * 3 + 2] == pos[c * 3 + 2])) {
+                        ishare.push(ind[s]);
+                        ishare.push(ind[s + 1]);
+                        ishare.push(ind[s + 2]);
+                    }
+                }
+                for (var p = 0; p < ishare.length; p++) {
+                    newv = [newv[0] + normarr[ishare[p] * 3 + 0], newv[1] + normarr[ishare[p] * 3 + 1], newv[2] + normarr[ishare[p] * 3 + 2]];
+                }
+                glMatrix.vec3.normalize(newv, newv);
+                //for (var p2 = 0; p2 < ishare.length; p2++) {
+                //    finnorm[ishare[c] * 3 + 0] = newv[0];
+                //    finnorm[ishare[c] * 3 + 1] = newv[1];
+                //    finnorm[ishare[c] * 3 + 2] = newv[2];
+                //}
+                finnorm[c * 3 + 0] = newv[0];
+                finnorm[c * 3 + 1] = newv[1];
+                finnorm[c * 3 + 2] = newv[2];
+            }
+            normarr = finnorm;
+        }
+
+        return normarr;
+    }
 
 
 

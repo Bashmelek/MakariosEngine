@@ -11,6 +11,7 @@ const TryLoadingPrim = (function () {
         ////SkyboxRenderer.useSkybox('skybox');//"penguins (26)");//StageData.skybox = "penguins (26)";
         ////OutlineRenderer.setup();
         ////Makarios.setStepsForCelShading(4.0);
+        Makarios.SetUseAlphaInTextureBuffer(true);
         maxCamDist = 200.0;//global scope, plz fix
         maxZFar = 300.0;//this global too
                

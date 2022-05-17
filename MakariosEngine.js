@@ -279,7 +279,7 @@ function initBuffers(gl) {
     }*/
 
     //vertexNormals = vertexNormals.concat(vertexNormals);
-
+    //console.log(Entera.buffers.vertexNormals);
     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(Entera.buffers.vertexNormals),
         gl.STATIC_DRAW);
 

@@ -121,7 +121,7 @@ const StageData = (function () {
         newInst.prim = prim;
         if (!prim.isComposite) {
             newInst.positions = new Array(prim.positions.length).fill().map(function (x, ind) { return prim.positions[ind]; });
-            var textureMap = Makarios.UseAlphaInTextureBuffer() ? prim.textureCoordinatesWithAlpha : prim.textureCoordinates;
+            var textureMap = Makarios.UseAlphaInTextureBuffer() && prim.textureCoordinatesWithAlpha ? prim.textureCoordinatesWithAlpha : prim.textureCoordinates;
             newInst.textureCoordinates = new Array(textureMap.length).fill().map(function (x, ind) { return textureMap[ind]; });
             newInst.indices = new Array(prim.indices.length).fill().map(function (x, ind) { return prim.indices[ind]; });
             newInst.vertexNormals = new Array(Primitives.getVertextNormals(prim).length).fill().map(function (x, ind) { return Primitives.getVertextNormals(prim)[ind]; });
