@@ -325,7 +325,7 @@ const Entera = (function () {
         //console.log('this many conts ' + contigua.length);
 
         for (var c = 0; c < contigua.length; c++) {                
-            ////if (c != 0) {
+            //note: push(... is not available, since it uses the stack and is easily exceeded
                 var startContPosIndex = positions.length;
                 positions = positions.concat(contigua[c].positions);
                 textureCoordinates = textureCoordinates.concat(contigua[c].textureCoordinates);
@@ -363,7 +363,7 @@ const Entera = (function () {
 
                 posOffsetDiff = 0;
                 var parPosLength = 0;
-                if (currentFlatObject.parent && currentFlatObject.parent.versionNo == version) {
+                if (currentFlatObject.parent && currentFlatObject.parent.indices.length > 0 && currentFlatObject.parent.versionNo == version) {
 
                     //todo: update this to make more dynamic??
                     posOffsetDiff = (objPositionsSoFar) - (currentFlatObject.parent.positionsBufferStart + currentFlatObject.parent.startContPosIndex);// 168;//contigua[c].flatobjects[i].positionsBufferStart + contigua[c].
@@ -377,7 +377,7 @@ const Entera = (function () {
                     //same with above
                 }
                 for (var x = 0; x < currentFlatObject.indices.length; x++) {
-                    if (posOffsetDiff != 0 && currentFlatObject.indices[x] < (currentFlatObject.parent.positions.length / 3)) {
+                    if (posOffsetDiff != 0 && currentFlatObject.parent.indices.length > 0 && currentFlatObject.indices[x] < (currentFlatObject.parent.positions.length / 3)) {
                         //use parents offset                        
                         indices[x + indexOffsetNumber] += ((objPositionsSoFar - posOffsetDiff) / 3);
                         //console.log(indices[x + indexOffsetNumber]);
@@ -502,7 +502,9 @@ const Entera = (function () {
 
     var handleNewObj = function (obj, index) {
         var timestart = Date.now();
-
+        //console.log(2);
+        if (obj.indices.length <= 0) { return; }
+        //console.log('add?' + obj.indices.length);
         if (!obj.parent || true) {
             var cont = globalAvailabilityContainer.contiguum;
             //console.log(globalAvailabilityContainer.firstAvailableIndex);
@@ -630,6 +632,8 @@ const Entera = (function () {
 
     var entDebugMessage = '';
     var handleRemovingObj = function (obj) {
+        //console.log('rem?' + obj.indices.length);
+        if (obj.indices.length <= 0) { return; }
         var flatindex = obj.gindex;//still needs to generalize for with children
 
         var holdingCont = null;

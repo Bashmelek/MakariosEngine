@@ -107,7 +107,8 @@ const StageData = (function () {
         //extra leaning to avoid memory leaks eg circular dependency issues
         //will need to make some things recursive. dont need that today. todo!
 
-        Entera.handleRemovingObj(inst);
+        //Entera.handleRemovingObj(inst);
+        recursiveCallHandleRemovingObj(inst);
         inst.parent = null;
         inst.availabilityContainer = null;
         inst.ObjectOnFrame = null;
@@ -221,7 +222,7 @@ const StageData = (function () {
 
             maybekey = mapSkeletonBonesRecursive(primroot, rootobj, trueprim, trueobj, thekey); //(primroot, rootobj, primroot, rootobj, maybekey);//, primroot.skeletonkey.rootskellynodeindexes[n]);
             //}
-            console.log(thekey);
+            //console.log(thekey);
         }
         if (trueobj.glnodes != null && rootobj.glindex != null) {
             trueobj.glnodes[rootobj.glindex] = {
@@ -244,9 +245,9 @@ const StageData = (function () {
 
     var mapSkeletonBonesRecursive = function (holderprim, holderobj, currentprim, currentObj, thekey) {
 
-        console.log('chrina see 0');
+        //console.log('chrina see 0');
         if (thekey && currentObj.skellindex != null) {
-            console.log('chrina see 3 - ' + currentObj.glindex);
+            //console.log('chrina see 3 - ' + currentObj.glindex);
             for (var c = 0; c < thekey.skellynodes.length; c++) {
                 if (thekey.skellynodes[c].glindex == currentObj.glindex) {
                     thekey.skellynodes[c].nodeobj = currentObj;
@@ -280,21 +281,39 @@ const StageData = (function () {
         }
 
         finalizeInstantiation(newInst);
-        Entera.handleNewObj(newInst);
-        if (prim.children) {
-            for (var c = 0; c < newInst.children.length; c++) {
-                //may eventually need precise onframe on customs for children... todo yo
-                //instantiateChild(newInst, prim.children[i], textureUrl, null, {}, newInst)
-                Entera.handleNewObj(newInst.children[c]);
-            }
-        }
         mapSkeleton(prim, newInst, prim, newInst);
+
+        //Entera.handleNewObj(newInst);
+        //if (prim.children) {
+        //    for (var c = 0; c < newInst.children.length; c++) {
+        //        //may eventually need precise onframe on customs for children... todo yo
+        //        //instantiateChild(newInst, prim.children[i], textureUrl, null, {}, newInst)
+        //        Entera.handleNewObj(newInst.children[c]);
+        //    }
+        //}
+        recursiveCallHandleChildren(newInst);
         
         //console.log('number in array: ' + objects.length)
         return newInst;
     };
 
+    var recursiveCallHandleChildren = function (newInst) {
+        Entera.handleNewObj(newInst);
+        if (newInst.children) {
+            for (var c = 0; c < newInst.children.length; c++) {
+                recursiveCallHandleChildren(newInst.children[c]);
+            }
+        }
+    };
 
+    var recursiveCallHandleRemovingObj = function (inst) {
+        if (inst.children) {
+            for (var c = 0; c < inst.children.length; c++) {
+                recursiveCallHandleRemovingObj(inst.children[c]);
+            }
+        }
+        Entera.handleRemovingObj(inst);
+    };
 
 
     var instantiateChild = function (parent, prim, textureUrl, objectOnFrame, customprops, rootnode) {
@@ -325,7 +344,7 @@ const StageData = (function () {
         //parent.children.push(newInst);
         //newInst.
         finalizeInstantiation(newInst, newInst.parent);
-        Entera.handleNewObj(newInst);
+        ////Entera.handleNewObj(newInst);
 
         return newInst;
     };

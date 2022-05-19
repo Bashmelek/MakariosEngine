@@ -708,6 +708,7 @@ function RenderObjects(gl, programInfo, objects, parentmatrix, depth, dataHolder
             //console.log(offset);
             //console.log(objects[oj]);
             //if (StageData.ticks % 50 == 0) { console.log('offset is:' + objects[oj].bufferOffset); }
+            //console.log(offset * 2);
             gl.drawElements(gl.TRIANGLES, vertexCount, type, offset * 2);
             //gl.drawElements(gl.LINES, vertexCount, type, offset);
         }
@@ -1137,7 +1138,14 @@ function setupSkeletalAnimationMatrix(rootobj, obj, thekey, invmat, poschain) {/
 }
 
 function applySkeletalMatrixTransforms(obj, thekey) {
-    linTransformRangeWithOffsetsForSkeletonMat3(Entera.buffers.positions, Entera.buffers.positions, obj.startContPosIndex, obj.startContPosIndex + obj.positions.length, obj.positionsBufferStart,
+    //console.log(obj.startContPosIndex);
+    //console.log(obj.positionsBufferStart);
+    //for (var pp = 0; pp < obj.prim.positions.length; pp++) {
+    //    Entera.buffers.positions[obj.positionsBufferStart + pp] = obj.prim.positions[pp];
+    //}
+    //linTransformRangeWithOffsetsForSkeletonMat3(Entera.buffers.positions, Entera.buffers.positions, obj.startContPosIndex, obj.startContPosIndex + obj.positions.length, obj.positionsBufferStart,
+    //    obj.skeletonkey, obj.prim.skellyjoints, obj.prim.skellyweights);
+    linTransformRangeWithOffsetsForSkeletonMat3(Entera.buffers.positions, Entera.buffers.positions, obj.startContPosIndex + obj.positionsBufferStart, obj.startContPosIndex + obj.positions.length, obj.startContPosIndex + obj.positionsBufferStart,
         obj.skeletonkey, obj.prim.skellyjoints, obj.prim.skellyweights);
 }
 
@@ -1739,7 +1747,7 @@ function UpdateObjAnimation(obj) {
                     for (var f = 0; f < primcomp.keytimes.length; f++) {
                         var realkey = (obj.animcomps[i].currentKey + f) % primcomp.keytimes.length;
                         if (obj.animcomps[i].currentframe >= primcomp.keytimes[realkey] * 1000 &&
-                            ((realkey == (primcomp.keytimes.length - 1)) || (obj.animcomps[i].currentframe < primcomp.keytimes[realkey + 1] * 1000))) {                            
+                            ((realkey == (primcomp.keytimes.length - 1)) || (obj.animcomps[i].currentframe < primcomp.keytimes[realkey + 1] * 1000))) {
                             obj.animcomps[i].currentKey = realkey;
                             f = primcomp.keytimes.length;
                         }
@@ -1748,19 +1756,19 @@ function UpdateObjAnimation(obj) {
                     var quat = [0.0, 0.0, 0.0, 0.0];
                     var thekey = obj.animcomps[i].currentKey;
 
-                    if (thekey == (primcomp.keytimes.length - 1) || obj.animcomps[i].currentframe == primcomp.keytimes[thekey] * 1000 ) {
+                    if (thekey == (primcomp.keytimes.length - 1) || obj.animcomps[i].currentframe == primcomp.keytimes[thekey] * 1000) {
                         //failsafe, when max should only be at max time
                         quat = [primcomp.keydeformations[thekey * 4 + 0], primcomp.keydeformations[thekey * 4 + 1],
-                            primcomp.keydeformations[thekey * 4 + 2], primcomp.keydeformations[thekey * 4 + 3]];
+                        primcomp.keydeformations[thekey * 4 + 2], primcomp.keydeformations[thekey * 4 + 3]];
                         //var ek = QuatToEulers(quat);
                         //Quaternion.fromEuler(quat, ek[2], ek[1], ek[0]);
                     } else {
                         //else interpolate
                         //for (var d = 0; d < 4; d++) {
-                            //because we arent interpolating the quaternion, just the euler
-                            //var val = primcomp.keydeformations[thekey * 4 + d];// + 
-                                //(primcomp.keydeformations[(thekey + 1) * 4 + d] - primcomp.keydeformations[thekey * 4 + d]) * 
-                                    //((obj.animcomps[i].currentframe - 1000.0 * primcomp.keytimes[thekey]) / ((1000.0 * primcomp.keytimes[(thekey + 1)] - 1000.0 * primcomp.keytimes[thekey])));
+                        //because we arent interpolating the quaternion, just the euler
+                        //var val = primcomp.keydeformations[thekey * 4 + d];// + 
+                        //(primcomp.keydeformations[(thekey + 1) * 4 + d] - primcomp.keydeformations[thekey * 4 + d]) * 
+                        //((obj.animcomps[i].currentframe - 1000.0 * primcomp.keytimes[thekey]) / ((1000.0 * primcomp.keytimes[(thekey + 1)] - 1000.0 * primcomp.keytimes[thekey])));
                         //}
                         //interpolation method 2??
                         ////var q0 = quat = [primcomp.keydeformations[thekey * 4 + 0], primcomp.keydeformations[thekey * 4 + 1],
@@ -1792,9 +1800,9 @@ function UpdateObjAnimation(obj) {
                         var q0 = quat = [primcomp.keydeformations[thekey * 4 + 0], primcomp.keydeformations[thekey * 4 + 1],
                         primcomp.keydeformations[thekey * 4 + 2], primcomp.keydeformations[thekey * 4 + 3]];
                         var q1 = [primcomp.keydeformations[(thekey + 1) * 4 + 0], primcomp.keydeformations[(thekey + 1) * 4 + 1],
-                            primcomp.keydeformations[(thekey + 1) * 4 + 2], primcomp.keydeformations[(thekey + 1) * 4 + 3]];
+                        primcomp.keydeformations[(thekey + 1) * 4 + 2], primcomp.keydeformations[(thekey + 1) * 4 + 3]];
                         Quaternion.slerp(quat, q0, q1, interpolScale);
-                    }                    
+                    }
 
                     var rotMatrix = mat3.create();
                     if (obj.animcomps[i].node != null) {
@@ -1856,8 +1864,8 @@ function UpdateObjAnimation(obj) {
                     } else {
                         //else interpolate
                         for (var d = 0; d < 3; d++) {
-                        var val = primcomp.keydeformations[thekey * 3 + d] + 
-                            (primcomp.keydeformations[(thekey + 1) * 3 + d] - primcomp.keydeformations[thekey * 3 + d]) * 
+                            var val = primcomp.keydeformations[thekey * 3 + d] +
+                                (primcomp.keydeformations[(thekey + 1) * 3 + d] - primcomp.keydeformations[thekey * 3 + d]) *
                                 ((obj.animcomps[i].currentframe - 1000.0 * primcomp.keytimes[thekey]) / ((1000.0 * primcomp.keytimes[(thekey + 1)] - 1000.0 * primcomp.keytimes[thekey])));
                             vec[d] = val;
                         }
@@ -1940,7 +1948,7 @@ function UpdateObjAnimation(obj) {
                         for (var nw = 0; nw < newweights.length; nw++) {
                             var nowid = thekey * obj.prim.weights.length + nw;
                             var nexid = (thekey + 1) * obj.prim.weights.length + nw;
-                            
+
                             var dev = primcomp.keydeformations[nowid] +
                                 (primcomp.keydeformations[nexid] - primcomp.keydeformations[nowid]) *
                                 ((obj.animcomps[i].currentframe - 1000.0 * primcomp.keytimes[thekey]) / ((1000.0 * primcomp.keytimes[(thekey + 1)] - 1000.0 * primcomp.keytimes[thekey])));
@@ -1959,6 +1967,14 @@ function UpdateObjAnimation(obj) {
                     }
                 }//morph animation done
             }
+        } else if (obj.skeletonkey) {
+            for (var sp = 0; sp < obj.prim.positions.length; sp++) {
+                Entera.buffers.positions[obj.positionsBufferStart + sp] = obj.prim.positions[sp];
+            }
+        }
+    } else if (obj.skeletonkey) {
+        for (var sp2 = 0; sp2 < obj.prim.positions.length; sp2++) {
+            Entera.buffers.positions[obj.positionsBufferStart + sp2] = obj.prim.positions[sp2];
         }
     }
 }
