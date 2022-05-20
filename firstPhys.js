@@ -523,6 +523,7 @@ const MyFirstPhysics = (function () {
     var OnFrame = function () {
 
         FrameLogic.onFrame();
+        ////console.log(objects[0].childrenCustom[0].matrix);
         //objects[0].childrenCustom[0].matrix = mat4.create();
         mat4.rotate(objects[0].childrenCustom[0].matrix,  // destination matrix
             objects[0].childrenCustom[0].matrix,  // matrix to rotate

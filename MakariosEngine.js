@@ -78,12 +78,12 @@ const vsSource = `
                 vTextureCoord = aTextureCoord;
 
                 // Apply lighting effect
-
                 highp vec3 ambientLight = vec3(0.2, 0.2, 0.2);
                 //if(aVertexPosition[3] == 1.0){
                 //    ambientLight = vec3(1.0/0.0, 0.0, 0.0);
                 //}
-                highp vec3 directionalLightColor = vec3(1, 1, 1);
+                highp vec3 origin = vec3(0.0, 0.0, 0.0);
+                highp vec3 directionalLightColor = vec3(distance(origin, vec3(uModelViewMatrix[0][0], uModelViewMatrix[0][1], uModelViewMatrix[0][2])), distance(origin, vec3(uModelViewMatrix[1][0], uModelViewMatrix[1][1], uModelViewMatrix[1][2])), distance(origin, vec3(uModelViewMatrix[2][0], uModelViewMatrix[2][1], uModelViewMatrix[2][2])));
                 highp vec3 directionalVector = normalize(uLightDirection);// normalize(vec3(0.85, 0.8, 0.75));
                 highp vec4 transformedNormal = uNormalMatrix  * vec4(aVertexNormal, 1.0);
                 highp float directional = max(dot(transformedNormal.xyz, directionalVector), 0.0);
@@ -482,7 +482,7 @@ function drawScene(gl, programInfo, buffers) {  //deltaTime
     }
 
     if (typeof OutlineRenderer !== 'undefined') {
-        OutlineRenderer.drawOutline(modelViewMatrix, projectionMatrix, buffers.positionData, buffers.normalData, buffers.indexData, buffers.useParentData, StageData.objects);
+        OutlineRenderer.drawOutline(modelViewMatrix, projectionMatrix, Entera.buffers.positions, Entera.buffers.vertexNormals, Entera.buffers.indices, Entera.buffers.useParentMatrix, StageData.objects);
         gl.useProgram(programInfo.program); //return;
     }
 
@@ -2021,7 +2021,9 @@ const Makarios = (function () {
         return newobj;
     }
     self.instantiateChild = function (parent, prim, textureUrl, objectOnFrame, customprops, idealstartTime) {
-        return StageData.instantiateChild(parent, prim, textureUrl, objectOnFrame, customprops);
+        var inst = StageData.instantiateChild(parent, prim, textureUrl, objectOnFrame, customprops);
+        Entera.handleNewObj(inst);
+        return inst;
     }
     self.destroy = function (inst) {
         StageData.destroy(inst);
@@ -2108,7 +2110,34 @@ const Makarios = (function () {
         const gui = ui.getContext('2d');
         //with a little thanks to https://stackoverflow.com/questions/8977369/drawing-png-to-a-canvas-element-not-showing-transparency thank you!
         gui.drawImage(image, 20, 20);
-    }
+    };
+
+    self.setCamDist = function (newdist) {
+        var oldDist = camDist;
+        camDist = newdist;
+
+        if (camDist < 2.0) {
+            camDist = 2.0;
+        } else if (camDist > maxCamDist) {
+            camDist = maxCamDist;
+        }
+
+        var distDel = camDist - oldDist;
+        if (distDel == 0.0) {
+            return;
+        }
+        console.log(camDist);
+
+        if (gmod == null) {
+            gmod = mat4.create();
+            mat4.translate(gmod,     // destination matrix
+                gmod,     // matrix to translate
+                [-0.0, 0.0, -camDist]);
+        }
+        else {
+            gmod[14] = -1.0 * camDist;
+        }
+    };
 
     return self;
 })();

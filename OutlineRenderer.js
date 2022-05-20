@@ -15,6 +15,7 @@ const OutlineRenderer = (function () {
             uniform mat4 uNormalMatrix;
             uniform mat4 uParentMatrix;
             uniform float uMatrixLevel;
+            uniform float udir;
 
             uniform float uOutlineWidth; // width of the outline
 
@@ -23,7 +24,8 @@ const OutlineRenderer = (function () {
 
             void main(void) {
                 highp vec3 dummy = aVertexNormal;
-                dummy = vec3(1.0, 0.0, 0.0);
+                ////dummy = vec3(1.0, 0.0, 0.0);
+                ////dummy = vec3(5.0 * aVertexNormal[0], 5.0 * aVertexNormal[1], 5.0 * aVertexNormal[2]);
 
                 //if(aUseParentMatrix >= uMatrixLevel) {
                 //    gl_Position = uProjectionMatrix * uModelViewMatrix * aVertexPosition;//aVertexPosition;//uProjectionMatrix * uModelViewMatrix * aVertexPosition;
@@ -36,22 +38,24 @@ const OutlineRenderer = (function () {
 
                 if(aUseParentMatrix >= uMatrixLevel) {
                     vertexZ = uProjectionMatrix * uModelViewMatrix * vec4(aVertexPosition);
-                    gl_Position = uProjectionMatrix * uModelViewMatrix * vec4(aVertexPosition + (vec4(aVertexNormal, 1.0) * uOutlineWidth));//aVertexPosition;//uProjectionMatrix * uModelViewMatrix * aVertexPosition;
+                    gl_Position = uProjectionMatrix * uModelViewMatrix * vec4(aVertexPosition + (vec4(aVertexNormal, udir) * uOutlineWidth));//aVertexPosition;//uProjectionMatrix * uModelViewMatrix * aVertexPosition;
                 }
                 else {
                     vertexZ = uProjectionMatrix * uParentMatrix * vec4(aVertexPosition);
-                    gl_Position = uProjectionMatrix * uParentMatrix * vec4(aVertexPosition + (vec4(aVertexNormal, 1.0) * uOutlineWidth));//aVertexPosition;//uProjectionMatrix * uParentMatrix * aVertexPosition;
+                    gl_Position = uProjectionMatrix * uParentMatrix * vec4(aVertexPosition + (vec4(aVertexNormal, udir) * uOutlineWidth));//aVertexPosition;//uProjectionMatrix * uParentMatrix * aVertexPosition;
                 }
 
                 vDebug = vec3(0.0, (vertexZ[2] - gl_Position[2]) * 0.0, 0.0);
-                if(gl_Position[2] >= vertexZ[2] - 0.001)
+                if(gl_Position[2]/gl_Position[3] <= vertexZ[2]/vertexZ[3] - 0.001)
                 {
                     gl_Position = vec4(1000.0, 1000.0, 1000.0, 1.0);
+                    ////gl_Position = vec4(gl_Position[0], gl_Position[1]+ 0.055, gl_Position[2] + 0.055, gl_Position[3]);
                 //vDebug = vec3(0.0, (vertexZ[2] - gl_Position[2]) * 100.0, 0.0);
                 }
                 else
                 {
-                    gl_Position[2] += 0.005;
+                    gl_Position[2] += 0.055;
+                    ////gl_Position[2] = vertexZ[2] + 0.005;//// += 0.005;
                 }
                 //vDebug = vec3(0.0, (gl_Position[2] - vertexZ[2]) * 1.0, 0.0);
             }
@@ -196,8 +200,8 @@ const OutlineRenderer = (function () {
             uniform_modelViewMatrix,
             false,
             depth > 0.0 ? mat0 : mat0);
-        //console.log(parentmatrix);
 
+        //dont seem to need this? yet?
         var thisMatForNorm = mat4.create();
         var nMat = mat4.create();
         mat4.multiply(thisMatForNorm,     // destination matrix
@@ -210,9 +214,20 @@ const OutlineRenderer = (function () {
             false,
             nMat);
 
+        if (obj.outlineColor != null && (obj.outlineColor[0] != outlineColor[0] || obj.outlineColor[1] != outlineColor[1] || obj.outlineColor[2] != outlineColor[2])) {
+            outlineColor = obj.outlineColor;
+            wgl.uniform3fv(uniform_outlineColor, obj.outlineColor);
+        }
+
         const vertexCount = obj.indices.length;
-        const offset = obj.bufferOffset;
-        wgl.drawElements(wgl.TRIANGLES, vertexCount, wgl.UNSIGNED_INT, offset * 2);//UNSIGNED_SHORT
+        const offset = obj.bufferOffset || 0;
+        if (vertexCount > 0) {
+            wgl.uniform1f(uniform_dir, 1.0);
+            wgl.drawElements(wgl.TRIANGLES, vertexCount, wgl.UNSIGNED_INT, offset * 2);//UNSIGNED_SHORT
+
+            wgl.uniform1f(uniform_dir, -1.0);
+            wgl.drawElements(wgl.TRIANGLES, vertexCount, wgl.UNSIGNED_INT, offset * 2);
+        }
 
         if (obj.children && obj.children.length > 0) {
             wgl.uniformMatrix4fv(
@@ -286,6 +301,7 @@ const OutlineRenderer = (function () {
         uniform_normalMatrix = wgl.getUniformLocation(program, "uNormalMatrix");
         uniform_parentMatrix = wgl.getUniformLocation(program, "uParentMatrix");
         uniform_matrixLevel = wgl.getUniformLocation(program, "uMatrixLevel");
+        uniform_dir = wgl.getUniformLocation(program, "udir");
 
         shaderprogram = program;
     }
@@ -293,7 +309,7 @@ const OutlineRenderer = (function () {
     var setup = function (width, color) {
         isSet = false;
 
-        outlineColor = color != null ? color : [0.0, 0.0, 0.0];
+        outlineColor = color != null ? color : [1.0, 0.0, 0.0];
         outlineWidth = width != null ? width : -0.02;
 
         wgl.uniform3fv(uniform_outlineColor, outlineColor);
@@ -315,6 +331,7 @@ const OutlineRenderer = (function () {
 
         //thank you q9f and ratchet freak https://computergraphics.stackexchange.com/questions/3637/how-to-use-32-bit-integers-for-element-indices-in-webgl-1-0
         var ext = wgl.getExtension('OES_element_index_uint');
+        ////console.log(ext);
         wgl.clearColor(0.0, 0.0, 0.0, 1.0);
 
         vertex_buffer = wgl.createBuffer();
