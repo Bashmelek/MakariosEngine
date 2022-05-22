@@ -24,6 +24,9 @@ const OutlineRenderer = (function () {
 
             void main(void) {
                 highp vec3 dummy = aVertexNormal;
+                ////highp vec4 worldBase = aVertexPosition;
+                ////highp vec4 worldOutline = aVertexPosition;
+
                 ////dummy = vec3(1.0, 0.0, 0.0);
                 ////dummy = vec3(5.0 * aVertexNormal[0], 5.0 * aVertexNormal[1], 5.0 * aVertexNormal[2]);
 
@@ -37,16 +40,18 @@ const OutlineRenderer = (function () {
                 //}
 
                 if(aUseParentMatrix >= uMatrixLevel) {
+                    ////worldBase =  uModelViewMatrix * vec4(aVertexPosition);
+                    ////worldOutline =  uModelViewMatrix * vec4(aVertexPosition + (vec4(normalize(aVertexNormal), udir) * uOutlineWidth));
                     vertexZ = uProjectionMatrix * uModelViewMatrix * vec4(aVertexPosition);
-                    gl_Position = uProjectionMatrix * uModelViewMatrix * vec4(aVertexPosition + (vec4(aVertexNormal, udir) * uOutlineWidth));//aVertexPosition;//uProjectionMatrix * uModelViewMatrix * aVertexPosition;
+                    gl_Position = uProjectionMatrix * uModelViewMatrix * vec4(aVertexPosition + (vec4(normalize(aVertexNormal), udir) * uOutlineWidth));//aVertexPosition;//uProjectionMatrix * uModelViewMatrix * aVertexPosition;
                 }
                 else {
                     vertexZ = uProjectionMatrix * uParentMatrix * vec4(aVertexPosition);
-                    gl_Position = uProjectionMatrix * uParentMatrix * vec4(aVertexPosition + (vec4(aVertexNormal, udir) * uOutlineWidth));//aVertexPosition;//uProjectionMatrix * uParentMatrix * aVertexPosition;
+                    gl_Position = uProjectionMatrix * uParentMatrix * vec4(aVertexPosition + (vec4(normalize(aVertexNormal), udir) * uOutlineWidth));//aVertexPosition;//uProjectionMatrix * uParentMatrix * aVertexPosition;
                 }
 
-                vDebug = vec3(0.0, (vertexZ[2] - gl_Position[2]) * 0.0, 0.0);
-                if(gl_Position[2]/gl_Position[3] <= vertexZ[2]/vertexZ[3] - 0.001)
+                //vDebug = vec3(0.0, (vertexZ[2] - gl_Position[2]) * 0.0, 0.0);
+                if(gl_Position[2]/gl_Position[3] <= vertexZ[2]/vertexZ[3] - 0.0005)
                 {
                     gl_Position = vec4(1000.0, 1000.0, 1000.0, 1.0);
                     ////gl_Position = vec4(gl_Position[0], gl_Position[1]+ 0.055, gl_Position[2] + 0.055, gl_Position[3]);
@@ -54,10 +59,18 @@ const OutlineRenderer = (function () {
                 }
                 else
                 {
-                    gl_Position[2] += 0.055;
+                    gl_Position[2] += 0.015;
                     ////gl_Position[2] = vertexZ[2] + 0.005;//// += 0.005;
                 }
+
+                //if(abs((worldBase.x) - (worldOutline.x)) > 0.003 || abs((worldBase.y) - (worldOutline.y)) > 0.003 || abs((worldBase.z) - (worldOutline.z)) > 0.003)//(sqrt(abs(dot(vertexZ.xyz / vertexZ.w, gl_Position.xyz / gl_Position.w))) > 10.13) ////( (50.0 * abs(distance(vertexZ.xyz / vertexZ.w, gl_Position.xyz / gl_Position.w))) >= 1000000.32)
+                //if(abs(distance(worldBase.xyz / worldBase.w, worldOutline.xyz / worldOutline.w)) > .5)
+                //{
+                //    ////gl_Position = vec4(1000.0, 1000.0, 1000.0, 1.0);
+                //}
                 //vDebug = vec3(0.0, (gl_Position[2] - vertexZ[2]) * 1.0, 0.0);
+                //vDebug = vec3(50.0 * abs(distance(vertexZ.xyz / vertexZ.w, gl_Position.xyz / gl_Position.w)), 50.0 *abs(distance(gl_Position.xyz / gl_Position.w, vertexZ.xyz / vertexZ.w)), 0.0);
+                //vDebug = vec3(90.0 * abs((worldBase.x) - (worldOutline.x)), 90.0 * abs((worldBase.y) - (worldOutline.y)), 90.0 * abs((worldBase.z) - (worldOutline.z)));
             }
     `;
     var outlineFsSource = `
@@ -67,7 +80,8 @@ const OutlineRenderer = (function () {
             varying highp vec3 vDebug;
             void main(void) {    
     
-                gl_FragColor = vec4(uOutlineColor, 1.0);//vec4(1.0, 1.0 - (vDebug[1] * 1.0), 0.0, 1.0);//vec4(uOutlineColor, 1.0);
+                ////gl_FragColor = vec4(vDebug, 1.0);// vec4(uOutlineColor, 1.0);//vec4(1.0, 1.0 - (vDebug[1] * 1.0), 0.0, 1.0);//vec4(uOutlineColor, 1.0);
+                gl_FragColor = vec4(uOutlineColor, 1.0);
 
             } // end main
     `;
@@ -177,7 +191,8 @@ const OutlineRenderer = (function () {
                 false,
                 baseParent);
         wgl.uniform1f(uniform_matrixLevel, 0.0);
-        for (var i = 0; i < objects.length; i++) {
+        //for (var i = 0; i < objects.length; i++) {
+        for (var i = objects.length; i >= 0; i--) {
             //console.log(useParentMatrix);
             if (!objects[i]) { continue; };
             outlineObject(objects[i], baseParent, 0.0, baseNorm)
@@ -220,8 +235,9 @@ const OutlineRenderer = (function () {
         }
 
         const vertexCount = obj.indices.length;
-        const offset = obj.bufferOffset || 0;
+        const offset = obj.indexOffset || 0;//obj.bufferOffset || 0;
         if (vertexCount > 0) {
+            ////console.log(mat0);
             wgl.uniform1f(uniform_dir, 1.0);
             wgl.drawElements(wgl.TRIANGLES, vertexCount, wgl.UNSIGNED_INT, offset * 2);//UNSIGNED_SHORT
 

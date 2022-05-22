@@ -858,6 +858,22 @@ function resizeCanvas() {
 
 window.addEventListener('resize', resizeCanvas);
 
+function addCustomProgramLocations() {
+    if (theGame && (theGame.customAttributes != null || theGame.customUniforms != null)) {
+        if (theGame.customAttributes != null && theGame.customAttributes.length > 0) {
+            for (var a = 0; a < theGame.customAttributes.length; a++) {
+
+            }
+        }
+
+        if (theGame.customUniforms != null && theGame.customUniforms.length > 0) {
+            for (var u = 0; u < theGame.customUniforms.length; u++) {
+
+            }
+        }
+    }
+}
+
 
 
 
@@ -880,7 +896,17 @@ function main() {
 
     // Initialize a shader program; this is where all the lighting
     // for the vertices and so forth is established.
-    const mainShaderProgram = initShaderProgram(gl, vsSource, fsSource);
+    var vsSourceTrue = vsSource;
+    if (typeof vsOverride != 'undefined') {
+        vsSourceTrue = vsOverride;
+    }
+
+    var fsSourceTrue = fsSource;
+    if (typeof fsOverride != 'undefined') {
+        fsSourceTrue = fsOverride;
+    }
+
+    const mainShaderProgram = initShaderProgram(gl, vsSourceTrue, fsSourceTrue);
 
     // Collect all the info needed to use the shader program.
     // Look up which attribute our shader program is using
@@ -906,6 +932,7 @@ function main() {
             lightDirection: gl.getUniformLocation(mainShaderProgram, 'uLightDirection'),
         },
     };
+    addCustomProgramLocations();
     globalMainProgramInfo = programInfo;
     const buffers = initBuffers(gl);
     resizeCanvas();
