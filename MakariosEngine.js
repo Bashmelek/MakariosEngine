@@ -571,12 +571,12 @@ function drawScene(gl, programInfo, buffers) {  //deltaTime
 
 
     // Set the shader uniforms
-    var fullproj = mat4.create();
-    mat4.multiply(fullproj, projectionMatrix, modelViewMatrix);//gproj, gmod
+    ////var fullproj = mat4.create();
+    ////mat4.multiply(fullproj, projectionMatrix, modelViewMatrix);//gproj, gmod
     gl.uniformMatrix4fv(
         programInfo.uniformLocations.projectionMatrix,
         false,
-        fullproj);//projectionMatrix
+        projectionMatrix);//projectionMatrix
 
 
     //console.log('proj rock be:');
@@ -619,7 +619,7 @@ function drawScene(gl, programInfo, buffers) {  //deltaTime
     //gl.uniform1f(programInfo.uniformLocations.urandomSeed1, Math.floor(Math.random() * 1000.0));
     if (!Makarios.IsGPUTrash()) {
         var perfStart = performance.now();
-        RenderObjects(gl, programInfo, StageData.objects, mat4.create()/*modelViewMatrix*/, 0.0, { offsetval: 0, alpha: 1.0 }, mat4.create());
+        RenderObjects(gl, programInfo, StageData.objects, modelViewMatrix /*mat4.create()*/ /*modelViewMatrix*/, 0.0, { offsetval: 0, alpha: 1.0 }, mat4.create());
         var performanceResult = performance.now() - perfStart;
         if (performanceResult > 30) {
             performanceStats.consecutiveSlowObjDraws += 1;

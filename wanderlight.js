@@ -43,20 +43,23 @@ const WanderLight = (function () {
 
                 highp vec3 surfaceToLightDirection = normalize(vPosToLight);
                 highp vec3 normWorld = normalize(vNormWorld);
-                highp float pointlight = max((dot(normWorld, surfaceToLightDirection)), 0.0); ////max(dot(vNormWorld, vPosToLight), abs(dot(vNormWorld, vPosToLight))); ////max(dot(vNormWorld, vPosToLight), dot(vNormWorld, vPosToLight));
+                highp float pointlight = max(abs(dot(normWorld, surfaceToLightDirection)), 0.0); ////max(dot(vNormWorld, vPosToLight), abs(dot(vNormWorld, vPosToLight))); ////max(dot(vNormWorld, vPosToLight), dot(vNormWorld, vPosToLight));
 
                 gl_FragColor = vec4(texelColor.rgb * vLighting, texelColor.a * 1.0);//texelColor.a * 1.0
-                gl_FragColor.rgb *= (1.0 + pointlight);
+                gl_FragColor.rgb *= (1.0 + 1.0 * pointlight * vec3(0.4, 0.85, 1.0));
 
                 // Just add in the specular
                 highp vec3 surfaceToViewDirection = normalize(vPosToCam);
                 highp vec3 halfVector = normalize(surfaceToLightDirection + surfaceToViewDirection);
                 highp float specular = dot(normWorld, halfVector);
-                specular = abs(specular);
+                specular = abs(0.0 * specular);
                 if (specular > 0.0) {
                     specular = pow(specular, 8.0);//8.0
                 }
-                gl_FragColor.rgb += max(0.0 * specular, 0.0);;// max(1.8 * specular, 0.0);
+                gl_FragColor.rgb += max(1.0 * specular, 0.0);// max(1.8 * specular, 0.0);
+                ////gl_FragColor.rgb = surfaceToViewDirection;
+                ////gl_FragColor.r *= 10.0;
+                ////gl_FragColor.g *= 10.0;
 
                 if(ucelStep > 1.0)
                 {
@@ -124,7 +127,7 @@ const WanderLight = (function () {
                 // compute the vector of the surface to the light
                 // and pass it to the fragment shader
                 vNormWorld = mat3(worldSpaceMat) * aVertexNormal;
-                vPosToLight = (worldSpaceMat * vec4(4.0, -2.0, -4.0, 1.0)).xyz - pointWorldPos;//ulightWorldPos - surfaceWorldPosition; ////(mat3(uParentMatrix) * vec3(4.0, -2.0, 8.0)) - pointWorldPos;
+                vPosToLight = (worldSpaceMat * vec4(8.0, 1.4, 8.0, 1.0)).xyz - pointWorldPos;//ulightWorldPos - surfaceWorldPosition; ////(mat3(uParentMatrix) * vec3(4.0, -2.0, 8.0)) - pointWorldPos;
                 // compute the vector of the surface to the view/camera
                 // and pass it to the fragment shader
                 vPosToCam = vec3(uProjectionMatrix[3][0], uProjectionMatrix[3][1], uProjectionMatrix[3][2]) - pointWorldPos;//uProjectionMatrix[12], uProjectionMatrix[13], uProjectionMatrix[14]
@@ -166,6 +169,10 @@ const WanderLight = (function () {
 
             var obplane = Makarios.instantiate(Primitives.shapes["plane"], 'plainsky.jpg', null, {});
             mat4.fromScaling(obplane.matrix, [4.0, 4.0, 4.0]);//[14.0, 4.0, 14.0]);
+
+
+            var oblightdummy = Makarios.instantiate(Primitives.shapes["cube"], 'plainsky.jpg', null, {});
+            mat4.translate(oblightdummy.matrix, oblightdummy.matrix, [8.0, 1.4, 8.0]);//[14.0, 4.0, 14.0]);
 
             //var obplane2 = Makarios.instantiate(Primitives.shapes["plane"], 'plainsky.jpg', null, {});
             //mat4.fromScaling(obplane2.matrix, [1.0, 1.0, 1.0]);//[14.0, 4.0, 14.0]);
