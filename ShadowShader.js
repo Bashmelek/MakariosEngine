@@ -1,9 +1,9 @@
 // JavaScript source code
 
-const OutlineRenderer = (function () {
+const ShadowShader = (function () {
 
     //stolen i mean adapted from https://github.com/aakshayy/toonshader-webgl/tree/master/shaders credit
-    var outlineVsSource = `
+    var shadowVsSource = `
             attribute vec4 aVertexPosition; // vertex position
             attribute vec3 aVertexNormal; // vertex normal
             attribute float aUseParentMatrix;
@@ -73,15 +73,15 @@ const OutlineRenderer = (function () {
                 //vDebug = vec3(90.0 * abs((worldBase.x) - (worldOutline.x)), 90.0 * abs((worldBase.y) - (worldOutline.y)), 90.0 * abs((worldBase.z) - (worldOutline.z)));
             }
     `;
-    var outlineFsSource = `
+    var shadowFsSource = `
             precision mediump float; // set float to medium precision
-            uniform vec3 uOutlineColor; //outline Color
+            uniform vec3 uShadowColor; //outline Color
 
             varying highp vec3 vDebug;
             void main(void) {    
     
-                ////gl_FragColor = vec4(vDebug, 1.0);// vec4(uOutlineColor, 1.0);//vec4(1.0, 1.0 - (vDebug[1] * 1.0), 0.0, 1.0);//vec4(uOutlineColor, 1.0);
-                gl_FragColor = vec4(uOutlineColor, 1.0);
+                ////gl_FragColor = vec4(vDebug, 1.0);// vec4(uShadowColor, 1.0);//vec4(1.0, 1.0 - (vDebug[1] * 1.0), 0.0, 1.0);//vec4(uShadowColor, 1.0);
+                gl_FragColor = vec4(uShadowColor, 1.0);
 
             } // end main
     `;
@@ -93,13 +93,13 @@ const OutlineRenderer = (function () {
 
     var shaderprogram;
 
-    var outlineColor, outlineWidth;
+    var shadowColor, outlineWidth;
 
     var uniform_camera_up, uniform_camera_right, uniform_camera_origin;
     var uniform_camera_dir, uniform_camera_near, uniform_camera_far;
     var uniform_cubemap, cubemap_texture, cubemap_image, cubemap_counter;
 
-    var uniform_modelViewMatrix, uniform_projectionMatrix, uniform_outlineColor, uniform_outlineWidth;
+    var uniform_modelViewMatrix, uniform_projectionMatrix, uniform_shadowColor, uniform_outlineWidth;
     var last_x, last_y;
     var request = 0;
 
@@ -115,7 +115,7 @@ const OutlineRenderer = (function () {
     var isSet = false;
     var cubemap_counter = 0;
 
-    var drawOutline = function (modMat, projMat, vertices, normals, indices, useParentMatrix, objects) {// (projMat, modMat) {
+    var drawShadowsToTexture = function (modMat, projMat, vertices, normals, indices, useParentMatrix, objects) {// (projMat, modMat) {
         if (!isLoaded || !isSet) { return; }
 
         //console.log('drawed dasky?');
@@ -131,7 +131,7 @@ const OutlineRenderer = (function () {
         //    false, modMat);
         //wgl.uniformMatrix4fv(uniform_projectionMatrix,
         ////    false, projMat);
-        //wgl.uniform3fv(uniform_outlineColor, [1.0, 1.0, 0.0]);
+        //wgl.uniform3fv(uniform_shadowColor, [1.0, 1.0, 0.0]);
         //wgl.uniform1f(uniform_outlineWidth, -0.02);
 
         var fullproj = mat4.create();
@@ -229,9 +229,9 @@ const OutlineRenderer = (function () {
             false,
             nMat);
 
-        if (obj.outlineColor != null && (obj.outlineColor[0] != outlineColor[0] || obj.outlineColor[1] != outlineColor[1] || obj.outlineColor[2] != outlineColor[2])) {
-            outlineColor = obj.outlineColor;
-            wgl.uniform3fv(uniform_outlineColor, obj.outlineColor);
+        if (obj.shadowColor != null && (obj.shadowColor[0] != shadowColor[0] || obj.shadowColor[1] != shadowColor[1] || obj.shadowColor[2] != shadowColor[2])) {
+            shadowColor = obj.shadowColor;
+            wgl.uniform3fv(uniform_shadowColor, obj.shadowColor);
         }
 
         const vertexCount = obj.indices.length;
@@ -267,7 +267,7 @@ const OutlineRenderer = (function () {
 
     var compileOutlineRenderer = function () {
         var vertex_shader = wgl.createShader(wgl.VERTEX_SHADER);
-        wgl.shaderSource(vertex_shader, outlineVsSource);
+        wgl.shaderSource(vertex_shader, shadowVsSource);
         wgl.compileShader(vertex_shader);
 
         if (!wgl.getShaderParameter(vertex_shader, wgl.COMPILE_STATUS)) {
@@ -283,7 +283,7 @@ const OutlineRenderer = (function () {
 
         //source += document.getElementById("fragment-shader").text;
 
-        wgl.shaderSource(fragment_shader, outlineFsSource);
+        wgl.shaderSource(fragment_shader, shadowFsSource);
         wgl.compileShader(fragment_shader);
 
         if (!wgl.getShaderParameter(fragment_shader, wgl.COMPILE_STATUS)) {
@@ -312,7 +312,7 @@ const OutlineRenderer = (function () {
 
         uniform_modelViewMatrix = wgl.getUniformLocation(program, "uModelViewMatrix");
         uniform_projectionMatrix = wgl.getUniformLocation(program, "uProjectionMatrix");
-        uniform_outlineColor = wgl.getUniformLocation(program, "uOutlineColor");
+        uniform_shadowColor = wgl.getUniformLocation(program, "uShadowColor");
         uniform_outlineWidth = wgl.getUniformLocation(program, "uOutlineWidth");
         uniform_normalMatrix = wgl.getUniformLocation(program, "uNormalMatrix");
         uniform_parentMatrix = wgl.getUniformLocation(program, "uParentMatrix");
@@ -326,11 +326,73 @@ const OutlineRenderer = (function () {
         isSet = false;
         wgl.useProgram(shaderprogram);
 
-        outlineColor = color != null ? color : [1.0, 0.0, 0.0];
+        shadowColor = color != null ? color : [1.0, 0.0, 0.0];
         outlineWidth = width != null ? width : -0.02;
 
-        wgl.uniform3fv(uniform_outlineColor, outlineColor);
+        wgl.uniform3fv(uniform_shadowColor, shadowColor);
         wgl.uniform1f(uniform_outlineWidth, outlineWidth);
+
+
+        //test only
+        const depthTexture = wgl.createTexture();
+        const depthTextureSize = 4096;// 512;// 512;
+        wgl.bindTexture(wgl.TEXTURE_2D, depthTexture);
+        wgl.texImage2D(
+            wgl.TEXTURE_2D,      // target
+            0,                  // mip level
+            wgl.DEPTH_COMPONENT, // internal format
+            depthTextureSize,   // width
+            depthTextureSize,   // height
+            0,                  // border
+            wgl.DEPTH_COMPONENT, // format
+            wgl.UNSIGNED_INT,    // type
+            null);              // data
+        wgl.texParameteri(wgl.TEXTURE_2D, wgl.TEXTURE_MAG_FILTER, wgl.NEAREST);
+        wgl.texParameteri(wgl.TEXTURE_2D, wgl.TEXTURE_MIN_FILTER, wgl.NEAREST);
+        wgl.texParameteri(wgl.TEXTURE_2D, wgl.TEXTURE_WRAP_S, wgl.CLAMP_TO_EDGE);
+        wgl.texParameteri(wgl.TEXTURE_2D, wgl.TEXTURE_WRAP_T, wgl.CLAMP_TO_EDGE);
+
+        const depthFramebuffer = wgl.createFramebuffer();
+        wgl.bindFramebuffer(wgl.FRAMEBUFFER, depthFramebuffer);
+        wgl.framebufferTexture2D(
+            wgl.FRAMEBUFFER,       // target
+            wgl.DEPTH_ATTACHMENT,  // attachment point
+            wgl.TEXTURE_2D,        // texture target
+            depthTexture,         // texture
+            0);                   // mip level
+
+
+        // create a color texture of the same size as the depth texture
+        const unusedTexture = wgl.createTexture();
+        wgl.bindTexture(wgl.TEXTURE_2D, unusedTexture);
+        wgl.texImage2D(
+            wgl.TEXTURE_2D,
+            0,
+            wgl.RGBA,
+            depthTextureSize,
+            depthTextureSize,
+            0,
+            wgl.RGBA,
+            wgl.UNSIGNED_BYTE,
+            null,
+        );
+        wgl.texParameteri(wgl.TEXTURE_2D, wgl.TEXTURE_MAG_FILTER, wgl.NEAREST);
+        wgl.texParameteri(wgl.TEXTURE_2D, wgl.TEXTURE_MIN_FILTER, wgl.NEAREST);
+        wgl.texParameteri(wgl.TEXTURE_2D, wgl.TEXTURE_WRAP_S, wgl.CLAMP_TO_EDGE);
+        wgl.texParameteri(wgl.TEXTURE_2D, wgl.TEXTURE_WRAP_T, wgl.CLAMP_TO_EDGE);
+
+        // attach it to the framebuffer
+        wgl.framebufferTexture2D(
+            wgl.FRAMEBUFFER,        // target
+            wgl.COLOR_ATTACHMENT0,  // attachment point
+            wgl.TEXTURE_2D,         // texture target
+            unusedTexture,         // texture
+            0);                    // mip level
+
+
+
+        //have to remove the framebuffer so we can render to canvas
+        wgl.bindFramebuffer(wgl.FRAMEBUFFER, null);
 
         isSet = true;
     }
@@ -348,6 +410,13 @@ const OutlineRenderer = (function () {
 
         //thank you q9f and ratchet freak https://computergraphics.stackexchange.com/questions/3637/how-to-use-32-bit-integers-for-element-indices-in-webgl-1-0
         var ext = wgl.getExtension('OES_element_index_uint');
+
+        //thank you https://webglfundamentals.org/webgl/lessons/webgl-shadows.html tyref: funglshadows
+        const ext2 = wgl.getExtension('WEBGL_depth_texture');
+        if (!ext2) {
+            return alert('need WEBGL_depth_texture');
+        }
+
         ////console.log(ext);
         wgl.clearColor(0.0, 0.0, 0.0, 1.0);
 
@@ -363,7 +432,7 @@ const OutlineRenderer = (function () {
     })();
 
     return {
-        'drawOutline': drawOutline,
+        'drawShadow': drawShadowsToTexture,
         'setup': setup,
     }
 
