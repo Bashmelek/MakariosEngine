@@ -201,6 +201,12 @@ const StillShade = (function () {
     customAttributes.push({
         name: 'ulightWorldPos'
     });
+    customAttributes.push({
+        name: 'uoverTextureMatrix'
+    });
+    customAttributes.push({
+        name: 'uprojectedTexture'
+    });
 
     return {
         'Init': Init, 'OnFrame': OnFrame,

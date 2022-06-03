@@ -485,7 +485,10 @@ function drawScene(gl, programInfo, buffers) {  //deltaTime
         OutlineRenderer.drawOutline(modelViewMatrix, projectionMatrix, Entera.buffers.positions, Entera.buffers.vertexNormals, Entera.buffers.indices, Entera.buffers.useParentMatrix, StageData.objects);
         gl.useProgram(programInfo.program); //return;
     }
-
+    if (typeof ShadowShader !== 'undefined') {
+        ShadowShader.drawShadowsToTexture(modelViewMatrix, projectionMatrix, Entera.buffers.positions, Entera.buffers.indices, Entera.buffers.useParentMatrix, StageData.objects);
+        gl.useProgram(programInfo.program); //return;
+    }
 
     const normalMatrix = mat4.create();
 
