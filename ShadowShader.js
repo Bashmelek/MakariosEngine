@@ -108,7 +108,8 @@ const ShadowShader = (function () {
 
 
     const depthTextureSize = 4096;
-    var depthFramebuffer
+    var depthTexture;
+    var depthFramebuffer;
 
     var canvas, attribute_vertex_position, attribute_vertex_normal, attribute_vertex_useParent, vertex_buffer;
     var wgl, uniform_parentMatrix, uniform_matrixLevel;
@@ -138,7 +139,7 @@ const ShadowShader = (function () {
         wgl.viewport(0, 0, depthTextureSize, depthTextureSize);
 
 
-        var textureMatrix = mat4.create();
+        textureMatrix = mat4.create();
         //textureMatrix = mat4.translate(textureMatrix, 0.5, 0.5, 0.5);
         //textureMatrix = mat4.scale(textureMatrix, 0.5, 0.5, 0.5);
         //textureMatrix = mat4.multiply(textureMatrix, lightProjectionMatrix);
@@ -354,7 +355,8 @@ const ShadowShader = (function () {
 
 
         //test only
-        const depthTexture = wgl.createTexture();
+        wgl.activeTexture(wgl.TEXTURE1);
+        depthTexture = wgl.createTexture();
         //const depthTextureSize = 4096;// 512;// 512;
         wgl.bindTexture(wgl.TEXTURE_2D, depthTexture);
         wgl.texImage2D(
@@ -412,9 +414,14 @@ const ShadowShader = (function () {
 
 
         //have to remove the framebuffer so we can render to canvas
+        wgl.activeTexture(wgl.TEXTURE0);
         wgl.bindFramebuffer(wgl.FRAMEBUFFER, null);
 
         isSet = true;
+    }
+
+    var getDepthTexture = function () {
+        return depthTexture;
     }
 
     var initialize = (function () {
@@ -453,6 +460,7 @@ const ShadowShader = (function () {
     return {
         'drawShadowsToTexture': drawShadowsToTexture,
         'setup': setup,
+        'getDepthTexture': getDepthTexture
     }
 
 })();

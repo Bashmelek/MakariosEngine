@@ -871,7 +871,9 @@ function addCustomProgramLocations() {
 
         if (theGame.customUniforms != null && theGame.customUniforms.length > 0) {
             for (var u = 0; u < theGame.customUniforms.length; u++) {
-
+                if (theGame.customUniforms[u] && theGame.customUniforms[u].frameset) {
+                    theGame.customUniforms[u].frameset(theGame.customUniforms);
+                }
             }
         }
     }

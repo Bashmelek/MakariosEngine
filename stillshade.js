@@ -25,28 +25,44 @@ const StillShade = (function () {
     var objects = [];
 
     fsOverride = `
+            precision mediump float;
+
             varying highp vec3 vTextureCoord;
             varying highp vec3 vLighting;
 
             uniform mediump float ucelStep;
 
+            uniform sampler2D uProjectedTexture;
             uniform sampler2D uSampler;
             uniform mediump float ucustomAlpha;
+            uniform vec4 u_colorMult;//???
 
             // tyref: webglfundamentals3dpointlighting
+            varying vec2 v_texcoord;
             varying highp vec3 vPosToLight;
             varying highp vec3 vNormWorld;
             varying highp vec3 vPosToCam;
+            varying vec4 v_projectedTexcoord;
 
             void main(void) {
+                highp vec4 resultColor = vec4(1.0, 1.0, 1.0, 1.0);
+                //tyref: funglshadows
+                vec3 projectedTexcoord = v_projectedTexcoord.xyz / v_projectedTexcoord.w;
+                bool inRange = 
+                      projectedTexcoord.x >= 0.0 &&
+                      projectedTexcoord.x <= 1.0 &&
+                      projectedTexcoord.y >= 0.0 &&
+                      projectedTexcoord.y <= 1.0;
+                vec4 projectedTexColor = texture2D(uProjectedTexture, projectedTexcoord.xy);//// vec2(vTextureCoord[0], vTextureCoord[1]));//
+
                 highp vec4 texelColor = texture2D(uSampler, vec2(vTextureCoord[0], vTextureCoord[1]));// vTextureCoord);
 
                 highp vec3 surfaceToLightDirection = normalize(vPosToLight);
                 highp vec3 normWorld = normalize(vNormWorld);
                 highp float pointlight = max(abs(dot(normWorld, surfaceToLightDirection)), 0.0); ////max(dot(vNormWorld, vPosToLight), abs(dot(vNormWorld, vPosToLight))); ////max(dot(vNormWorld, vPosToLight), dot(vNormWorld, vPosToLight));
 
-                gl_FragColor = vec4(texelColor.rgb * vLighting, texelColor.a * 1.0);//texelColor.a * 1.0
-                gl_FragColor.rgb *= (1.0 + 1.0 * pointlight * vec3(0.4, 0.85, 1.0));
+                resultColor = vec4(texelColor.rgb * vLighting, texelColor.a * 1.0);//texelColor.a * 1.0
+                resultColor.rgb *= (1.0 + 1.0 * pointlight * vec3(0.4, 0.85, 1.0));
 
                 // Just add in the specular
                 highp vec3 surfaceToViewDirection = normalize(vPosToCam);
@@ -56,20 +72,26 @@ const StillShade = (function () {
                 if (specular > 0.0) {
                     specular = pow(specular, 8.0);//8.0
                 }
-                gl_FragColor.rgb += max(1.0 * specular, 0.0);// max(1.8 * specular, 0.0);
-                ////gl_FragColor.rgb = surfaceToViewDirection;
-                ////gl_FragColor.r *= 10.0;
-                ////gl_FragColor.g *= 10.0;
+                resultColor.rgb += max(1.0 * specular, 0.0);// max(1.8 * specular, 0.0);
+                ////resultColor.rgb = surfaceToViewDirection;
+                ////resultColor.r *= 10.0;
+                ////resultColor.g *= 10.0;
 
                 if(ucelStep > 1.0)
                 {
-                    gl_FragColor = vec4(ceil(gl_FragColor[0] * ucelStep) / ucelStep, ceil(gl_FragColor[1] * ucelStep) / ucelStep, ceil(gl_FragColor[2] * ucelStep) / ucelStep, gl_FragColor[3]);
+                    resultColor = vec4(ceil(resultColor[0] * ucelStep) / ucelStep, ceil(resultColor[1] * ucelStep) / ucelStep, ceil(resultColor[2] * ucelStep) / ucelStep, resultColor[3]);
                 }
+                ////vec4 texColor = texture2D(u_texture, v_texcoord) * u_colorMult;
+                float projectedAmount = inRange ? 1.0 : 0.0;
+                resultColor = mix(resultColor, projectedTexColor, projectedAmount);
+                gl_FragColor = resultColor;
             }
         `;
 
 
     vsOverride = `
+            precision mediump float;
+
             attribute vec4 aVertexPosition;
             attribute vec3 aVertexNormal;
             attribute vec3 aTextureCoord;
@@ -82,6 +104,8 @@ const StillShade = (function () {
             uniform float uMatrixLevel;
             uniform vec3 uLightDirection;
 
+            uniform mat4 uOverTextureMatrix;
+
             varying highp vec3 vTextureCoord;
             varying highp vec3 vLighting;
 
@@ -91,6 +115,8 @@ const StillShade = (function () {
             varying highp vec3 vPosToLight;
             varying highp vec3 vNormWorld;
             varying highp vec3 vPosToCam;
+            varying vec2 v_texcoord;
+            varying vec4 v_projectedTexcoord;
 
             void main(void) {
                 
@@ -131,8 +157,15 @@ const StillShade = (function () {
                 // compute the vector of the surface to the view/camera
                 // and pass it to the fragment shader
                 vPosToCam = vec3(uProjectionMatrix[3][0], uProjectionMatrix[3][1], uProjectionMatrix[3][2]) - pointWorldPos;//uProjectionMatrix[12], uProjectionMatrix[13], uProjectionMatrix[14]
+
+                v_projectedTexcoord = uOverTextureMatrix * vec4(pointWorldPos, 1.0);
             }
         `;
+
+    var wgl;
+    customAttributes = [];
+    customUniforms = [];
+    var textureMatrix = mat4.create();
 
     var Init = function () {
         StageData.ticks = 0;
@@ -147,6 +180,33 @@ const StillShade = (function () {
 
         var thingsLoaded = 0;
         var maxThingsToLoad = 1;
+
+
+
+        var canvas = document.getElementById("glCanvas");
+        wgl = canvas.getContext("webgl");
+        customUniforms.push({
+            name: 'ulightWorldPos'
+        });
+        customUniforms.push({
+            name: 'uOverTextureMatrix',
+            loc: wgl.getUniformLocation(globalMainProgramInfo.program, 'uOverTextureMatrix'),
+            frameset: function (attr) {
+                gl.uniformMatrix4fv(
+                    attr.loc,
+                    false,
+                    textureMatrix);
+            }
+        });
+        customUniforms.push({
+            name: 'uProjectedTexture',
+            loc: wgl.getUniformLocation(globalMainProgramInfo.program, 'uProjectedTexture'),
+            frameset: function (attr) {
+                gl.uniform1i(attr.loc, 1);
+            }
+        });
+
+
 
         var foxloc = 'SampleModels/Fox/glTF-Embedded/Fox.gltf';
 
@@ -197,20 +257,9 @@ const StillShade = (function () {
         WanderProc();
     };
 
-    customAttributes = [];
-    customAttributes.push({
-        name: 'ulightWorldPos'
-    });
-    customAttributes.push({
-        name: 'uoverTextureMatrix'
-    });
-    customAttributes.push({
-        name: 'uprojectedTexture'
-    });
-
     return {
         'Init': Init, 'OnFrame': OnFrame,
         'customAttributes': customAttributes,
-        //'customUniforms': customUniforms
+        'customUniforms': customUniforms
     };
 })();
