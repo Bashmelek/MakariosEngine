@@ -56,6 +56,7 @@ const ShadowShader = (function () {
           pointWorldPos = worldSpaceMat * aVertexPosition;
 
           gl_Position = uProjectionMatrix * uViewMatrix * pointWorldPos;
+gl_Position[2] = 0.999;
 
           // Pass the texture coord to the fragment shader.
           v_texcoord = a_texcoord;
@@ -87,7 +88,7 @@ const ShadowShader = (function () {
 
         uniform vec4 u_colorMult;//???
         uniform sampler2D uSampler;//u_texture;
-        uniform sampler2D u_projectedTexture;//??? depthtexture
+        ////uniform sampler2D u_projectedTexture;//??? depthtexture
 
         void main() {
           vec3 projectedTexcoord = v_projectedTexcoord.xyz / v_projectedTexcoord.w;
@@ -98,10 +99,10 @@ const ShadowShader = (function () {
               projectedTexcoord.y <= 1.0;
 
           // the 'r' channel has the depth values
-          vec4 projectedTexColor = vec4(texture2D(u_projectedTexture, projectedTexcoord.xy).rrr, 1);
+          ////vec4 projectedTexColor = vec4(texture2D(u_projectedTexture, projectedTexcoord.xy).rrr, 1);
           vec4 texColor = texture2D(uSampler, v_texcoord) * u_colorMult;
           float projectedAmount = inRange ? 1.0 : 0.0;
-          gl_FragColor = mix(texColor, projectedTexColor, projectedAmount);
+          gl_FragColor = texColor;//// mix(texColor, vec4(0.0, 0.0, 0.0, 0.0), projectedAmount);
         }
     `;
 
@@ -126,10 +127,14 @@ const ShadowShader = (function () {
     var drawShadowsToTexture = function (modMat, projMat, vertices, indices, useParentMatrix, objects) {// (projMat, modMat) {
         if (!isLoaded || !isSet) { return; }
 
-        wgl.bindFramebuffer(wgl.FRAMEBUFFER, depthFramebuffer);
         //console.log('drawed dasky?');
         wgl.useProgram(shaderprogram);
+        ////wgl.activeTexture(wgl.TEXTURE7);
+        //wgl.uniform1i(uniform_projectedTexture, 3);
+        wgl.bindFramebuffer(wgl.FRAMEBUFFER, depthFramebuffer);
 
+        ////wgl.enable(wgl.CULL_FACE);
+        wgl.enable(wgl.DEPTH_TEST);
 
         wgl.clearDepth(1.0);                 // Clear everything
         wgl.enable(wgl.DEPTH_TEST);           // Enable depth testing
@@ -138,10 +143,13 @@ const ShadowShader = (function () {
         //set viewport. Important. Don't forget it!
         wgl.viewport(0, 0, depthTextureSize, depthTextureSize);
 
+        ////wgl.clearColor(0.0, 0.4, 0.0, 1.0);
+        wgl.clear(wgl.COLOR_BUFFER_BIT | wgl.DEPTH_BUFFER_BIT);
+
 
         textureMatrix = mat4.create();
         //textureMatrix = mat4.translate(textureMatrix, 0.5, 0.5, 0.5);
-        //textureMatrix = mat4.scale(textureMatrix, 0.5, 0.5, 0.5);
+        ////mat4.scale(textureMatrix, textureMatrix, [10.5, 35.5, 21.5]);
         //textureMatrix = mat4.multiply(textureMatrix, lightProjectionMatrix);
         //textureMatrix = mat4.multiply(
         //    textureMatrix,
@@ -153,11 +161,19 @@ const ShadowShader = (function () {
             textureMatrix);
 
         var fullproj = mat4.create();
-        mat4.multiply(fullproj, projMat, modMat);//gproj, gmod
+        var modnew = mat4.create();
+        ////mat4.multiply(fullproj, projMat, modMat);//gproj, gmod
+        mat4.rotate(modnew,  // destination matrix
+            modMat,  // matrix to rotate
+            Date.now() * .000,//.7,   // amount to rotate in radians
+            [0, 1, 0]); //console.log(Date.now() * .01);
+        ////mat4.scale(modnew, modnew, [10.5, 35.5, 21.5]);
+        ////mat4.scale(fullproj, fullproj, [10.5, 35.5, 21.5]);
+
         wgl.uniformMatrix4fv(
             uniform_projectionMatrix,
             false,
-            fullproj);
+            projMat);
         wgl.bindBuffer(wgl.ARRAY_BUFFER, vertex_buffer); 
         wgl.bufferData(wgl.ARRAY_BUFFER,
             new Float32Array(vertices),
@@ -207,7 +223,7 @@ const ShadowShader = (function () {
         for (var i = objects.length; i >= 0; i--) {
             //console.log(useParentMatrix);
             if (!objects[i]) { continue; };
-            outlineObject(objects[i], baseParent, 0.0, baseNorm)
+            shadowMapObject(objects[i], modnew, 0.0, baseNorm);
         }
 
         //wgl.drawElements(wgl.TRIANGLES, indices.length, wgl.UNSIGNED_SHORT, 0);//vertices / 3, wgl.UNSIGNED_SHORT, 0);
@@ -215,14 +231,17 @@ const ShadowShader = (function () {
         //wgl.drawArrays(wgl.TRIANGLE_STRIP, 0, 4);
         //request++;// = 0;
 
-
         //reset viewport. Also important. Don't forget it!
         wgl.bindFramebuffer(wgl.FRAMEBUFFER, null);
         wgl.viewport(0, 0, wgl.canvas.width, wgl.canvas.height);
+        wgl.activeTexture(wgl.TEXTURE0);
+
+        ////////wgl.bindFramebuffer(wgl.FRAMEBUFFER, depthFramebuffer);
+        ////////wgl.viewport(0, 0, depthTextureSize, depthTextureSize);
     }
 
 
-    var outlineObject = function (obj, parentmatrix, depth) {
+    var shadowMapObject = function (obj, parentmatrix, depth) {
 
         var mat0 = mat4.create();
         mat4.multiply(mat0,     // destination matrix
@@ -271,7 +290,7 @@ const ShadowShader = (function () {
             wgl.uniform1f(uniform_matrixLevel, depth + 1.0);
             for (var c = 0; c < obj.children.length; c++) {
                 if (!obj.children[c]) { continue; };
-                outlineObject(obj.children[c], mat0, depth + 1.0);
+                shadowMapObject(obj.children[c], mat0, depth + 1.0);
             }
             wgl.uniform1f(uniform_matrixLevel, depth);
             wgl.uniformMatrix4fv(
@@ -338,6 +357,7 @@ const ShadowShader = (function () {
 
         uniform_viewMatrix = wgl.getUniformLocation(program, "uViewMatrix");
         uniform_textureMatrix = wgl.getUniformLocation(program, "u_textureMatrix");
+        uniform_projectedTexture = wgl.getUniformLocation(program, "u_projectedTexture");
         //uniform_view = wgl.getUniformLocation(program, "u_view");
         //uniform_dir = wgl.getUniformLocation(program, "udir");
 
@@ -374,15 +394,18 @@ const ShadowShader = (function () {
         wgl.texParameteri(wgl.TEXTURE_2D, wgl.TEXTURE_WRAP_S, wgl.CLAMP_TO_EDGE);
         wgl.texParameteri(wgl.TEXTURE_2D, wgl.TEXTURE_WRAP_T, wgl.CLAMP_TO_EDGE);
 
+        wgl.activeTexture(wgl.TEXTURE3);
+
         depthFramebuffer = wgl.createFramebuffer();
         wgl.bindFramebuffer(wgl.FRAMEBUFFER, depthFramebuffer);
         wgl.framebufferTexture2D(
             wgl.FRAMEBUFFER,       // target
-            wgl.DEPTH_ATTACHMENT,  // attachment point
+            wgl.DEPTH_ATTACHMENT,  // attachment point  wgl.COLOR_ATTACHMENT0    wgl.DEPTH_ATTACHMENT
             wgl.TEXTURE_2D,        // texture target
             depthTexture,         // texture
             0);                   // mip level
 
+        wgl.activeTexture(wgl.TEXTURE2);
 
         // create a color texture of the same size as the depth texture
         const unusedTexture = wgl.createTexture();
@@ -412,9 +435,9 @@ const ShadowShader = (function () {
             0);                    // mip level
 
 
-
-        //have to remove the framebuffer so we can render to canvas
         wgl.activeTexture(wgl.TEXTURE0);
+        
+        //have to remove the framebuffer so we can render to canvas
         wgl.bindFramebuffer(wgl.FRAMEBUFFER, null);
 
         isSet = true;

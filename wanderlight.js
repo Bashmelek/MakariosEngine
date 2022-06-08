@@ -171,7 +171,7 @@ const WanderLight = (function () {
             mat4.fromScaling(obplane.matrix, [4.0, 4.0, 4.0]);//[14.0, 4.0, 14.0]);
 
 
-            var oblightdummy = Makarios.instantiate(Primitives.shapes["cube"], 'plainsky.jpg', null, {});
+            var oblightdummy = Makarios.instantiate(Primitives.shapes["tetrahedron"], 'plainsky.jpg', null, {});
             mat4.translate(oblightdummy.matrix, oblightdummy.matrix, [8.0, 1.4, 8.0]);//[14.0, 4.0, 14.0]);
 
             //var obplane2 = Makarios.instantiate(Primitives.shapes["plane"], 'plainsky.jpg', null, {});

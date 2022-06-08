@@ -861,7 +861,7 @@ function resizeCanvas() {
 
 window.addEventListener('resize', resizeCanvas);
 
-function addCustomProgramLocations() {
+function addCustomProgramLocations(gl) {
     if (theGame && (theGame.customAttributes != null || theGame.customUniforms != null)) {
         if (theGame.customAttributes != null && theGame.customAttributes.length > 0) {
             for (var a = 0; a < theGame.customAttributes.length; a++) {
@@ -872,7 +872,7 @@ function addCustomProgramLocations() {
         if (theGame.customUniforms != null && theGame.customUniforms.length > 0) {
             for (var u = 0; u < theGame.customUniforms.length; u++) {
                 if (theGame.customUniforms[u] && theGame.customUniforms[u].frameset) {
-                    theGame.customUniforms[u].frameset(theGame.customUniforms);
+                    theGame.customUniforms[u].frameset(theGame.customUniforms[u], gl);
                 }
             }
         }
@@ -986,6 +986,7 @@ function main() {
         var buffers = initBuffers(gl);
 
         //globalMainProgramInfo = programInfo;
+        addCustomProgramLocations(gl);
         drawScene(gl, programInfo, buffers);//deltaTime
 
         requestAnimationFrame(render);

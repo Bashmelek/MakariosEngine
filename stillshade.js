@@ -53,7 +53,7 @@ const StillShade = (function () {
                       projectedTexcoord.x <= 1.0 &&
                       projectedTexcoord.y >= 0.0 &&
                       projectedTexcoord.y <= 1.0;
-                vec4 projectedTexColor = texture2D(uProjectedTexture, projectedTexcoord.xy);//// vec2(vTextureCoord[0], vTextureCoord[1]));//
+                vec4 projectedTexColor = vec4(texture2D(uProjectedTexture, projectedTexcoord.xy).rrr, 1);//// vec2(vTextureCoord[0], vTextureCoord[1]));//
 
                 highp vec4 texelColor = texture2D(uSampler, vec2(vTextureCoord[0], vTextureCoord[1]));// vTextureCoord);
 
@@ -158,7 +158,7 @@ const StillShade = (function () {
                 // and pass it to the fragment shader
                 vPosToCam = vec3(uProjectionMatrix[3][0], uProjectionMatrix[3][1], uProjectionMatrix[3][2]) - pointWorldPos;//uProjectionMatrix[12], uProjectionMatrix[13], uProjectionMatrix[14]
 
-                v_projectedTexcoord = uOverTextureMatrix * vec4(pointWorldPos, 1.0);
+                v_projectedTexcoord = uOverTextureMatrix * (worldSpaceMat * aVertexPosition);
             }
         `;
 
@@ -191,17 +191,18 @@ const StillShade = (function () {
         customUniforms.push({
             name: 'uOverTextureMatrix',
             loc: wgl.getUniformLocation(globalMainProgramInfo.program, 'uOverTextureMatrix'),
-            frameset: function (attr) {
+            frameset: function (attr, gl) {
                 gl.uniformMatrix4fv(
                     attr.loc,
                     false,
                     textureMatrix);
+                //console.log(textureMatrix);
             }
         });
         customUniforms.push({
             name: 'uProjectedTexture',
             loc: wgl.getUniformLocation(globalMainProgramInfo.program, 'uProjectedTexture'),
-            frameset: function (attr) {
+            frameset: function (attr, gl) {
                 gl.uniform1i(attr.loc, 1);
             }
         });
@@ -232,7 +233,7 @@ const StillShade = (function () {
             mat4.fromScaling(obplane.matrix, [4.0, 4.0, 4.0]);//[14.0, 4.0, 14.0]);
 
 
-            var oblightdummy = Makarios.instantiate(Primitives.shapes["cube"], 'plainsky.jpg', null, {});
+            var oblightdummy = Makarios.instantiate(Primitives.shapes["tetrahedron"], 'plainsky.jpg', null, {});
             mat4.translate(oblightdummy.matrix, oblightdummy.matrix, [8.0, 1.4, 8.0]);//[14.0, 4.0, 14.0]);
 
             //var obplane2 = Makarios.instantiate(Primitives.shapes["plane"], 'plainsky.jpg', null, {});
