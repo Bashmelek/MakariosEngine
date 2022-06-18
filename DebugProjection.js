@@ -1,6 +1,6 @@
 // JavaScript source code
 
-const ShadowShader = (function () {
+const DebugProjectionShader = (function () {
 
     //stolen i mean adapted from https://github.com/aakshayy/toonshader-webgl/tree/master/shaders credit
     var shadowVsSource = `
@@ -56,7 +56,7 @@ const ShadowShader = (function () {
           pointWorldPos = worldSpaceMat * aVertexPosition;
 
           gl_Position = uProjectionMatrix * uViewMatrix * pointWorldPos;
-          gl_Position[2] = gl_Position[2] * gl_Position[3] * 0.01;//-gl_Position[2] * 0.8;//0.999;// gl_Position[2] / 5.0;//// 0.999;
+////gl_Position[2] = 0.999;// gl_Position[2] / 5.0;//// 0.999;
 
           // Pass the texture coord to the fragment shader.
           v_texcoord = a_texcoord;
@@ -170,34 +170,9 @@ const ShadowShader = (function () {
         //    [0, 1, 0]); //console.log(Date.now() * .01);
 
 
-        ////mat4.rotate(modnew,  // destination matrix
-        ////    modnew,  // matrix to rotate
-        ////    -.452,//.7,   // amount to rotate in radians
-        ////    [1, 0, 0]); //console.log(Date.now() * .01);
-        ////mat4.rotate(modnew,  // destination matrix
-        ////    modnew,  // matrix to rotate
-        ////    -1.752,//.7,   // amount to rotate in radians
-        ////    [0, 1, 0]);
-        ////mat4.translate(modnew,     // destination matrix
-        ////    modnew,     // matrix to translate
-        ////    [-11.0, 4.0, 0.0]);
-
-        //mat4.rotate(modnew,  // destination matrix
-        //    modnew,  // matrix to rotate
-        //    .252,//(Date.now() * .001),//-.452,//.7,   // amount to rotate in radians
-        //    [1, 0, 0]); //console.log(Date.now() * .01);
-        //mat4.rotate(modnew,  // destination matrix
-        //    modnew,  // matrix to rotate
-        //    -1.752,//.7,   // amount to rotate in radians
-        //    [0, 1, 0]);
-        //mat4.translate(modnew,     // destination matrix
-        //    modnew,     // matrix to translate
-        //    [-44.0, -18.0, 0.0]);//[-11.0, -4.0, 0.0]);
-
-        //just to test
         mat4.rotate(modnew,  // destination matrix
             modnew,  // matrix to rotate
-            .052,//.252,//(Date.now() * .001),//-.452,//.7,   // amount to rotate in radians
+            -.452,//.7,   // amount to rotate in radians
             [1, 0, 0]); //console.log(Date.now() * .01);
         mat4.rotate(modnew,  // destination matrix
             modnew,  // matrix to rotate
@@ -205,7 +180,7 @@ const ShadowShader = (function () {
             [0, 1, 0]);
         mat4.translate(modnew,     // destination matrix
             modnew,     // matrix to translate
-            [-44.0, -8.0, 0.0]);//
+            [-11.0, 4.0, 0.0]);
 
         ////mat4.scale(modnew, modnew, [10.5, 35.5, 21.5]);
         ////mat4.scale(fullproj, fullproj, [10.5, 35.5, 21.5]);

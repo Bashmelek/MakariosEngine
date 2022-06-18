@@ -486,7 +486,7 @@ function drawScene(gl, programInfo, buffers) {  //deltaTime
         gl.useProgram(programInfo.program); //return;
     }
     if (typeof ShadowShader !== 'undefined') {
-        ShadowShader.drawShadowsToTexture(modelViewMatrix, projectionMatrix, Entera.buffers.positions, Entera.buffers.indices, Entera.buffers.useParentMatrix, StageData.objects);
+        ShadowShader.drawShadowsToTexture(modelViewMatrix, projectionMatrix, Entera.buffers.positions, Entera.buffers.indices, Entera.buffers.useParentMatrix, StageData.objects, Entera.buffers.textureCoordinates);
         gl.useProgram(programInfo.program); //return;
     }
 

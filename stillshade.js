@@ -47,13 +47,13 @@ const StillShade = (function () {
             void main(void) {
                 highp vec4 resultColor = vec4(1.0, 1.0, 1.0, 1.0);
                 //tyref: funglshadows
-                vec3 projectedTexcoord = v_projectedTexcoord.xyz / v_projectedTexcoord.w;
+                vec3 projectedTexcoord = v_projectedTexcoord.xyz / (v_projectedTexcoord.w * 1.0);
                 bool inRange = 
                       projectedTexcoord.x >= 0.0 &&
                       projectedTexcoord.x <= 1.0 &&
                       projectedTexcoord.y >= 0.0 &&
                       projectedTexcoord.y <= 1.0;
-                vec4 projectedTexColor = vec4(texture2D(uProjectedTexture, projectedTexcoord.xy).rrr, 1);//// vec2(vTextureCoord[0], vTextureCoord[1]));//
+                vec4 projectedTexColor = vec4(texture2D(uProjectedTexture, projectedTexcoord.xy * 1.0).rrr * 1.0, 1);//vec4(0.2, 0.2, texture2D(uProjectedTexture, projectedTexcoord.xy * 1.0).r * 0.37, 1);////vec4(texture2D(uProjectedTexture, projectedTexcoord.xy * 1.0).rrr * 1.0, 1);//// vec2(vTextureCoord[0], vTextureCoord[1]));//
 
                 highp vec4 texelColor = texture2D(uSampler, vec2(vTextureCoord[0], vTextureCoord[1]));// vTextureCoord);
 
@@ -158,7 +158,9 @@ const StillShade = (function () {
                 // and pass it to the fragment shader
                 vPosToCam = vec3(uProjectionMatrix[3][0], uProjectionMatrix[3][1], uProjectionMatrix[3][2]) - pointWorldPos;//uProjectionMatrix[12], uProjectionMatrix[13], uProjectionMatrix[14]
 
-                v_projectedTexcoord = uOverTextureMatrix * (worldSpaceMat * aVertexPosition);
+                v_projectedTexcoord = uOverTextureMatrix * (worldSpaceMat * aVertexPosition);//(worldSpaceMat * aVertexPosition);//uOverTextureMatrix * (worldSpaceMat * aVertexPosition);// uOverTextureMatrix * (worldSpaceMat * aVertexPosition);//add worldSpaceMat or no?
+                v_projectedTexcoord = (worldSpaceMat * aVertexPosition);//
+                //v_projectedTexcoord[2] = 0.999;//??
             }
         `;
 
@@ -192,6 +194,62 @@ const StillShade = (function () {
             name: 'uOverTextureMatrix',
             loc: wgl.getUniformLocation(globalMainProgramInfo.program, 'uOverTextureMatrix'),
             frameset: function (attr, gl) {
+
+                textureMatrix = mat4.create();
+
+                ////attempt 1     
+                //var tempmat2 = mat4.create();
+                //mat4.rotate(tempmat2,  // destination matrix
+                //    tempmat2,  // matrix to rotate
+                //    -.452,//.7,   // amount to rotate in radians
+                //    [1, 0, 0]); //console.log(Date.now() * .01);
+                //mat4.rotate(tempmat2,  // destination matrix
+                //    tempmat2,  // matrix to rotate
+                //    -1.752,//.7,   // amount to rotate in radians
+                //    [0, 1, 0]);
+                //mat4.translate(tempmat2,     // destination matrix
+                //    tempmat2,     // matrix to translate
+                //    [-6.0, 4.15, -1.62]);//[-11.0, 4.0, 0.0]);//[-5.5, 4.0, 0.0]);  62
+                //mat4.scale(tempmat2, tempmat2, [0.275, 0.275, 0.275]);
+                ////mat4.invert(tempmat2, tempmat2);
+
+                //var temptmat = mat4.create();
+                //mat4.invert(temptmat, gmod);
+                //mat4.multiply(textureMatrix, tempmat2, temptmat);
+                //if (gproj) {
+                //    var tempproj = mat4.create();
+                //    ////mat4.scale(tempproj, gproj, [0.1, 0.1, 0.1]);
+                //    mat4.multiply(textureMatrix, gproj, textureMatrix);
+                //}
+                ////mat4.scale(textureMatrix, textureMatrix, [0.5, 0.5, 0.5]);
+                ////end of attempt 1
+
+                //attempt 2     
+                var tempmat2 = mat4.create();
+                mat4.rotate(tempmat2,  // destination matrix
+                    tempmat2,  // matrix to rotate
+                    .252,//(Date.now() * .001),//-.452,//.7,   // amount to rotate in radians
+                    [1, 0, 0]); //console.log(Date.now() * .01);
+                mat4.rotate(tempmat2,  // destination matrix
+                    tempmat2,  // matrix to rotate
+                    -1.752,//.7,   // amount to rotate in radians
+                    [0, 1, 0]);
+                mat4.translate(tempmat2,     // destination matrix
+                    tempmat2,     // matrix to translate
+                    [-44.0, -8.0, 0.0]);//[-11.0, -4.0, 0.0]);
+                //mat4.invert(tempmat2, tempmat2);
+
+                var temptmat = mat4.create();
+                mat4.invert(temptmat, gmod);
+                mat4.multiply(textureMatrix, tempmat2, temptmat);
+                if (gproj) {
+                    var tempproj = mat4.create();
+                    ////mat4.scale(tempproj, gproj, [0.1, 0.1, 0.1]);
+                    mat4.multiply(textureMatrix, gproj, textureMatrix);
+                }
+                //mat4.scale(textureMatrix, textureMatrix, [0.5, 0.5, 0.5]);
+                //end of attempt 2
+
                 gl.uniformMatrix4fv(
                     attr.loc,
                     false,
@@ -230,7 +288,7 @@ const StillShade = (function () {
 
 
             var obplane = Makarios.instantiate(Primitives.shapes["plane"], 'plainsky.jpg', null, {});
-            mat4.fromScaling(obplane.matrix, [4.0, 4.0, 4.0]);//[14.0, 4.0, 14.0]);
+            mat4.fromScaling(obplane.matrix, [44.0, 44.0, 44.0]);//[14.0, 4.0, 14.0]);
 
 
             var oblightdummy = Makarios.instantiate(Primitives.shapes["tetrahedron"], 'plainsky.jpg', null, {});

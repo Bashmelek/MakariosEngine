@@ -20,7 +20,7 @@ const ShadowShader = (function () {
         attribute vec4 aVertexPosition;
         attribute float aUseParentMatrix;
 
-        attribute vec2 a_texcoord;
+        attribute vec2 aTextureCoord;
 
         //uniform mat4 u_view;
         uniform mat4 uProjectionMatrix;//???
@@ -56,12 +56,14 @@ const ShadowShader = (function () {
           pointWorldPos = worldSpaceMat * aVertexPosition;
 
           gl_Position = uProjectionMatrix * uViewMatrix * pointWorldPos;
-          gl_Position[2] = gl_Position[2] * gl_Position[3] * 0.01;//-gl_Position[2] * 0.8;//0.999;// gl_Position[2] / 5.0;//// 0.999;
+          //gl_Position[2] = gl_Position[2] * 0.5;////gl_Position[2] = 0.999;// gl_Position[2] / 5.0;//// 0.999;
 
           // Pass the texture coord to the fragment shader.
-          v_texcoord = a_texcoord;
+          v_texcoord = aTextureCoord;
 
-          v_projectedTexcoord = u_textureMatrix * pointWorldPos;
+          v_projectedTexcoord = uProjectionMatrix * uViewMatrix * pointWorldPos;//// u_textureMatrix * pointWorldPos;
+          v_projectedTexcoord[2] = v_projectedTexcoord[2] * 0.01;
+          //v_projectedTexcoord = vec4(gl_Position[0], gl_Position[1], gl_Position[2], gl_Position[3]);
         }
 
     `;
@@ -100,9 +102,9 @@ const ShadowShader = (function () {
 
           // the 'r' channel has the depth values
           ////vec4 projectedTexColor = vec4(texture2D(u_projectedTexture, projectedTexcoord.xy).rrr, 1);
-          vec4 texColor = texture2D(uSampler, v_texcoord) * u_colorMult;
+          vec4 texColor = texture2D(uSampler, v_texcoord);// * u_colorMult;
           float projectedAmount = inRange ? 1.0 : 0.0;
-          gl_FragColor = texColor;//// mix(texColor, vec4(0.0, 0.0, 0.0, 0.0), projectedAmount);
+          gl_FragColor = vec4(0.2, 0.2, v_projectedTexcoord.z, 1.0);// texColor;//// mix(texColor, vec4(0.0, 0.0, 0.0, 0.0), projectedAmount);
         }
     `;
 
@@ -124,14 +126,14 @@ const ShadowShader = (function () {
     var isLoaded = false;
     var isSet = false;
 
-    var drawShadowsToTexture = function (modMat, projMat, vertices, indices, useParentMatrix, objects) {// (projMat, modMat) {
+    var drawShadowsToTexture = function (modMat, projMat, vertices, indices, useParentMatrix, objects, textBuffer) {// (projMat, modMat) {
         if (!isLoaded || !isSet) { return; }
 
         //console.log('drawed dasky?');
         wgl.useProgram(shaderprogram);
         ////wgl.activeTexture(wgl.TEXTURE7);
         //wgl.uniform1i(uniform_projectedTexture, 3);
-        wgl.bindFramebuffer(wgl.FRAMEBUFFER, depthFramebuffer);
+        ////wgl.bindFramebuffer(wgl.FRAMEBUFFER, depthFramebuffer);
 
         ////wgl.enable(wgl.CULL_FACE);
         wgl.enable(wgl.DEPTH_TEST);
@@ -141,7 +143,7 @@ const ShadowShader = (function () {
         wgl.depthFunc(wgl.LEQUAL);            // Near things obscure far things
 
         //set viewport. Important. Don't forget it!
-        wgl.viewport(0, 0, depthTextureSize, depthTextureSize);
+        ////wgl.viewport(0, 0, depthTextureSize, depthTextureSize);
 
         ////wgl.clearColor(0.0, 0.4, 0.0, 1.0);
         wgl.clear(wgl.COLOR_BUFFER_BIT | wgl.DEPTH_BUFFER_BIT);
@@ -170,31 +172,6 @@ const ShadowShader = (function () {
         //    [0, 1, 0]); //console.log(Date.now() * .01);
 
 
-        ////mat4.rotate(modnew,  // destination matrix
-        ////    modnew,  // matrix to rotate
-        ////    -.452,//.7,   // amount to rotate in radians
-        ////    [1, 0, 0]); //console.log(Date.now() * .01);
-        ////mat4.rotate(modnew,  // destination matrix
-        ////    modnew,  // matrix to rotate
-        ////    -1.752,//.7,   // amount to rotate in radians
-        ////    [0, 1, 0]);
-        ////mat4.translate(modnew,     // destination matrix
-        ////    modnew,     // matrix to translate
-        ////    [-11.0, 4.0, 0.0]);
-
-        //mat4.rotate(modnew,  // destination matrix
-        //    modnew,  // matrix to rotate
-        //    .252,//(Date.now() * .001),//-.452,//.7,   // amount to rotate in radians
-        //    [1, 0, 0]); //console.log(Date.now() * .01);
-        //mat4.rotate(modnew,  // destination matrix
-        //    modnew,  // matrix to rotate
-        //    -1.752,//.7,   // amount to rotate in radians
-        //    [0, 1, 0]);
-        //mat4.translate(modnew,     // destination matrix
-        //    modnew,     // matrix to translate
-        //    [-44.0, -18.0, 0.0]);//[-11.0, -4.0, 0.0]);
-
-        //just to test
         mat4.rotate(modnew,  // destination matrix
             modnew,  // matrix to rotate
             .052,//.252,//(Date.now() * .001),//-.452,//.7,   // amount to rotate in radians
@@ -205,7 +182,7 @@ const ShadowShader = (function () {
             [0, 1, 0]);
         mat4.translate(modnew,     // destination matrix
             modnew,     // matrix to translate
-            [-44.0, -8.0, 0.0]);//
+            [-44.0, -8.0, 0.0]);//[-44.0, -18.0, 0.0]);//[-11.0, -4.0, 0.0]);
 
         ////mat4.scale(modnew, modnew, [10.5, 35.5, 21.5]);
         ////mat4.scale(fullproj, fullproj, [10.5, 35.5, 21.5]);
@@ -234,6 +211,17 @@ const ShadowShader = (function () {
             wgl.STATIC_DRAW);
         wgl.vertexAttribPointer(attribute_vertex_useParent, 1, wgl.FLOAT, false, 0, 0);
         wgl.enableVertexAttribArray(attribute_vertex_useParent);
+
+        //texture only for testing
+        const texcoords = wgl.createBuffer();
+        wgl.bindBuffer(wgl.ARRAY_BUFFER, texcoords);
+        wgl.bufferData(wgl.ARRAY_BUFFER, new Float32Array(textBuffer),
+            wgl.STATIC_DRAW);
+        wgl.vertexAttribPointer(attribute_textureCoord, 3, wgl.FLOAT, false, 0, 0);
+        wgl.enableVertexAttribArray(attribute_textureCoord);
+        //end texture only for testing
+
+
 
         //var nMat = mat4.create();
         ////mat4.multiply(thisMatForNorm,     // destination matrix
@@ -272,8 +260,8 @@ const ShadowShader = (function () {
         //request++;// = 0;
 
         //reset viewport. Also important. Don't forget it!
-        wgl.bindFramebuffer(wgl.FRAMEBUFFER, null);
-        wgl.viewport(0, 0, wgl.canvas.width, wgl.canvas.height);
+        ////wgl.bindFramebuffer(wgl.FRAMEBUFFER, null);
+        ////wgl.viewport(0, 0, wgl.canvas.width, wgl.canvas.height);
         wgl.activeTexture(wgl.TEXTURE0);
 
         ////////wgl.bindFramebuffer(wgl.FRAMEBUFFER, depthFramebuffer);
@@ -304,6 +292,19 @@ const ShadowShader = (function () {
         //    uniform_normalMatrix,
         //    false,
         //    nMat);
+
+        //only for testing
+        wgl.activeTexture(wgl.TEXTURE0);
+        if (!obj.textureImage && obj.textureUrl) {
+            //console.log(objects[oj]);
+            obj.textureImage = loadTexture(wgl, obj.textureUrl);
+        }
+        wgl.bindTexture(wgl.TEXTURE_2D, obj.textureImage);
+
+        // Tell the shader we bound the texture to texture unit 0
+        wgl.uniform1i(uniform_uSampler, 0);
+        //end only for testing
+
 
         if (obj.shadowColor != null && (obj.shadowColor[0] != shadowColor[0] || obj.shadowColor[1] != shadowColor[1] || obj.shadowColor[2] != shadowColor[2])) {
             shadowColor = obj.shadowColor;
@@ -382,6 +383,7 @@ const ShadowShader = (function () {
         attribute_vertex_position = wgl.getAttribLocation(program, "aVertexPosition");
         ////attribute_vertex_normal = wgl.getAttribLocation(program, "aVertexNormal");
         attribute_vertex_useParent = wgl.getAttribLocation(program, "aUseParentMatrix");
+        attribute_textureCoord = wgl.getAttribLocation(program, 'aTextureCoord')
         wgl.enableVertexAttribArray(attribute_vertex_position);
         ////wgl.enableVertexAttribArray(attribute_vertex_normal);
         wgl.enableVertexAttribArray(attribute_vertex_useParent);
@@ -396,6 +398,7 @@ const ShadowShader = (function () {
 
 
         uniform_viewMatrix = wgl.getUniformLocation(program, "uViewMatrix");
+        uniform_uSampler = wgl.getUniformLocation(program, 'uSampler'),
         uniform_textureMatrix = wgl.getUniformLocation(program, "u_textureMatrix");
         uniform_projectedTexture = wgl.getUniformLocation(program, "u_projectedTexture");
         //uniform_view = wgl.getUniformLocation(program, "u_view");
