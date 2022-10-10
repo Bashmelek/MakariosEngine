@@ -281,7 +281,7 @@ const StillShade = (function () {
             }
             console.log(Primitives.shapes["testbox"]);
             var ob5 = Makarios.instantiate(Primitives.shapes["testbox"], Primitives.shapes["testbox"].textureUrl, null, {});//'plainsky.jpg'  Primitives.shapes["testbox"].textureUrl
-            Makarios.SetAnimation(ob5, "Survey");//"0"    Survey  Run
+            Makarios.SetAnimation(ob5, "Run");//"0"    Survey  Run
 
             mat4.fromScaling(ob5.matrix, [0.1, 0.1, 0.1]);
             console.log(ob5.matrix);
