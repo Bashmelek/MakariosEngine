@@ -49,7 +49,7 @@ const StillShade = (function () {
                 //tyref: funglshadows
                 vec3 projectedTexcoord = v_projectedTexcoord.xyz / (v_projectedTexcoord.w * 1.0);
                 //from the shadow shader: gl_Position[2] * gl_Position[3] * 0.01;
-                float currentDepth = projectedTexcoord.z;//// * 0.11 * 0.333;//// * v_projectedTexcoord.w * 0.001;
+                float currentDepth = projectedTexcoord.z - 0.00001;//// * 0.11 * 0.333;//// * v_projectedTexcoord.w * 0.001;
                 bool inRange = 
                       projectedTexcoord.x >= 0.0 &&
                       projectedTexcoord.x <= 1.0 &&
@@ -66,7 +66,7 @@ const StillShade = (function () {
                 highp float pointlight = max(abs(dot(normWorld, surfaceToLightDirection)), 0.0); ////max(dot(vNormWorld, vPosToLight), abs(dot(vNormWorld, vPosToLight))); ////max(dot(vNormWorld, vPosToLight), dot(vNormWorld, vPosToLight));
 
                 resultColor = vec4(texelColor.rgb * vLighting, texelColor.a * 1.0);//texelColor.a * 1.0
-                resultColor.rgb *= shadowLight *(1.0 + shadowLight * pointlight * vec3(0.4, 0.85, 1.0));//(1.0 + 1.0 * pointlight * vec3(0.4, 0.85, 1.0));
+                resultColor.rgb *= (1.0 + shadowLight * pointlight * vec3(0.4, 0.85, 1.0));//(1.0 + 1.0 * pointlight * vec3(0.4, 0.85, 1.0));
 
                 //testval
                 ////resultColor = vec4(texture2D(uProjectedTexture, projectedTexcoord.xy * 1.0).rrr * 0.333, 1);//
