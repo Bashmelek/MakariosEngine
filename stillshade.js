@@ -49,7 +49,7 @@ const StillShade = (function () {
                 //tyref: funglshadows
                 vec3 projectedTexcoord = v_projectedTexcoord.xyz / (v_projectedTexcoord.w * 1.0);
                 //from the shadow shader: gl_Position[2] * gl_Position[3] * 0.01;
-                float currentDepth = v_projectedTexcoord.z * 0.11 * 0.333;//// * v_projectedTexcoord.w * 0.001;
+                float currentDepth = projectedTexcoord.z;//// * 0.11 * 0.333;//// * v_projectedTexcoord.w * 0.001;
                 bool inRange = 
                       projectedTexcoord.x >= 0.0 &&
                       projectedTexcoord.x <= 1.0 &&
@@ -71,7 +71,7 @@ const StillShade = (function () {
                 //testval
                 ////resultColor = vec4(texture2D(uProjectedTexture, projectedTexcoord.xy * 1.0).rrr * 0.333, 1);//
                 ////resultColor = vec4(currentDepth * 1.0,currentDepth * 1.0, currentDepth * 1.0,  1);//
-                resultColor = vec4(currentDepth * 2.0 - texture2D(uProjectedTexture, projectedTexcoord.xy * 1.0).r * 1.0, currentDepth * 2.0 - texture2D(uProjectedTexture, projectedTexcoord.xy * 1.0).r * 1.0, currentDepth * 2.0 - texture2D(uProjectedTexture, projectedTexcoord.xy * 1.0).r * 1.0, 1);
+                ////resultColor = vec4(currentDepth * 2.0 - texture2D(uProjectedTexture, projectedTexcoord.xy * 1.0).r * 1.0, currentDepth * 2.0 - texture2D(uProjectedTexture, projectedTexcoord.xy * 1.0).r * 1.0, currentDepth * 2.0 - texture2D(uProjectedTexture, projectedTexcoord.xy * 1.0).r * 1.0, 1);
                 
                 // Just add in the specular
                 highp vec3 surfaceToViewDirection = normalize(vPosToCam);
@@ -171,7 +171,7 @@ const StillShade = (function () {
                 v_projectedTexcoord = uOverTextureMatrix * uGlobalModInv * (worldSpaceMat * aVertexPosition);//(worldSpaceMat * aVertexPosition);//uOverTextureMatrix * (worldSpaceMat * aVertexPosition);// uOverTextureMatrix * (worldSpaceMat * aVertexPosition);//add worldSpaceMat or no?
                 ////v_projectedTexcoord = uGlobalModInv * uProjectionMatrix * (worldSpaceMat * aVertexPosition);//
                 //v_projectedTexcoord[2] = 0.999;//??
-                v_projectedTexcoord[2] = v_projectedTexcoord[2] * v_projectedTexcoord[3] * 0.01;
+                ////v_projectedTexcoord[2] = v_projectedTexcoord[2] * v_projectedTexcoord[3] * 0.01;
             }
         `;
 

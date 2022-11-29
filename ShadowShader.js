@@ -56,7 +56,7 @@ const ShadowShader = (function () {
           pointWorldPos = worldSpaceMat * aVertexPosition;
 
           gl_Position = uProjectionMatrix * uViewMatrix * pointWorldPos;
-          gl_Position[2] = gl_Position[2] * gl_Position[3] * 0.01;//-gl_Position[2] * 0.8;//0.999;// gl_Position[2] / 5.0;//// 0.999;
+          //gl_Position[2] = gl_Position[2];//// gl_Position[2] * gl_Position[3] * 0.01;//-gl_Position[2] * 0.8;//0.999;// gl_Position[2] / 5.0;//// 0.999;
 
           // Pass the texture coord to the fragment shader.
           v_texcoord = a_texcoord;
