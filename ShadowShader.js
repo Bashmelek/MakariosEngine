@@ -28,25 +28,10 @@ const ShadowShader = (function () {
                 if(aUseParentMatrix < uMatrixLevel) {
                     worldSpaceMat = uParentMatrix;
                 }
-                ////mat4 worldCamMat = uProjectionMatrix * uViewMatrix * worldSpaceMat;
-
-                ////if(aUseParentMatrix >= uMatrixLevel) {
-                ////    gl_Position = uProjectionMatrix * worldSpaceMat * aVertexPosition;
-                ////}
-                ////else {
-                ////    gl_Position = uProjectionMatrix * worldSpaceMat * aVertexPosition;
-                ////}
-                ////vTextureCoord = aTextureCoord;       
-
 
           pointWorldPos = worldSpaceMat * aVertexPosition;
 
           gl_Position = uProjectionMatrix * uViewMatrix * pointWorldPos;
-          //gl_Position[2] = gl_Position[2];//// gl_Position[2] * gl_Position[3] * 0.01;//-gl_Position[2] * 0.8;//0.999;// gl_Position[2] / 5.0;//// 0.999;
-           //gl_Position[2] = (((gl_Position[2] / gl_Position[3]) - 0.9) / (1.0 - 0.9)) * gl_Position[3];// gl_Position[2] - 0.001;//(gl_Position[2] - 0.9) / (1.0 - 0.9);//(gl_Position[2] - uzMin) / (uzMax - uzMin);
-          //gl_Position[2] =  ((gl_Position[2] / gl_Position[3]) + 0.0) * gl_Position[3];
-            //gl_Position[2] = ((gl_Position[2] / gl_Position[3]) - 0.99) * 100.0 * gl_Position[3];
-            ////gl_Position[2] = (((gl_Position[2] / gl_Position[3]) - 0.98) * 68.0 - 1.0) * gl_Position[3];//
         
 
           // Pass the texture coord to the fragment shader.
@@ -58,20 +43,6 @@ const ShadowShader = (function () {
 
     `;
     var shadowFsSource = `
-        //varying highp vec3 vTextureCoord;
-        //varying highp vec3 vLighting;
-
-        //uniform mediump float ucelStep;
-
-        //uniform sampler2D uSampler;
-        //uniform mediump float ucustomAlpha;
-
-        //// tyref: webglfundamentals3dpointlighting
-        //varying highp vec3 vPosToLight;
-        //varying highp vec3 vNormWorld;
-        //varying highp vec3 vPosToCam;
-
-
         precision mediump float;
 
         // Passed in from the vertex shader.
@@ -80,7 +51,6 @@ const ShadowShader = (function () {
 
         uniform vec4 u_colorMult;//???
         uniform sampler2D uSampler;//u_texture;
-        ////uniform sampler2D u_projectedTexture;//??? depthtexture
 
         void main() {
           vec3 projectedTexcoord = v_projectedTexcoord.xyz / v_projectedTexcoord.w;
@@ -91,10 +61,9 @@ const ShadowShader = (function () {
               projectedTexcoord.y <= 1.0;
 
           // the 'r' channel has the depth values
-          ////vec4 projectedTexColor = vec4(texture2D(u_projectedTexture, projectedTexcoord.xy).rrr, 1);
           vec4 texColor = texture2D(uSampler, v_texcoord) * u_colorMult;
           float projectedAmount = inRange ? 1.0 : 0.0;
-          gl_FragColor = texColor;//// mix(texColor, vec4(0.0, 0.0, 0.0, 0.0), projectedAmount);
+          gl_FragColor = texColor;
         }
     `;
 
@@ -149,55 +118,14 @@ const ShadowShader = (function () {
 
 
         textureMatrix = mat4.create();
-        //textureMatrix = mat4.translate(textureMatrix, 0.5, 0.5, 0.5);
-        ////mat4.scale(textureMatrix, textureMatrix, [10.5, 35.5, 21.5]);
-        //textureMatrix = mat4.multiply(textureMatrix, lightProjectionMatrix);
-        //textureMatrix = mat4.multiply(
-        //    textureMatrix,
-        //    mat4.inverse(lightWorldMatrix));
 
         wgl.uniformMatrix4fv(
             uniform_textureMatrix,
             false,
             textureMatrix);
-        
-        //wgl.uniform1f(uniform_zMin, 0.0);
-        //wgl.uniform1f(uniform_zMax, 0.0);
-        //wgl.depthRange(0.9, 1.0)
 
         var fullproj = mat4.create();
         var modnew = mat4.create();
-        ////mat4.multiply(fullproj, projMat, modMat);//gproj, gmod
-
-        //mat4.rotate(modnew,  // destination matrix
-        //    modMat,  // matrix to rotate
-        //    Date.now() * .000,//.7,   // amount to rotate in radians
-        //    [0, 1, 0]); //console.log(Date.now() * .01);
-
-
-        ////mat4.rotate(modnew,  // destination matrix
-        ////    modnew,  // matrix to rotate
-        ////    -.452,//.7,   // amount to rotate in radians
-        ////    [1, 0, 0]); //console.log(Date.now() * .01);
-        ////mat4.rotate(modnew,  // destination matrix
-        ////    modnew,  // matrix to rotate
-        ////    -1.752,//.7,   // amount to rotate in radians
-        ////    [0, 1, 0]);
-        ////mat4.translate(modnew,     // destination matrix
-        ////    modnew,     // matrix to translate
-        ////    [-11.0, 4.0, 0.0]);
-
-        //mat4.rotate(modnew,  // destination matrix
-        //    modnew,  // matrix to rotate
-        //    .252,//(Date.now() * .001),//-.452,//.7,   // amount to rotate in radians
-        //    [1, 0, 0]); //console.log(Date.now() * .01);
-        //mat4.rotate(modnew,  // destination matrix
-        //    modnew,  // matrix to rotate
-        //    -1.752,//.7,   // amount to rotate in radians
-        //    [0, 1, 0]);
-        //mat4.translate(modnew,     // destination matrix
-        //    modnew,     // matrix to translate
-        //    [-44.0, -18.0, 0.0]);//[-11.0, -4.0, 0.0]);
 
         //just to test
         mat4.rotate(modnew,  // destination matrix
@@ -240,11 +168,6 @@ const ShadowShader = (function () {
 
          
 
-
-
-        ////mat4.scale(modnew, modnew, [10.5, 35.5, 21.5]);
-        ////mat4.scale(fullproj, fullproj, [10.5, 35.5, 21.5]);
-
         wgl.uniformMatrix4fv(
             uniform_projectionMatrix,
             false,
@@ -269,17 +192,6 @@ const ShadowShader = (function () {
             wgl.STATIC_DRAW);
         wgl.vertexAttribPointer(attribute_vertex_useParent, 1, wgl.FLOAT, false, 0, 0);
         wgl.enableVertexAttribArray(attribute_vertex_useParent);
-
-        //var nMat = mat4.create();
-        ////mat4.multiply(thisMatForNorm,     // destination matrix
-        ////    baseMatrixForNorm,     // matrix to translate
-        ////    objects[oj].matrix);
-        //mat4.invert(nMat, nMat);
-        //mat4.transpose(nMat, nMat);
-        //gl.uniformMatrix4fv(
-        //    programInfo.uniformLocations.normalMatrix,
-        //    false,
-        //    nMat);
 
         var baseParent = mat4.create();
         var baseNorm = mat4.create();
@@ -310,9 +222,6 @@ const ShadowShader = (function () {
         wgl.bindFramebuffer(wgl.FRAMEBUFFER, null);
         wgl.viewport(0, 0, wgl.canvas.width, wgl.canvas.height);
         wgl.activeTexture(wgl.TEXTURE0);
-
-        ////////wgl.bindFramebuffer(wgl.FRAMEBUFFER, depthFramebuffer);
-        ////////wgl.viewport(0, 0, depthTextureSize, depthTextureSize);
     }
 
 
@@ -342,7 +251,6 @@ const ShadowShader = (function () {
 
         if (obj.shadowColor != null && (obj.shadowColor[0] != shadowColor[0] || obj.shadowColor[1] != shadowColor[1] || obj.shadowColor[2] != shadowColor[2])) {
             shadowColor = obj.shadowColor;
-            ////wgl.uniform3fv(uniform_shadowColor, obj.shadowColor);
         }
 
         const vertexCount = obj.indices.length;

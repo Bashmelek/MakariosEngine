@@ -32,6 +32,7 @@ const StateOfMakarios23 = (function () {
             varying highp vec3 vLighting;
 
             uniform mediump float ucelStep;
+            //uniform mediump int utextureDim;//for future use
 
             uniform sampler2D uProjectedTexture;
             uniform sampler2D uSampler;
@@ -46,28 +47,48 @@ const StateOfMakarios23 = (function () {
             varying vec4 v_projectedTexcoord;
 
             void main(void) {
+                mediump float utextureDim = 4096.0;
                 highp vec4 resultColor = vec4(1.0, 1.0, 1.0, 1.0);
+                
+                //thank you https://webglfundamentals.org/webgl/lessons/webgl-image-processing.html tyref: fungliproc
+                vec2 onePixel = vec2(1.0, 1.0) / utextureDim;
+
                 //tyref: funglshadows
                 vec3 projectedTexcoord = v_projectedTexcoord.xyz / (v_projectedTexcoord.w * 1.0);
                 //from the shadow shader: gl_Position[2] * gl_Position[3] * 0.01;
-                float currentDepth = projectedTexcoord.z - 0.0015;//// * v_projectedTexcoord.w);//((projectedTexcoord.z * 0.1) + 0.9) - (0.0001 * v_projectedTexcoord.w);//// * 0.11 * 0.333;//// * v_projectedTexcoord.w * 0.001;
+                float currentDepth = projectedTexcoord.z - 0.0015;
                 bool inRange = 
                       projectedTexcoord.x >= 0.0 &&
                       projectedTexcoord.x <= 1.0 &&
                       projectedTexcoord.y >= 0.0 &&
                       projectedTexcoord.y <= 1.0;
-                //vec4 projectedTexColor = vec4(texture2D(uProjectedTexture, projectedTexcoord.xy * 1.0).rrr * 1.0, 1);//vec4(0.2, 0.2, texture2D(uProjectedTexture, projectedTexcoord.xy * 1.0).r * 0.37, 1);////vec4(texture2D(uProjectedTexture, projectedTexcoord.xy * 1.0).rrr * 1.0, 1);//// vec2(vTextureCoord[0], vTextureCoord[1]));//
-                float projectedDepth = texture2D(uProjectedTexture, projectedTexcoord.xy).r;
-                float shadowLight = (inRange && projectedDepth <= currentDepth) ? 0.0 : 1.0;  
+
+                float textureDepth = texture2D(uProjectedTexture, projectedTexcoord.xy).r;
+                float interpolatedTextureVal = 0.0;
+                float shadelessLight = 1.0;//(inRange && textureDepth <= currentDepth) ? 0.0 : 1.0;  
+                if (inRange && textureDepth <= currentDepth) {
+                    shadelessLight = 0.0;
+                    float interpCheckDepth = projectedTexcoord.z - 0.0025;
+                    interpolatedTextureVal += (texture2D(uProjectedTexture, projectedTexcoord.xy + vec2(onePixel.x, 0.0)).r <= interpCheckDepth) ? 0.0 : 1.0;
+                    interpolatedTextureVal += (texture2D(uProjectedTexture, projectedTexcoord.xy + vec2(-onePixel.x, 0.0)).r <= interpCheckDepth) ? 0.0 : 1.0;
+                    interpolatedTextureVal += (texture2D(uProjectedTexture, projectedTexcoord.xy + vec2(0.0, onePixel.y)).r <= interpCheckDepth) ? 0.0 : 1.0;
+                    interpolatedTextureVal += (texture2D(uProjectedTexture, projectedTexcoord.xy + vec2(0.0, -onePixel.y)).r <= interpCheckDepth) ? 0.0 : 1.0;
+                    interpolatedTextureVal += (texture2D(uProjectedTexture, projectedTexcoord.xy + vec2(onePixel.x, onePixel.y)).r <= interpCheckDepth) ? 0.0 : 1.0;
+                    interpolatedTextureVal += (texture2D(uProjectedTexture, projectedTexcoord.xy + vec2(onePixel.x, -onePixel.y)).r <= interpCheckDepth) ? 0.0 : 1.0;
+                    interpolatedTextureVal += (texture2D(uProjectedTexture, projectedTexcoord.xy + vec2(-onePixel.x, onePixel.y)).r <= interpCheckDepth) ? 0.0 : 1.0;
+                    interpolatedTextureVal += (texture2D(uProjectedTexture, projectedTexcoord.xy + vec2(-onePixel.x, -onePixel.y)).r <= interpCheckDepth) ? 0.0 : 1.0;
+
+                    shadelessLight += min(interpolatedTextureVal / 6.0, 1.0);
+                }
 
                 highp vec4 texelColor = texture2D(uSampler, vec2(vTextureCoord[0], vTextureCoord[1]));// vTextureCoord);
 
                 highp vec3 surfaceToLightDirection = normalize(vPosToLight);
                 highp vec3 normWorld = normalize(vNormWorld);
-                highp float pointlight = max(abs(dot(normWorld, surfaceToLightDirection)), 0.0); ////max(dot(vNormWorld, vPosToLight), abs(dot(vNormWorld, vPosToLight))); ////max(dot(vNormWorld, vPosToLight), dot(vNormWorld, vPosToLight));
+                highp float pointlight = max(abs(dot(normWorld, surfaceToLightDirection)), 0.0); 
 
-                resultColor = vec4(texelColor.rgb * vLighting, texelColor.a * 1.0);//texelColor.a * 1.0
-                resultColor.rgb *= (1.0 + shadowLight * pointlight * vec3(0.4, 0.85,  1.0));//(1.0 + 1.0 * pointlight * vec3(0.4, 0.85, 1.0));    abs(currentDepth - projectedDepth) * 50.0
+                resultColor = vec4(texelColor.rgb * vLighting, texelColor.a * 1.0);
+                resultColor.rgb *= (1.0 + shadelessLight * pointlight * vec3(0.4, 0.85,  1.0));
 
                 //testval
                 ////resultColor = vec4(texture2D(uProjectedTexture, projectedTexcoord.xy * 1.0).rrr * 0.333, 1);//
@@ -158,13 +179,12 @@ const StateOfMakarios23 = (function () {
                 // compute the vector of the surface to the light
                 // and pass it to the fragment shader
                 vNormWorld = mat3(worldSpaceMat) * aVertexNormal;
-                vPosToLight = (worldSpaceMat * vec4(8.0, 1.4, 8.0, 1.0)).xyz - pointWorldPos;//ulightWorldPos - surfaceWorldPosition; ////(mat3(uParentMatrix) * vec3(4.0, -2.0, 8.0)) - pointWorldPos;
+                vPosToLight = (worldSpaceMat * vec4(8.0, 1.4, 8.0, 1.0)).xyz - pointWorldPos;//ulightWorldPos - surfaceWorldPosition; 
                 // compute the vector of the surface to the view/camera
                 // and pass it to the fragment shader
-                vPosToCam = vec3(uProjectionMatrix[3][0], uProjectionMatrix[3][1], uProjectionMatrix[3][2]) - pointWorldPos;//uProjectionMatrix[12], uProjectionMatrix[13], uProjectionMatrix[14]
+                vPosToCam = vec3(uProjectionMatrix[3][0], uProjectionMatrix[3][1], uProjectionMatrix[3][2]) - pointWorldPos;
 
                 v_projectedTexcoord = uOverTextureMatrix * uGlobalModInv * (worldSpaceMat * aVertexPosition);
-                ////v_projectedTexcoord[2] =  ((v_projectedTexcoord[2] / v_projectedTexcoord[3]) - 0.0) * v_projectedTexcoord[3];
 
             }
         `;
@@ -176,7 +196,6 @@ const StateOfMakarios23 = (function () {
 
     var Init = function () {
         StageData.ticks = 0;
-        ////SkyboxRenderer.useSkybox('skybox');//"penguins (26)");//StageData.skybox = "penguins (26)";
         ShadowShader.setup(null, [1.0, 0.6, 1.0]);
         OutlineRenderer.setup(null, [1.0, 0.6, 1.0]);
         ////Makarios.setStepsForCelShading(4.0);
@@ -238,9 +257,6 @@ const StateOfMakarios23 = (function () {
                 }
 
                 tempmat3 = mat4.create();
-                //mat4.translate(tempmat3,     // destination matrix
-                //    tempmat3,     // matrix to translate
-                //    [0.666, 0.501, 0.666]);
                 mat4.translate(tempmat3,     // destination matrix
                     tempmat3,     // matrix to translate
                     [0.50, 0.50, 0.50]);
@@ -302,13 +318,7 @@ const StateOfMakarios23 = (function () {
 
 
             var oblightdummy = Makarios.instantiate(Primitives.shapes["tetrahedron"], 'plainsky.jpg', null, {});
-            mat4.translate(oblightdummy.matrix, oblightdummy.matrix, [8.0, 1.4, 8.0]);//[14.0, 4.0, 14.0]);
-
-            //var obplane2 = Makarios.instantiate(Primitives.shapes["plane"], 'plainsky.jpg', null, {});
-            //mat4.fromScaling(obplane2.matrix, [1.0, 1.0, 1.0]);//[14.0, 4.0, 14.0]);
-            //mat4.translate(obplane2.matrix,     // destination matrix
-            //    obplane2.matrix,     // matrix to translate
-            //    [-3.5, 0.0, -6.0]);
+            mat4.translate(oblightdummy.matrix, oblightdummy.matrix, [8.0, 1.4, 8.0]);
 
             Makarios.setCamDist(40.0);
         });
