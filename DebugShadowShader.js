@@ -57,13 +57,14 @@ const ShadowShader = (function () {
 
           gl_Position = uProjectionMatrix * uViewMatrix * pointWorldPos;
           //gl_Position[2] = gl_Position[2] * 0.5;////gl_Position[2] = 0.999;// gl_Position[2] / 5.0;//// 0.999;
-
+            //gl_Position[2] = gl_Position[2] * 0.1;
           // Pass the texture coord to the fragment shader.
           v_texcoord = aTextureCoord;
 
           v_projectedTexcoord = uProjectionMatrix * uViewMatrix * pointWorldPos;//// u_textureMatrix * pointWorldPos;
-          v_projectedTexcoord[2] = v_projectedTexcoord[2] * 0.01;
+          //v_projectedTexcoord[2] = v_projectedTexcoord[2] * 0.01;//-0.7;//1000000.0;//0.01;
           //v_projectedTexcoord = vec4(gl_Position[0], gl_Position[1], gl_Position[2], gl_Position[3]);
+          v_projectedTexcoord[2] = (((v_projectedTexcoord[2] / v_projectedTexcoord[3]) - 0.98) * 85.0 - 1.0) * v_projectedTexcoord[3];//0.998 * v_projectedTexcoord[3];
         }
 
     `;
@@ -104,7 +105,7 @@ const ShadowShader = (function () {
           ////vec4 projectedTexColor = vec4(texture2D(u_projectedTexture, projectedTexcoord.xy).rrr, 1);
           vec4 texColor = texture2D(uSampler, v_texcoord);// * u_colorMult;
           float projectedAmount = inRange ? 1.0 : 0.0;
-          gl_FragColor = vec4(0.2, 0.2, v_projectedTexcoord.z, 1.0);// texColor;//// mix(texColor, vec4(0.0, 0.0, 0.0, 0.0), projectedAmount);
+          gl_FragColor = vec4(0.2, 0.2, v_projectedTexcoord.z / v_projectedTexcoord.w, 1.0);// texColor;//// mix(texColor, vec4(0.0, 0.0, 0.0, 0.0), projectedAmount);
         }
     `;
 
@@ -113,6 +114,7 @@ const ShadowShader = (function () {
     const depthTextureSize = 4096;
     var depthTexture;
     var depthFramebuffer;
+    var projScaler = 44.0;
 
     var canvas, attribute_vertex_position, attribute_vertex_normal, attribute_vertex_useParent, vertex_buffer;
     var wgl, uniform_parentMatrix, uniform_matrixLevel;
@@ -125,6 +127,14 @@ const ShadowShader = (function () {
 
     var isLoaded = false;
     var isSet = false;
+
+    var getProjScaler = function () {
+        return projScaler;
+    };
+
+    var setProjScaler = function (newval) {
+        projScaler = newval;
+    };
 
     var drawShadowsToTexture = function (modMat, projMat, vertices, indices, useParentMatrix, objects, textBuffer) {// (projMat, modMat) {
         if (!isLoaded || !isSet) { return; }
@@ -526,7 +536,10 @@ const ShadowShader = (function () {
     return {
         'drawShadowsToTexture': drawShadowsToTexture,
         'setup': setup,
-        'getDepthTexture': getDepthTexture
+        'getDepthTexture': getDepthTexture,
+        'getProjScaler': getProjScaler,
+        'setProjScaler': setProjScaler,
+        'textureDim': depthTextureSize
     }
 
 })();

@@ -1,5 +1,6 @@
 const mat4 = glMatrix.mat4;
 const mat3 = glMatrix.mat3;
+const vec3 = glMatrix.vec3;
 const Quaternion = glMatrix.quat;
 
 var MakTextures = {};
@@ -486,7 +487,8 @@ function drawScene(gl, programInfo, buffers) {  //deltaTime
         gl.useProgram(programInfo.program); //return;
     }
     if (typeof ShadowShader !== 'undefined') {
-        ShadowShader.drawShadowsToTexture(modelViewMatrix, projectionMatrix, Entera.buffers.positions, Entera.buffers.indices, Entera.buffers.useParentMatrix, StageData.objects, Entera.buffers.textureCoordinates);
+        var shadowProjectionMat = StageData.defShadowProjMat || projectionMatrix;
+        ShadowShader.drawShadowsToTexture(modelViewMatrix, shadowProjectionMat, Entera.buffers.positions, Entera.buffers.indices, Entera.buffers.useParentMatrix, StageData.objects, Entera.buffers.textureCoordinates);
         gl.useProgram(programInfo.program); //return;
     }
 
@@ -828,6 +830,7 @@ function getTransformedPositionBufferRecursive(dest, source, currentObj) {
 function resizeCanvas() {
     const canvas = document.querySelector('#glCanvas');
     const ui = document.querySelector('#uiCanvas');//uiCanvas
+    ui.style.backgroundColor = 'initial';
 
     //4:3 ratio
     //basewidth: 640 4
@@ -1274,6 +1277,63 @@ window.addEventListener("keyup", function (e) {
     }
 })
 
+
+function onCamChange() {
+    if (typeof ShadowShader !== 'undefined' && gproj && StageData.defShadowProjMat) {
+        var transformedPlane = [
+            // Top face
+            -1.0, 0.0, -1.0,
+            -1.0, 0.0, 1.0,
+            1.0, 0.0, 1.0,
+            1.0, 0.0, -1.0,
+        ];
+        var gProjMod = mat4.create();
+        mat4.multiply(gProjMod, gproj, gmod);
+        linTransformRange(transformedPlane, Primitives.shapes["plane"].positions, gProjMod, 0, 12, null);
+        //console.log(transformedPlane);
+        var tp = transformedPlane;
+        var maxProjectedDist = 0.005;
+        for (var i = 0; i < 9; i += 3) {
+            var dsquared = (tp[i + 0] - tp[i + 3]) * (tp[i + 0] - tp[i + 3]) +
+                (tp[i + 1] - tp[i + 4]) * (tp[i + 1] - tp[i + 4]) +
+                (tp[i + 2] - tp[i + 5]) * (tp[i + 2] - tp[i + 5]);
+            var d = Math.sqrt(dsquared);
+            if (d > maxProjectedDist) {
+                maxProjectedDist = d;
+            }
+        }
+        var scaling = 6.0 / maxProjectedDist;
+        ShadowShader.setProjScaler(scaling);//44.0;// scaling;
+        console.log(scaling);
+        mat4.ortho(StageData.defShadowProjMat,
+            -scaling, scaling, -scaling, scaling, 0.1, maxZFar);//maxZFar
+
+
+        var shadowBoundMat = mat4.create();
+        mat4.fromScaling(shadowBoundMat, [54.0, 54.0, 8.0]);
+        StageData.shadowBoundBox = new Array(Primitives.shapes["cube"].positions.length);
+        linTransformRange(StageData.shadowBoundBox, Primitives.shapes["cube"].positions, shadowBoundMat, 0, Primitives.shapes["cube"].positions.length, null);
+        linTransformRange(StageData.shadowBoundBox, StageData.shadowBoundBox, gProjMod, 0, Primitives.shapes["cube"].positions.length, null);
+
+        var maxShadowBound = -100.0;
+        var minShadowBound = 100.0;
+        var sb = StageData.shadowBoundBox;
+        for (var i = 2; i < StageData.shadowBoundBox.length; i += 3) {
+            var zd = sb[i];
+            if (zd > maxShadowBound) {
+                maxShadowBound = zd;
+            }
+            if (zd < minShadowBound) {
+                minShadowBound = zd;
+            }
+        }
+        //console.log(minShadowBound + ' to ' + maxShadowBound);
+        //if (minShadowBound < 0.8) {
+        //    console.log(StageData.shadowBoundBox);
+        //}
+    }
+}
+
 //thank you https://developer.mozilla.org/en-US/docs/Web/API/Element/wheel_event
 window.addEventListener("wheel", function (event) {
 
@@ -1296,6 +1356,7 @@ window.addEventListener("wheel", function (event) {
     }
 
     gmod[14] -= distDel;
+    onCamChange();
 })
 
 
@@ -1538,9 +1599,9 @@ function linTransformRange(dest, source, mat, rangeStart, rangeEndExclusive, tes
         source[vstart] * mat[2] + source[vstart + 1] * mat[6] + source[vstart + 2] * mat[10] + 1.0 * mat[14],
         source[vstart] * mat[3] + source[vstart + 1] * mat[7] + source[vstart + 2] * mat[11] + 1.0 * mat[15]];
         //console.log( (320 + 320 * rez[0]) + ' ,' + (240 + 240 * rez[1]));
-        dest[i * 3] = (rez[0]);
-        dest[i * 3 + 1] = (rez[1]);
-        dest[i * 3 + 2] = (rez[2]);// + rect.top;//why is the +top even there?        
+        dest[i * 3] = (rez[0]) / (rez[3]);
+        dest[i * 3 + 1] = (rez[1]) / (rez[3]);
+        dest[i * 3 + 2] = (rez[2]) / (rez[3]);// + rect.top;//why is the +top even there?        
     }
     //console.log('eet: ' + transformedArray);
     //return transformedArray;
@@ -1559,9 +1620,9 @@ function linTransformRangeWithOffsets(dest, source, mat, sourceStart, sourceEndE
             source[vstart] * mat[3] + source[vstart + 1] * mat[7] + source[vstart + 2] * mat[11] + 1.0 * mat[15]];
         var dStart = destStart + i * 3 - sourceStart;
         //console.log( (320 + 320 * rez[0]) + ' ,' + (240 + 240 * rez[1]));
-        dest[dStart] = (rez[0]);
-        dest[dStart + 1] = (rez[1]);
-        dest[dStart + 2] = (rez[2]);// + rect.top;//why is the +top even there?        
+        dest[dStart] = (rez[0]) / (rez[3]);
+        dest[dStart + 1] = (rez[1]) / (rez[3]);
+        dest[dStart + 2] = (rez[2]) / (rez[3]);// + rect.top;//why is the +top even there?        
     }
     //console.log('eet: ' + transformedArray);
     //return transformedArray;

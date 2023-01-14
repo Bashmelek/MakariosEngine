@@ -20,8 +20,9 @@
 
 var fsOverride;
 var vsOverride;
-const StillShade = (function () {
+const StateOfMakarios23 = (function () {
     const mat4 = glMatrix.mat4;
+    const vec3 = glMatrix.vec3;
     var objects = [];
 
     fsOverride = `
@@ -49,7 +50,7 @@ const StillShade = (function () {
                 //tyref: funglshadows
                 vec3 projectedTexcoord = v_projectedTexcoord.xyz / (v_projectedTexcoord.w * 1.0);
                 //from the shadow shader: gl_Position[2] * gl_Position[3] * 0.01;
-                float currentDepth = projectedTexcoord.z - 0.00002;//// * 0.11 * 0.333;//// * v_projectedTexcoord.w * 0.001;
+                float currentDepth = projectedTexcoord.z - 0.0015;//// * v_projectedTexcoord.w);//((projectedTexcoord.z * 0.1) + 0.9) - (0.0001 * v_projectedTexcoord.w);//// * 0.11 * 0.333;//// * v_projectedTexcoord.w * 0.001;
                 bool inRange = 
                       projectedTexcoord.x >= 0.0 &&
                       projectedTexcoord.x <= 1.0 &&
@@ -66,7 +67,7 @@ const StillShade = (function () {
                 highp float pointlight = max(abs(dot(normWorld, surfaceToLightDirection)), 0.0); ////max(dot(vNormWorld, vPosToLight), abs(dot(vNormWorld, vPosToLight))); ////max(dot(vNormWorld, vPosToLight), dot(vNormWorld, vPosToLight));
 
                 resultColor = vec4(texelColor.rgb * vLighting, texelColor.a * 1.0);//texelColor.a * 1.0
-                resultColor.rgb *= (1.0 + shadowLight * pointlight * vec3(0.4, 0.85, 1.0));//(1.0 + 1.0 * pointlight * vec3(0.4, 0.85, 1.0));
+                resultColor.rgb *= (1.0 + shadowLight * pointlight * vec3(0.4, 0.85,  1.0));//(1.0 + 1.0 * pointlight * vec3(0.4, 0.85, 1.0));    abs(currentDepth - projectedDepth) * 50.0
 
                 //testval
                 ////resultColor = vec4(texture2D(uProjectedTexture, projectedTexcoord.xy * 1.0).rrr * 0.333, 1);//
@@ -79,22 +80,15 @@ const StillShade = (function () {
                 highp float specular = dot(normWorld, halfVector);
                 specular = abs(0.0 * specular);
                 if (specular > 0.0) {
-                    specular = pow(specular, 8.0);//8.0
+                    specular = pow(specular, 8.0);
                 }
-                resultColor.rgb += max(1.0 * specular, 0.0);// max(1.8 * specular, 0.0);
-                ////resultColor.rgb = surfaceToViewDirection;
-                ////resultColor.r *= 10.0;
-                ////resultColor.g *= 10.0;
+                resultColor.rgb += max(1.0 * specular, 0.0);
 
                 if(ucelStep > 1.0)
                 {
                     resultColor = vec4(ceil(resultColor[0] * ucelStep) / ucelStep, ceil(resultColor[1] * ucelStep) / ucelStep, ceil(resultColor[2] * ucelStep) / ucelStep, resultColor[3]);
                 }
-                ////vec4 texColor = texture2D(u_texture, v_texcoord) * u_colorMult;
-                ////float projectedAmount = inRange ? 1.0 : 0.0;
-                ////resultColor = mix(resultColor, projectedTexColor, projectedAmount);
                 gl_FragColor = resultColor;
-
             }
         `;
 
@@ -169,9 +163,9 @@ const StillShade = (function () {
                 // and pass it to the fragment shader
                 vPosToCam = vec3(uProjectionMatrix[3][0], uProjectionMatrix[3][1], uProjectionMatrix[3][2]) - pointWorldPos;//uProjectionMatrix[12], uProjectionMatrix[13], uProjectionMatrix[14]
 
-                v_projectedTexcoord = uOverTextureMatrix * uGlobalModInv * (worldSpaceMat * aVertexPosition);//(worldSpaceMat * aVertexPosition);//uOverTextureMatrix * (worldSpaceMat * aVertexPosition);// uOverTextureMatrix * (worldSpaceMat * aVertexPosition);//add worldSpaceMat or no?
-                ////v_projectedTexcoord = uGlobalModInv * uProjectionMatrix * (worldSpaceMat * aVertexPosition);//
-                ////v_projectedTexcoord[2] = (((v_projectedTexcoord[2] / v_projectedTexcoord[3]) - 0.98) * 85.0 - 1.0) * v_projectedTexcoord[3];//v_projectedTexcoord[2] = ((v_projectedTexcoord[2] / v_projectedTexcoord[3]) - 0.995) * 100.0 * v_projectedTexcoord[3];
+                v_projectedTexcoord = uOverTextureMatrix * uGlobalModInv * (worldSpaceMat * aVertexPosition);
+                ////v_projectedTexcoord[2] =  ((v_projectedTexcoord[2] / v_projectedTexcoord[3]) - 0.0) * v_projectedTexcoord[3];
+
             }
         `;
 
@@ -189,7 +183,19 @@ const StillShade = (function () {
         Makarios.SetUseAlphaInTextureBuffer(true);
         console.log(camDist);
         maxCamDist = 300.0;//global scope, plz fix
-        maxZFar = 400.0;//this global too
+        maxZFar = 550.0;//this global too
+        ShadowShader.setProjScaler(20.0);
+        var initShadowProjScaler = ShadowShader.getProjScaler();
+
+        //ortho(out, left, right, bottom, top, near, far)
+        StageData.defShadowProjMat = mat4.create();
+        mat4.ortho(StageData.defShadowProjMat,
+            -initShadowProjScaler, initShadowProjScaler, -initShadowProjScaler, initShadowProjScaler, 0.1, maxZFar);
+
+        var shadowBoundMat = mat4.create();
+        mat4.fromScaling(shadowBoundMat, [54.0, 54.0, 8.0]);
+        StageData.shadowBoundBox = new Array(Primitives.shapes["cube"].positions.length);
+        linTransformRange(StageData.shadowBoundBox, Primitives.shapes["cube"].positions, shadowBoundMat, 0, Primitives.shapes["cube"].positions.length, null);
 
         var thingsLoaded = 0;
         var maxThingsToLoad = 1;
@@ -210,56 +216,24 @@ const StillShade = (function () {
 
                 //attempt 3
                 var tempmat3 = mat4.create();
-                //mat4.rotate(textureMatrix,  // destination matrix
-                //    textureMatrix,  // matrix to rotate
-                //    -3.14159,//.7,   // amount to rotate in radians
-                //    [1, 0, 0]);
-                ////mat4.rotate(textureMatrix,  // destination matrix
-                ////    textureMatrix,  // matrix to rotate
-                ////    3.14159,//.7,   // amount to rotate in radians
-                ////    [0, 0, 1]);
-                //mat4.translate(textureMatrix,     // destination matrix
-                //    textureMatrix,     // matrix to translate
-                //    [-46.0, 0.0, -28.0]);//
-
-                /*if (gproj && true) {
-                    var tempproj = mat4.create();
-                    ////mat4.scale(tempproj, gproj, [0.1, 0.1, 0.1]);
-                    mat4.invert(tempproj, gproj);
-                    mat4.multiply(textureMatrix, textureMatrix, gproj);
-                }
-
-                ////mat4.scale(tempmat3, tempmat3, [24.0, 0.1, 24.0]);
-                mat4.rotate(tempmat3,  // destination matrix
-                    tempmat3,  // matrix to rotate
-                    .052,//.252,//(Date.now() * .001),//-.452,//.7,   // amount to rotate in radians
-                    [1, 0, 0]); //console.log(Date.now() * .01);
-                mat4.rotate(tempmat3,  // destination matrix
-                    tempmat3,  // matrix to rotate
-                    -1.5707,//.7,   // amount to rotate in radians
-                    [0, 1, 0]);
-                mat4.translate(tempmat3,     // destination matrix
-                    tempmat3,     // matrix to translate
-                    [-44.0, -8.0, 0.0]);
-
-                mat4.invert(tempmat3, tempmat3);
-                mat4.multiply(textureMatrix, textureMatrix, tempmat3);
-                */
 
                 //attempt 4
                 mat4.rotate(tempmat3,  // destination matrix
                     tempmat3,  // matrix to rotate
-                    .052,//.252,//(Date.now() * .001),//-.452,//.7,   // amount to rotate in radians
+                    .192,//.252,//(Date.now() * .001),//-.452,//.7,   // amount to rotate in radians
                     [1, 0, 0]); //console.log(Date.now() * .01);
                 mat4.rotate(tempmat3,  // destination matrix
                     tempmat3,  // matrix to rotate
                     -1.752,//-1.5707,//.7,   // amount to rotate in radians
                     [0, 1, 0]);
+                var shadowProjScaler = ShadowShader.getProjScaler();
                 mat4.translate(tempmat3,     // destination matrix
                     tempmat3,     // matrix to translate
-                    [-44.0, -18.0, 0.0]);
+                    [-shadowProjScaler, -18.0, 0.0]);
                 mat4.multiply(textureMatrix, textureMatrix, tempmat3);
-                if (gproj && true) {
+                if (StageData.defShadowProjMat && true) {
+                    mat4.multiply(textureMatrix, StageData.defShadowProjMat, textureMatrix);
+                } else if (gproj && true) {
                     mat4.multiply(textureMatrix, gproj, textureMatrix);
                 }
 
@@ -273,16 +247,10 @@ const StillShade = (function () {
                 mat4.scale(tempmat3, tempmat3, [0.5, 0.5, 0.5]);
                 mat4.multiply(textureMatrix, tempmat3, textureMatrix);
 
-                //mat4.translate(textureMatrix,     // destination matrix
-                //    textureMatrix,     // matrix to translate
-                //    [-140.5, 25.5, -60.5]);
-                //mat4.invert(textureMatrix, textureMatrix);
-
                 gl.uniformMatrix4fv(
                     attr.loc,
                     false,
                     textureMatrix);
-                //console.log(textureMatrix);
             }
         });
         customUniforms.push({
@@ -299,10 +267,7 @@ const StillShade = (function () {
 
                 var modinv = mat4.create();
                 mat4.invert(modinv, gmod);////just temp out
-                //mat4.translate(modinv,     // destination matrix
-                //    modinv,     // matrix to translate
-                //    [0.5, 0.5, 0.5]);
-                //mat4.scale(modinv, modinv, [0.5, 0.5, 0.5]);
+
                 gl.uniformMatrix4fv(
                     attr.loc,
                     false,
@@ -351,7 +316,23 @@ const StillShade = (function () {
     };
 
     var ProcInLoading = function () {
+        WanderProc = MainProc;
+    };
 
+    var MainProc = function () {
+        //if (gproj != null) {
+        //    var transformedPlane = [
+        //        // Top face
+        //        -1.0, 0.0, -1.0,
+        //        -1.0, 0.0, 1.0,
+        //        1.0, 0.0, 1.0,
+        //        1.0, 0.0, -1.0,
+        //    ];
+        //    var gProjMod = mat4.create();
+        //    mat4.multiply(gProjMod, gproj, gmod);
+        //    linTransformRange(transformedPlane, Primitives.shapes["plane"].positions, gProjMod, 0, 12, null);
+        //    console.log(transformedPlane);
+        //}
     };
 
     var WanderProc = ProcInLoading;

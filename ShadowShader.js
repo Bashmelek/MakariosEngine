@@ -4,19 +4,6 @@ const ShadowShader = (function () {
 
     //stolen i mean adapted from https://github.com/aakshayy/toonshader-webgl/tree/master/shaders credit
     var shadowVsSource = `
-            //attribute vec4 aVertexPosition; // vertex position
-            //attribute vec3 aVertexNormal; // vertex normal
-            //attribute float aUseParentMatrix;
-
-            ////uniform mat4 upvmMatrix; // the project view model matrix
-            //uniform mat4 uModelViewMatrix;
-            //uniform mat4 uProjectionMatrix;
-
-            //uniform mat4 uNormalMatrix;
-            //uniform mat4 uParentMatrix;
-            //uniform float uMatrixLevel;
-
-
         attribute vec4 aVertexPosition;
         attribute float aUseParentMatrix;
 
@@ -28,7 +15,6 @@ const ShadowShader = (function () {
         uniform mat4 u_textureMatrix;//???
         uniform float uMatrixLevel;
         uniform mat4 uParentMatrix;
-
 
         uniform mat4 uViewMatrix;//???
 
@@ -57,11 +43,17 @@ const ShadowShader = (function () {
 
           gl_Position = uProjectionMatrix * uViewMatrix * pointWorldPos;
           //gl_Position[2] = gl_Position[2];//// gl_Position[2] * gl_Position[3] * 0.01;//-gl_Position[2] * 0.8;//0.999;// gl_Position[2] / 5.0;//// 0.999;
+           //gl_Position[2] = (((gl_Position[2] / gl_Position[3]) - 0.9) / (1.0 - 0.9)) * gl_Position[3];// gl_Position[2] - 0.001;//(gl_Position[2] - 0.9) / (1.0 - 0.9);//(gl_Position[2] - uzMin) / (uzMax - uzMin);
+          //gl_Position[2] =  ((gl_Position[2] / gl_Position[3]) + 0.0) * gl_Position[3];
+            //gl_Position[2] = ((gl_Position[2] / gl_Position[3]) - 0.99) * 100.0 * gl_Position[3];
+            ////gl_Position[2] = (((gl_Position[2] / gl_Position[3]) - 0.98) * 68.0 - 1.0) * gl_Position[3];//
+        
 
           // Pass the texture coord to the fragment shader.
           v_texcoord = a_texcoord;
 
           v_projectedTexcoord = u_textureMatrix * pointWorldPos;
+            //v_projectedTexcoord[2] = v_projectedTexcoord[2] * 2.0;//
         }
 
     `;
@@ -108,9 +100,10 @@ const ShadowShader = (function () {
 
 
 
-    const depthTextureSize = 4096;
+    const depthTextureSize = 4096;//4096;//16384;//4096;
     var depthTexture;
     var depthFramebuffer;
+    var projScaler = 44.0;
 
     var canvas, attribute_vertex_position, attribute_vertex_normal, attribute_vertex_useParent, vertex_buffer;
     var wgl, uniform_parentMatrix, uniform_matrixLevel;
@@ -123,6 +116,14 @@ const ShadowShader = (function () {
 
     var isLoaded = false;
     var isSet = false;
+
+    var getProjScaler = function () {
+        return projScaler;
+    };
+
+    var setProjScaler = function (newval) {
+        projScaler = newval;
+    };
 
     var drawShadowsToTexture = function (modMat, projMat, vertices, indices, useParentMatrix, objects) {// (projMat, modMat) {
         if (!isLoaded || !isSet) { return; }
@@ -159,6 +160,10 @@ const ShadowShader = (function () {
             uniform_textureMatrix,
             false,
             textureMatrix);
+        
+        //wgl.uniform1f(uniform_zMin, 0.0);
+        //wgl.uniform1f(uniform_zMax, 0.0);
+        //wgl.depthRange(0.9, 1.0)
 
         var fullproj = mat4.create();
         var modnew = mat4.create();
@@ -197,15 +202,45 @@ const ShadowShader = (function () {
         //just to test
         mat4.rotate(modnew,  // destination matrix
             modnew,  // matrix to rotate
-            .052,//.252,//(Date.now() * .001),//-.452,//.7,   // amount to rotate in radians
+            .192,//.252,//(Date.now() * .001),//-.452,//.7,   // amount to rotate in radians
             [1, 0, 0]); //console.log(Date.now() * .01);
         mat4.rotate(modnew,  // destination matrix
             modnew,  // matrix to rotate
             -1.752,//.7,   // amount to rotate in radians
             [0, 1, 0]);
+        //console.log(projScaler);
         mat4.translate(modnew,     // destination matrix
             modnew,     // matrix to translate
-            [-44.0, -8.0, 0.0]);//
+            [-projScaler, -18.0, 0.0]);//
+
+
+        
+         //testing only
+        //var shadowBoundMat = mat4.create();
+        //mat4.fromScaling(shadowBoundMat, [54.0, 54.0, 8.0]);
+        //StageData.shadowBoundBox = new Array(Primitives.shapes["cube"].positions.length);
+        //linTransformRange(StageData.shadowBoundBox, Primitives.shapes["cube"].positions, shadowBoundMat, 0, Primitives.shapes["cube"].positions.length, null);
+        //linTransformRange(StageData.shadowBoundBox, StageData.shadowBoundBox, modnew, 0, Primitives.shapes["cube"].positions.length, null);
+        //var maxShadowBound = -100.0;
+        //var minShadowBound = 100.0;
+        //var sb = StageData.shadowBoundBox;
+        //for (var i = 2; i < StageData.shadowBoundBox.length; i += 3) {
+        //    var zd = sb[i];
+        //    if (zd > maxShadowBound) {
+        //        maxShadowBound = zd;
+        //    }
+        //    if (zd < minShadowBound) {
+        //        minShadowBound = zd;
+        //    }
+        //}
+        //console.log(minShadowBound + ' toooo ' + maxShadowBound);
+        //if (minShadowBound < 0.8) {
+        //    console.log(StageData.shadowBoundBox);
+        //}
+
+         
+
+
 
         ////mat4.scale(modnew, modnew, [10.5, 35.5, 21.5]);
         ////mat4.scale(fullproj, fullproj, [10.5, 35.5, 21.5]);
@@ -397,7 +432,7 @@ const ShadowShader = (function () {
 
         uniform_viewMatrix = wgl.getUniformLocation(program, "uViewMatrix");
         uniform_textureMatrix = wgl.getUniformLocation(program, "u_textureMatrix");
-        uniform_projectedTexture = wgl.getUniformLocation(program, "u_projectedTexture");
+        ////uniform_projectedTexture = wgl.getUniformLocation(program, "u_projectedTexture");
         //uniform_view = wgl.getUniformLocation(program, "u_view");
         //uniform_dir = wgl.getUniformLocation(program, "udir");
 
@@ -427,7 +462,7 @@ const ShadowShader = (function () {
             depthTextureSize,   // height
             0,                  // border
             wgl.DEPTH_COMPONENT, // format
-            wgl.UNSIGNED_INT,    // type
+            wgl.UNSIGNED_INT,//wgl.UNSIGNED_INT,    // type
             null);              // data
         wgl.texParameteri(wgl.TEXTURE_2D, wgl.TEXTURE_MAG_FILTER, wgl.NEAREST);
         wgl.texParameteri(wgl.TEXTURE_2D, wgl.TEXTURE_MIN_FILTER, wgl.NEAREST);
@@ -523,7 +558,10 @@ const ShadowShader = (function () {
     return {
         'drawShadowsToTexture': drawShadowsToTexture,
         'setup': setup,
-        'getDepthTexture': getDepthTexture
+        'getDepthTexture': getDepthTexture,
+        'getProjScaler': getProjScaler,
+        'setProjScaler': setProjScaler,
+        'textureDim': depthTextureSize
     }
 
 })();

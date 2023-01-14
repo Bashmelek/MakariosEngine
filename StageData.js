@@ -7,6 +7,10 @@ const StageData = (function () {
     var vticks = 0;
     var timedelta = 0;
     var skybox = null;
+    var defShadowProjMat = null;
+    var shadowBoundBox = null;
+    var shadowBoundZmin = null;
+    var shadowBoundZmax = null;
 
     var firstAvailableIndex = 0;
 
@@ -358,6 +362,10 @@ const StageData = (function () {
         'ticks': ticks,
         'vticks': vticks,
         'timedelta': timedelta,
-        'skybox': skybox
+        'skybox': skybox,
+        'defShadowProjMat': defShadowProjMat,
+        'shadowBoundBox': shadowBoundBox,
+        'shadowBoundZmin': shadowBoundZmin,
+        'shadowBoundZmax': shadowBoundZmax
     };
 })();
