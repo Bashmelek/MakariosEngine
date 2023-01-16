@@ -69,7 +69,7 @@ const ShadowShader = (function () {
 
 
 
-    const depthTextureSize = 4096;//4096;//16384;//4096;
+    const depthTextureSize = 4096;// * 4;//4096;//16384;//4096;
     var depthTexture;
     var depthFramebuffer;
     var projScaler = 44.0;
