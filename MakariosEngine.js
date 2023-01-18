@@ -488,7 +488,7 @@ function drawScene(gl, programInfo, buffers) {  //deltaTime
     }
     if (typeof ShadowShader !== 'undefined') {
         var shadowProjectionMat = StageData.defShadowProjMat || projectionMatrix;
-        ShadowShader.drawShadowsToTexture(modelViewMatrix, shadowProjectionMat, Entera.buffers.positions, Entera.buffers.indices, Entera.buffers.useParentMatrix, StageData.objects, Entera.buffers.textureCoordinates);
+        ShadowShader.drawShadowsToTexture(modelViewMatrix, shadowProjectionMat, Entera.buffers.positions, Entera.buffers.indices, Entera.buffers.useParentMatrix, StageData.objects, StageData.StageLights, Entera.buffers.textureCoordinates);
         gl.useProgram(programInfo.program); //return;
     }
 
@@ -1302,11 +1302,11 @@ function onCamChange() {
                 maxProjectedDist = d;
             }
         }
-        var scaling = 6.0 / maxProjectedDist;
+        var scaling = 12.0 / maxProjectedDist;
         ShadowShader.setProjScaler(scaling);//44.0;// scaling;
         console.log(scaling);
         mat4.ortho(StageData.defShadowProjMat,
-            -scaling, scaling, -scaling, scaling, 0.1, maxZFar);//maxZFar
+            -scaling, scaling, -scaling, scaling, 0.1, maxZFar + 1000);//maxZFar
 
 
         var shadowBoundMat = mat4.create();

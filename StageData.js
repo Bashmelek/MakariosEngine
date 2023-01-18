@@ -269,6 +269,48 @@ const StageData = (function () {
         return thekey;
     }; 
 
+    var mainDirLightIndex = null;
+    var StageLights = [];
+
+    var SetMainDirLight = function (rollpitchyaw, pos, color) {
+        if (!color) {
+            color = [1.0, 1.0, 1.0];
+        }
+        var dirlight = {
+            lightmat: mat4.create(),
+            color: [color[0], color[1], color[2]]
+        };
+
+        if (rollpitchyaw[1] != 0) {
+            mat4.rotate(dirlight.lightmat,  // destination matrix
+                dirlight.lightmat,  // matrix to rotate
+                rollpitchyaw[0],//-1.5707,//.7,   // amount to rotate in radians
+                [1, 0, 0]);
+        }
+        if (rollpitchyaw[1] != 0) {
+            mat4.rotate(dirlight.lightmat,  // destination matrix
+                dirlight.lightmat,  // matrix to rotate
+                rollpitchyaw[1],//-1.5707,//.7,   // amount to rotate in radians
+                [0, 1, 0]);
+        }
+        if (rollpitchyaw[2] != 0) {
+            mat4.rotate(dirlight.lightmat,  // destination matrix
+                dirlight.lightmat,  // matrix to rotate
+                rollpitchyaw[2],//-1.5707,//.7,   // amount to rotate in radians
+                [0, 0, 1]);
+        }
+        mat4.translate(dirlight.lightmat,     // destination matrix
+            dirlight.lightmat,     // matrix to translate
+            [-pos[0], -pos[1], -pos[2]]);
+
+        if (mainDirLightIndex != null) {
+            StageLights[mainDirLightIndex] = dirlight;
+        } else {
+            StageLights.push(dirlight);
+            mainDirLightIndex = StageLights.length;
+        }
+    };
+
     var instantiate = function (prim, textureUrl, objectOnFrame, customprops) {
 
         var newInst = setupObject(prim, textureUrl, objectOnFrame, customprops);
@@ -366,6 +408,8 @@ const StageData = (function () {
         'defShadowProjMat': defShadowProjMat,
         'shadowBoundBox': shadowBoundBox,
         'shadowBoundZmin': shadowBoundZmin,
-        'shadowBoundZmax': shadowBoundZmax
+        'shadowBoundZmax': shadowBoundZmax,
+        'SetMainDirLight': SetMainDirLight,
+        'StageLights': StageLights
     };
 })();

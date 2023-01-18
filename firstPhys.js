@@ -334,12 +334,13 @@ const MyFirstPhysics = (function () {
     //};
 
     objects[0].collider = {
-        //type: 'yrotbox',
-        //hwidth: 1,
-        //hdepth: 1
-        type: 'rotationlesscylinder',
-        radius: 1.0,
+        type: 'yrotbox',
+        hwidth: 1,
+        hdepth: 1,
         hheight: 1.0
+        //type: 'rotationlesscylinder',
+        //radius: 1.0,
+        //hheight: 1.0
     };
 
     objects[1].collider = {

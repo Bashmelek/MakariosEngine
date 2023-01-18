@@ -94,8 +94,8 @@ const ShadowShader = (function () {
         projScaler = newval;
     };
 
-    var drawShadowsToTexture = function (modMat, projMat, vertices, indices, useParentMatrix, objects) {// (projMat, modMat) {
-        if (!isLoaded || !isSet) { return; }
+    var drawShadowsToTexture = function (modMat, projMat, vertices, indices, useParentMatrix, objects, lights) {// (projMat, modMat) {
+        if (!isLoaded || !isSet || !lights || lights.length == 0) { return; }
 
         //console.log('drawed dasky?');
         wgl.useProgram(shaderprogram);
@@ -128,6 +128,7 @@ const ShadowShader = (function () {
         var modnew = mat4.create();
 
         //just to test
+        /*
         mat4.rotate(modnew,  // destination matrix
             modnew,  // matrix to rotate
             .192,//.252,//(Date.now() * .001),//-.452,//.7,   // amount to rotate in radians
@@ -140,7 +141,11 @@ const ShadowShader = (function () {
         mat4.translate(modnew,     // destination matrix
             modnew,     // matrix to translate
             [-projScaler, -18.0, 0.0]);//
-
+        */
+        //console.log(lights);
+        mat4.translate(modnew,     // destination matrix
+            lights[0].lightmat,     // matrix to translate
+            [-projScaler, 0.0, 0.0]);
 
         
          //testing only
