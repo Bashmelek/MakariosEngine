@@ -313,6 +313,7 @@ const FrameLogic = (function () {
                     }
                     var rotatedboxcoords = useYRotToGetInverseRotatedVectors(other.matrix, initialrotatedboxcoords);
                     var rotatedPreMoveboxcoords = useYRotToGetInverseRotatedVectors(other.matrix, objectCoordsBeforeMove);
+                    var blocked = false;
                     //console.log(rotatedboxcoords + ' $$ ' + framenum)
                     //console.log(rotatedboxcoords[3 + 0] + ', ' + rotatedboxcoords[3 + 1] + ', ' + rotatedboxcoords[3 + 2] + ' ---- ' + rotatedPreMoveboxcoords[3 + 0] + ', '
                     //    + rotatedPreMoveboxcoords[3 + 1] + ', ' + rotatedPreMoveboxcoords[3 + 2] + ';;' + framenum);
@@ -321,7 +322,7 @@ const FrameLogic = (function () {
                         if (rotatedboxcoords[c * 3 + 0] >= (otherboxcoords[3] - .00001) && rotatedboxcoords[c * 3 + 0] <= (otherboxcoords[0] + .00001)) {
                             if (rotatedboxcoords[c * 3 + 2] >= (otherboxcoords[8] - .00001) && rotatedboxcoords[c * 3 + 2] <= (otherboxcoords[2] + .00001)) {
                                 console.log('clang clang ' + framenum);
-                                var blocked = false;
+                                blocked = false;
                                 console.log(rotatedPreMoveboxcoords[c * 3 + 0] + ', ' + rotatedPreMoveboxcoords[c * 3 + 1] + ', ' + rotatedPreMoveboxcoords[c * 3 + 2]);
 
                                 if ((Math.abs(oy - object.matrix[y]) > (other.collider.hheight + object.collider.hheight - 0.0001))) {
@@ -413,6 +414,74 @@ const FrameLogic = (function () {
                                 console.log('kling kling2'); //vec = [0, 0, 0];
 
 
+
+                                //check for the "edge" case
+                                for (var e = 0; e < rotatedboxcoords.length / 3; e++) {
+                                    //console.log(rotatedboxcoords + ' $$ ' + framenum)
+                                    //if (rotatedboxcoords[e * 3 + 0] >= (otherboxcoords[3] - .00001) && rotatedboxcoords[e * 3 + 0] <= (otherboxcoords[0] + .00001)) {
+                                    //    if (rotatedboxcoords[e * 3 + 2] >= (otherboxcoords[8] - .00001) && rotatedboxcoords[e * 3 + 2] <= (otherboxcoords[2] + .00001)) {
+                                    //    }
+                                    //}
+                                    if (rotatedPreMoveboxcoords[e * 3 + 0] >= otherboxcoords[c * 3 + 0]
+                                        && rotatedboxcoords[e * 3 + 0] <= otherboxcoords[c * 3 + 0]
+                                        && rotatedPreMoveboxcoords[e * 3 + 2] >= otherboxcoords[c * 3 + 2]
+                                        && rotatedboxcoords[e * 3 + 2] <= otherboxcoords[c * 3 + 2]) {
+                                        console.log('FALSE KUHLANG');
+                                        //{
+                                        blocked = false;
+                                        var caseres = handleEdgeCaseCollision(object, other, oy, e, c, vec, rotatedPreMoveboxcoords, otherboxcoords, rotatedboxcoords);
+                                        if (caseres.blocked) {
+                                            continue;
+                                        } else if (caseres.landed) {
+                                            proby = caseres.proby;
+                                        }
+
+                                        //}
+                                    }
+                                    if (rotatedPreMoveboxcoords[e * 3 + 0] <= otherboxcoords[c * 3 + 0]
+                                        && rotatedboxcoords[e * 3 + 0] >= otherboxcoords[c * 3 + 0]
+                                        && rotatedPreMoveboxcoords[e * 3 + 2] <= otherboxcoords[c * 3 + 2]
+                                        && rotatedboxcoords[e * 3 + 2] >= otherboxcoords[c * 3 + 2]) {
+                                        console.log('FALSE KUHLANG TOO');
+                                        var caseres = handleEdgeCaseCollision(object, other, oy, e, c, vec, rotatedPreMoveboxcoords, otherboxcoords, rotatedboxcoords);
+                                        if (caseres.blocked) {
+                                            continue;
+                                        } else if (caseres.landed) {
+                                            proby = caseres.proby;
+                                        }
+                                    }
+                                    if (rotatedPreMoveboxcoords[e * 3 + 0] <= otherboxcoords[c * 3 + 0]
+                                        && rotatedboxcoords[e * 3 + 0] >= otherboxcoords[c * 3 + 0]
+                                        && rotatedPreMoveboxcoords[e * 3 + 2] >= otherboxcoords[c * 3 + 2]
+                                        && rotatedboxcoords[e * 3 + 2] <= otherboxcoords[c * 3 + 2]) {
+                                        console.log('FALSE KUHLANG TREE');
+                                        var caseres = handleEdgeCaseCollision(object, other, oy, e, c, vec, rotatedPreMoveboxcoords, otherboxcoords, rotatedboxcoords);
+                                        if (caseres.blocked) {
+                                            continue;
+                                        } else if (caseres.landed) {
+                                            proby = caseres.proby;
+                                        }
+                                    }
+                                    if (rotatedPreMoveboxcoords[e * 3 + 0] >= otherboxcoords[c * 3 + 0]
+                                        && rotatedboxcoords[e * 3 + 0] <= otherboxcoords[c * 3 + 0]
+                                        && rotatedPreMoveboxcoords[e * 3 + 2] <= otherboxcoords[c * 3 + 2]
+                                        && rotatedboxcoords[e * 3 + 2] >= otherboxcoords[c * 3 + 2]) {
+                                        console.log('FALSE KUHLANG FORE');
+                                        var caseres = handleEdgeCaseCollision(object, other, oy, e, c, vec, rotatedPreMoveboxcoords, otherboxcoords, rotatedboxcoords);
+                                        if (caseres.blocked) {
+                                            continue;
+                                        } else if (caseres.landed) {
+                                            proby = caseres.proby;
+                                        }
+                                    }
+
+                                    //var rotatedboxcoords = useYRotToGetInverseRotatedVectors(other.matrix, initialrotatedboxcoords);
+                                    ////var rotatedPreMoveboxcoords = useYRotToGetInverseRotatedVectors(other.matrix, objectCoordsBeforeMove);
+                                    //console.log(rotatedboxcoords);
+                                    //console.log(otherboxcoords);
+                                    //console.log(otherinitialrotatedboxcoords);
+                                    //console.log(rotatedPreMoveboxcoords);
+                                }
                                 //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------//
                                 //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------//
                                 var blocked = false;
@@ -1057,6 +1126,86 @@ const FrameLogic = (function () {
             object.isGrounded = false;
             object.velocity.y += 0.24;
         }
+    }
+
+    var handleEdgeCaseCollision = function (object, other, oy, e, c, vec, rotatedPreMoveboxcoords, otherboxcoords, rotatedboxcoords) {
+        const x = 12;
+        const y = 13;
+        const z = 14;
+
+        //console.log(rotatedPreMoveboxcoords[e * 3 + 0] + ', ' + rotatedPreMoveboxcoords[e * 3 + 1] + ', ' + rotatedPreMoveboxcoords[e * 3 + 2]);
+        var blocked = false;
+        var landed = false;
+        var proby = 0;
+
+        if ((Math.abs(oy - object.matrix[y]) > (other.collider.hheight + object.collider.hheight - 0.0001))) {
+            if (oy < object.matrix[y]) {
+                vec[1] = -(object.matrix[y] - oy - (other.collider.hheight + object.collider.hheight + 0.0001));
+                proby = object.matrix[y] + (vec[1]);
+                object.isGrounded = true;
+                object.confirmGrounded = true;
+                object.velocity.y = 0.0;
+                landed = true;
+            } else {
+                vec[1] = other.matrix[y] - object.matrix[y] - (other.collider.hheight + object.collider.hheight + 0.0001);
+                proby = object.matrix[y] + (vec[1]);
+                //other.isGrounded = true;
+                object.velocity.y = 0.0;
+                landed = true;
+            }
+        } else {
+
+            if (rotatedPreMoveboxcoords[e * 3 + 0] < (otherboxcoords[3] + .00001)) {
+                var xincursion = rotatedboxcoords[e * 3 + 0] - otherboxcoords[3];
+                //vec = [0, 0, 0];
+                console.log('case 1 ' + c + ' ' + xincursion);
+                for (var incur = 0; incur < (rotatedboxcoords.length / 3); incur++) {
+                    rotatedboxcoords[incur * 3 + 0] -= xincursion + .01;
+                }
+                blocked = true;
+            }
+            if (rotatedPreMoveboxcoords[e * 3 + 0] > (otherboxcoords[0] - .00001)) {
+                var usereverse = false;//rotatedboxcoords[c * 3 + 0] == rotatedPreMoveboxcoords[c * 3 + 0];
+                var xincursion = otherboxcoords[0] - rotatedboxcoords[e * 3 + 0];
+                var xincursion2 = otherboxcoords[0] - rotatedboxcoords[e * 3 + 2];
+                //console.log(rotatedPreMoveboxcoords[c * 3 + 0] + '  and  ' + rotatedboxcoords[e * 3 + 0] + ' eeyanda ' + rotatedboxcoords[e * 3 + 2] + ' mit ' + rotatedPreMoveboxcoords[c * 3 + 2]);
+                //console.log('case 2 --' + c + ' ' + xincursion); //vec = [0, 0, 0];
+                for (var incur2 = 0; incur2 < (rotatedboxcoords.length / 3); incur2++) {
+                    rotatedboxcoords[incur2 * 3 + 0] += (xincursion + .01);
+                    //rotatedboxcoords[incur2 * 3 + 2] -= xincursion2;
+                }
+                //console.log(rotatedboxcoords[e * 3 + 0] + ', ' + rotatedboxcoords[e * 3 + 1] + ', ' + rotatedboxcoords[e * 3 + 2]);
+                blocked = true;
+            }
+            if (rotatedPreMoveboxcoords[e * 3 + 2] < (otherboxcoords[8] + .00001)) {
+                var zincursion = rotatedboxcoords[e * 3 + 2] - otherboxcoords[8];
+                //vec = [0, 0, 0];
+                console.log('case 3');
+                for (var incur3 = 0; incur3 < (rotatedboxcoords.length / 3); incur3++) {
+                    rotatedboxcoords[incur3 * 3 + 2] -= zincursion + .01;
+                }
+                blocked = true;
+            }
+            if (rotatedPreMoveboxcoords[e * 3 + 2] > (otherboxcoords[2] - .00001)) {
+                var zincursion = otherboxcoords[2] - rotatedboxcoords[e * 3 + 2];
+                //vec = [0, 0, 0];
+                console.log('case 4');
+                for (var incur4 = 0; incur4 < (rotatedboxcoords.length / 3); incur4++) {
+                    rotatedboxcoords[incur4 * 3 + 2] += zincursion + .01
+                }
+                blocked = true;
+            }
+            if (!blocked) {
+                vec = [0, 0, 0];
+            }
+        }
+
+        return {
+            'blocked': blocked,
+            'landed': landed,
+            'proby': proby
+        };
+
     }
 
 
