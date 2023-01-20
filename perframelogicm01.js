@@ -325,18 +325,21 @@ const FrameLogic = (function () {
                                 blocked = false;
                                 console.log(rotatedPreMoveboxcoords[c * 3 + 0] + ', ' + rotatedPreMoveboxcoords[c * 3 + 1] + ', ' + rotatedPreMoveboxcoords[c * 3 + 2]);
 
-                                if ((Math.abs(oy - object.matrix[y]) > (other.collider.hheight + object.collider.hheight - 0.0001))) {
-                                    if (oy < object.matrix[y]) {
-                                        vec[1] = -(object.matrix[y] - oy - (other.collider.hheight + object.collider.hheight + 0.0001));
-                                        proby = object.matrix[y] + (vec[1]);
-                                        object.isGrounded = true;
-                                        object.confirmGrounded = true;
-                                        object.velocity.y = 0.0;
-                                    } else {
-                                        vec[1] = other.matrix[y] - object.matrix[y] - (other.collider.hheight + object.collider.hheight + 0.0001);
-                                        proby = object.matrix[y] + (vec[1]);
-                                        //other.isGrounded = true;
-                                        object.velocity.y = 0.0;
+                                if (Math.abs(oy - object.matrix[y]) > (other.collider.hheight + object.collider.hheight - 0.0001)) {
+                                    console.log('GROUNDED');
+                                    if (Math.abs(oy - proby) < (other.collider.hheight + object.collider.hheight + 0.0001)) {
+                                        if (oy < object.matrix[y]) {
+                                            vec[1] = -(object.matrix[y] - oy - (other.collider.hheight + object.collider.hheight + 0.0001));
+                                            proby = object.matrix[y] + (vec[1]);
+                                            object.isGrounded = true;
+                                            object.confirmGrounded = true;
+                                            object.velocity.y = 0.0;
+                                        } else {
+                                            vec[1] = other.matrix[y] - object.matrix[y] - (other.collider.hheight + object.collider.hheight + 0.0001);
+                                            proby = object.matrix[y] + (vec[1]);
+                                            //other.isGrounded = true;
+                                            object.velocity.y = 0.0;
+                                        }
                                     }
                                 } else {
 
@@ -486,17 +489,19 @@ const FrameLogic = (function () {
                                 //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------//
                                 var blocked = false;
                                 if ((Math.abs(oy - object.matrix[y]) > (other.collider.hheight + object.collider.hheight - 0.0001))) {
-                                    if (oy < object.matrix[y]) {
-                                        vec[1] = -(object.matrix[y] - oy - (other.collider.hheight + object.collider.hheight + 0.0001));
-                                        proby = object.matrix[y] + (vec[1]);
-                                        object.isGrounded = true;
-                                        object.confirmGrounded = true;
-                                        object.velocity.y = 0.0;
-                                    } else {
-                                        vec[1] = other.matrix[y] - object.matrix[y] - (other.collider.hheight + object.collider.hheight + 0.0001);
-                                        proby = object.matrix[y] + (vec[1]);
-                                        //other.isGrounded = true;
-                                        object.velocity.y = 0.0;
+                                    if (Math.abs(oy - proby) < (other.collider.hheight + object.collider.hheight + 0.0001)) {
+                                        if (oy < object.matrix[y]) {
+                                            vec[1] = -(object.matrix[y] - oy - (other.collider.hheight + object.collider.hheight + 0.0001));
+                                            proby = object.matrix[y] + (vec[1]);
+                                            object.isGrounded = true;
+                                            object.confirmGrounded = true;
+                                            object.velocity.y = 0.0;
+                                        } else {
+                                            vec[1] = other.matrix[y] - object.matrix[y] - (other.collider.hheight + object.collider.hheight + 0.0001);
+                                            proby = object.matrix[y] + (vec[1]);
+                                            //other.isGrounded = true;
+                                            object.velocity.y = 0.0;
+                                        }
                                     }
                                 } else {
                                     if (orotatedPreMoveboxcoords[c * 3 + 0] < (objectboxcoords[3] + .00001)) {
@@ -568,6 +573,41 @@ const FrameLogic = (function () {
                         }
                     }
 
+
+                    if ((Math.abs(oy - object.matrix[y]) > (other.collider.hheight + object.collider.hheight - 0.0001))) {
+                        if (Math.abs(oy - proby) < (other.collider.hheight + object.collider.hheight + 0.0001)) {
+                            //loop through all pairs of lines
+                            for (var p = 0; p < 4; p++) {
+                                for (var op = 0; op < 4; op++) {
+                                    var line1 = [rotatedboxcoords[p * 3 + 0], rotatedboxcoords[p * 3 + 2], rotatedboxcoords[(p + 1 % 4) * 3 + 0], rotatedboxcoords[(p + 1 % 4) * 3 + 2]];
+                                    var line2 = [otherboxcoords[op * 3 + 0], otherboxcoords[op * 3 + 2], otherboxcoords[(op + 1 % 4) * 3 + 0], otherboxcoords[(op + 1 % 4) * 3 + 2]];
+                                    var hitIntersect = intersects(line1[0], line1[1], line1[2], line1[3], line2[0], line2[1], line2[2], line2[3]);
+
+                                    if (hitIntersect) {
+                                        if (oy < object.matrix[y]) {
+                                            vec[1] = -(object.matrix[y] - oy - (other.collider.hheight + object.collider.hheight + 0.0001));
+                                            proby = object.matrix[y] + (vec[1]);
+                                            object.isGrounded = true;
+                                            object.confirmGrounded = true;
+                                            object.velocity.y = 0.0;
+                                        } else {
+                                            vec[1] = other.matrix[y] - object.matrix[y] - (other.collider.hheight + object.collider.hheight + 0.0001);
+                                            proby = object.matrix[y] + (vec[1]);
+                                            //other.isGrounded = true;
+                                            object.velocity.y = 0.0;
+                                        }
+                                        console.log('tlang tlang');
+                                        //break out if hit
+                                        p = 5;
+                                        op = 5;
+                                    }
+                                }
+                            }
+
+
+                            
+                        }
+                    } 
 
                     var newveccoords = useYRotToGetRotatedVectors(other.matrix, rotatedboxcoords);
                     for (var cl = 0; cl < (newveccoords.length / 3); cl++) {
@@ -1355,6 +1395,21 @@ const FrameLogic = (function () {
             return result;
         }
     }
+
+    //thank you Dan Fox https://stackoverflow.com/questions/9043805/test-if-two-lines-intersect-javascript-function and oliverpool for the tip!
+    // returns true if the line from (a,b)->(c,d) intersects with (p,q)->(r,s)
+    var intersects = function (a, b, c, d, p, q, r, s) {
+        var det, gamma, lambda;
+        det = (c - a) * (s - q) - (r - p) * (d - b);
+        if (det === 0) {
+            return false;
+        } else {
+            lambda = ((s - q) * (r - a) + (p - r) * (s - b)) / det;
+            gamma = ((b - d) * (r - a) + (c - a) * (s - b)) / det;
+            return (0 < lambda && lambda < 1) && (0 < gamma && gamma < 1);
+        }
+        //todo george add check for same line
+    };
 
 
     return {
