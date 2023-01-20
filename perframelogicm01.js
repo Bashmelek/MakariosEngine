@@ -579,8 +579,8 @@ const FrameLogic = (function () {
                             //loop through all pairs of lines
                             for (var p = 0; p < 4; p++) {
                                 for (var op = 0; op < 4; op++) {
-                                    var line1 = [rotatedboxcoords[p * 3 + 0], rotatedboxcoords[p * 3 + 2], rotatedboxcoords[(p + 1 % 4) * 3 + 0], rotatedboxcoords[(p + 1 % 4) * 3 + 2]];
-                                    var line2 = [otherboxcoords[op * 3 + 0], otherboxcoords[op * 3 + 2], otherboxcoords[(op + 1 % 4) * 3 + 0], otherboxcoords[(op + 1 % 4) * 3 + 2]];
+                                    var line1 = [rotatedboxcoords[p * 3 + 0], rotatedboxcoords[p * 3 + 2], rotatedboxcoords[((p + 1) % 4) * 3 + 0], rotatedboxcoords[((p + 1) % 4) * 3 + 2]];
+                                    var line2 = [otherboxcoords[op * 3 + 0], otherboxcoords[op * 3 + 2], otherboxcoords[((op + 1) % 4) * 3 + 0], otherboxcoords[((op + 1) % 4) * 3 + 2]];
                                     var hitIntersect = intersects(line1[0], line1[1], line1[2], line1[3], line2[0], line2[1], line2[2], line2[3]);
 
                                     if (hitIntersect) {
@@ -1113,7 +1113,10 @@ const FrameLogic = (function () {
         for (var i = 0; i < StageData.objects.length; i++) {
             if (i == 2) { continue; }
 
+            var hasHit = false;
+
             var object = StageData.objects[i];
+            var velyOrig = object.velocity.y;
 
 
             var obx = object.matrix[x];
@@ -1121,7 +1124,34 @@ const FrameLogic = (function () {
             var obz = object.matrix[z];
             var objectFoot = { x: obx, y: oby, z: obz };
             var floorheight = 1000.0;
+
+            var minGroundDistXYSquared = 10000000.0;
+            var minGroundIndex = [];
             for (var f = 0; f < ground.positions.length / 3; f++) {
+                var isMin = false;
+                var groundDistXYSquared1 = (ground.positions[ground.indices[f * 3 + 0] * 3 + 0] - objectFoot.x) * (ground.positions[ground.indices[f * 3 + 0] * 3 + 0] - objectFoot.x) +
+                                            (ground.positions[ground.indices[f * 3 + 0] * 3 + 2] - objectFoot.z) * (ground.positions[ground.indices[f * 3 + 0] * 3 + 2] - objectFoot.z);
+                var groundDistXYSquared2 = (ground.positions[ground.indices[f * 3 + 1] * 3 + 0] - objectFoot.x) * (ground.positions[ground.indices[f * 3 + 1] * 3 + 0] - objectFoot.x) +
+                                            (ground.positions[ground.indices[f * 3 + 1] * 3 + 2] - objectFoot.z) * (ground.positions[ground.indices[f * 3 + 1] * 3 + 2] - objectFoot.z);
+                var groundDistXYSquared3 = (ground.positions[ground.indices[f * 3 + 2] * 3 + 0] - objectFoot.x) * (ground.positions[ground.indices[f * 3 + 2] * 3 + 0] - objectFoot.x) +
+                                            (ground.positions[ground.indices[f * 3 + 2] * 3 + 2] - objectFoot.z)  * (ground.positions[ground.indices[f * 3 + 2] * 3 + 2] - objectFoot.z);
+
+                if (groundDistXYSquared1 < minGroundDistXYSquared) {
+                    minGroundDistXYSquared = groundDistXYSquared1;
+                    minGroundIndex = [f];
+                    isMin = true;
+                } else if (groundDistXYSquared1 == minGroundDistXYSquared && !isMin) { minGroundIndex.push(f); isMin = true; }
+                if (groundDistXYSquared2 < minGroundDistXYSquared) {
+                    minGroundDistXYSquared = groundDistXYSquared2;
+                    minGroundIndex = [f];
+                    isMin = true;
+                } else if (groundDistXYSquared2 == minGroundDistXYSquared && !isMin) { minGroundIndex.push(f); isMin = true; }
+                if (groundDistXYSquared3 < minGroundDistXYSquared) {
+                    minGroundDistXYSquared = groundDistXYSquared3;
+                    minGroundIndex = [f];
+                    isMin = true;
+                } else if (groundDistXYSquared3 == minGroundDistXYSquared && !isMin) { minGroundIndex.push(f); isMin = true; }
+
                 var result = IsPointInTriangleIncludeY(objectFoot,
                     {
                         a: { x: ground.positions[ground.indices[f * 3 + 0] * 3 + 0], y: ground.positions[ground.indices[f * 3 + 0] * 3 + 1], z: ground.positions[ground.indices[f * 3 + 0] * 3 + 2] },
@@ -1131,12 +1161,60 @@ const FrameLogic = (function () {
                 if (result.didHit) {
 
                     floorheight = result.hity;
+                    hasHit = true;
                     //console.log(floorheight);
+                }
+            }
+            //console.log(minGroundIndex);
+            if (!hasHit && minGroundIndex.length > 0) {
+                if (object.collider.type == 'yrotbox') {
+                    //console.log('stllhits');
+
+                    var objectboxcoords = [object.collider.hdepth, 0.0, object.collider.hwidth,
+                            -object.collider.hdepth, 0.0, object.collider.hwidth,
+                            object.collider.hdepth, 0.0, -object.collider.hwidth,
+                            -object.collider.hdepth, 0.0, -object.collider.hwidth,
+                            ];
+                    var initialrotatedboxcoords = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0];
+                    linTransformRange(initialrotatedboxcoords, objectboxcoords, object.matrix, 0, objectboxcoords.length);//useYRotToGetRotatedVectors(object.matrix, objectboxcoords);
+
+                    for (var m = 0; m < minGroundIndex.length; m++) {
+                        var mindex = minGroundIndex[m];
+                        for (var p = 0; p < 3; p++) {
+                            for (var op = 0; op < 4; op++) {
+
+                                var line1 = [ground.positions[ground.indices[mindex * 3 + p] * 3 + 0], ground.positions[ground.indices[mindex * 3 + p] * 3 + 2], ground.positions[ground.indices[mindex * 3 + ((p + 1) % 3)] * 3 + 0], ground.positions[ground.indices[mindex * 3 + ((p + 1) % 3)] * 3 + 2]];
+                                var line2 = [initialrotatedboxcoords[op * 3 + 0], initialrotatedboxcoords[op * 3 + 2], initialrotatedboxcoords[((op + 1) % 4) * 3 + 0], initialrotatedboxcoords[((op + 1) % 4) * 3 + 2]];
+                                var hitIntersect = getIntersectPoint(line1[0], line1[1], line1[2], line1[3], line2[0], line2[1], line2[2], line2[3]);//getIntersectPoint
+
+                                //console.log(hitIntersect);
+                                //console.log(line1);
+                                //console.log(line2);
+                                if (hitIntersect) {
+                                    console.log('AAAHHHHHHH');
+                                    console.log(hitIntersect);
+
+                                    var result = IsPointInTriangleIncludeY({ x: hitIntersect.x, y: oby, z: hitIntersect.y },
+                                        {
+                                            a: { x: ground.positions[ground.indices[mindex * 3 + 0] * 3 + 0], y: ground.positions[ground.indices[mindex * 3 + 0] * 3 + 1], z: ground.positions[ground.indices[mindex * 3 + 0] * 3 + 2] },
+                                            b: { x: ground.positions[ground.indices[mindex * 3 + 1] * 3 + 0], y: ground.positions[ground.indices[mindex * 3 + 1] * 3 + 1], z: ground.positions[ground.indices[mindex * 3 + 1] * 3 + 2] },
+                                            c: { x: ground.positions[ground.indices[mindex * 3 + 2] * 3 + 0], y: ground.positions[ground.indices[mindex * 3 + 2] * 3 + 1], z: ground.positions[ground.indices[mindex * 3 + 2] * 3 + 2] },
+                                        });
+
+                                    floorheight = result.hity;
+                                    hasHit = true;
+                                    p = 4;
+                                    op = 5;
+                                    m = minGroundIndex.length;
+                                }
+                            }
+                        }
+                    }//end of big m for loop
                 }
             }
             if (!object.confirmGrounded) { object.confirmGrounded = true; object.isGrounded = false; }
             if (Math.abs(floorheight - object.matrix[y]) > 0.0001) {
-                if (object.matrix[y] <= floorheight + 0.0001) {
+                if (object.matrix[y] <= floorheight + 0.0001 && object.matrix[y] > (floorheight - Math.abs(velyOrig) - 0.01)) {
                     //console.log('o dear itsa ' + floorheight);
                     if (floorheight < 1000) {
                         object.matrix[y] = floorheight;
@@ -1410,6 +1488,42 @@ const FrameLogic = (function () {
         }
         //todo george add check for same line
     };
+
+
+    //thank you Paul Bourke http://paulbourke.net/geometry/pointlineplane/javascript.txt
+    // and thanks you vbarbarosh and David Figatner on https://stackoverflow.com/questions/13937782/calculating-the-point-of-intersection-of-two-lines
+    // but did rename from intersect
+    // line intercept math by Paul Bourke http://paulbourke.net/geometry/pointlineplane/
+    // Determine the intersection point of two line segments
+    // Return FALSE if the lines don't intersect
+    function getIntersectPoint(x1, y1, x2, y2, x3, y3, x4, y4) {
+
+        // Check if none of the lines are of length 0
+        if ((x1 === x2 && y1 === y2) || (x3 === x4 && y3 === y4)) {
+            return false
+        }
+
+        denominator = ((y4 - y3) * (x2 - x1) - (x4 - x3) * (y2 - y1))
+
+        // Lines are parallel
+        if (denominator === 0) {
+            return false
+        }
+
+        let ua = ((x4 - x3) * (y1 - y3) - (y4 - y3) * (x1 - x3)) / denominator
+        let ub = ((x2 - x1) * (y1 - y3) - (y2 - y1) * (x1 - x3)) / denominator
+
+        // is the intersection along the segments
+        if (ua < 0 || ua > 1 || ub < 0 || ub > 1) {
+            return false
+        }
+
+        // Return a object with the x and y coordinates of the intersection
+        let x = x1 + ua * (x2 - x1)
+        let y = y1 + ua * (y2 - y1)
+
+        return { x, y }
+    }
 
 
     return {
