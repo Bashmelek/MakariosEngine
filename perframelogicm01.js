@@ -1029,11 +1029,13 @@ const FrameLogic = (function () {
                         //console.log(rotatedboxcoords + ' $$ ' + framenum)
                         if (rotatedboxcoords[c * 3 + 0] >= (otherboxcoords[3] - .00001) && rotatedboxcoords[c * 3 + 0] <= (otherboxcoords[0] + .00001)) {
                             if (rotatedboxcoords[c * 3 + 2] >= (otherboxcoords[8] - .00001) && rotatedboxcoords[c * 3 + 2] <= (otherboxcoords[2] + .00001)) {
-                                console.log('clang clang ' + framenum);
-                                var blocked = false;
+                                if (Math.abs(oy - object.matrix[y]) <= (other.collider.hheight + object.collider.hheight - 0.0001)) {
+                                    console.log('clang clang ' + framenum);
+                                    var blocked = false;
 
-                                if (!blocked) {
-                                    rot = 0;
+                                    if (!blocked) {
+                                        rot = 0;
+                                    }
                                 }
                             }
                         }
@@ -1060,15 +1062,17 @@ const FrameLogic = (function () {
                     for (var c = 0; c < orotatedboxcoords.length / 3; c++) {
                         if (orotatedboxcoords[c * 3 + 0] >= objectboxcoords[3] && orotatedboxcoords[c * 3 + 0] <= objectboxcoords[0]) {
                             if (orotatedboxcoords[c * 3 + 2] >= objectboxcoords[8] && orotatedboxcoords[c * 3 + 2] <= objectboxcoords[2]) {
-                                console.log('kling kling'); //vec = [0, 0, 0];
+                                if (Math.abs(oy - object.matrix[y]) <= (other.collider.hheight + object.collider.hheight - 0.0001)) {
+                                    console.log('kling kling'); //vec = [0, 0, 0];
 
 
-                                //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------//
-                                //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------//
-                                var blocked = false;
+                                    //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------//
+                                    //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------//
+                                    var blocked = false;
 
-                                if (!blocked) {
-                                    rot = 0;
+                                    if (!blocked) {
+                                        rot = 0;
+                                    }
                                 }
 
                             }
@@ -1165,7 +1169,8 @@ const FrameLogic = (function () {
                     //console.log(floorheight);
                 }
             }
-            //console.log(minGroundIndex);
+
+            //when the center is not directly over ground
             if (!hasHit && minGroundIndex.length > 0) {
                 if (object.collider.type == 'yrotbox') {
                     //console.log('stllhits');
@@ -1174,13 +1179,81 @@ const FrameLogic = (function () {
                             -object.collider.hdepth, 0.0, object.collider.hwidth,
                             object.collider.hdepth, 0.0, -object.collider.hwidth,
                             -object.collider.hdepth, 0.0, -object.collider.hwidth,
-                            ];
+                    ];
+                    var boxDiagonal = Math.sqrt(object.collider.hdepth * object.collider.hdepth + object.collider.hwidth * object.collider.hwidth);
                     var initialrotatedboxcoords = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0];
                     linTransformRange(initialrotatedboxcoords, objectboxcoords, object.matrix, 0, objectboxcoords.length);//useYRotToGetRotatedVectors(object.matrix, objectboxcoords);
+                    var rotbox = initialrotatedboxcoords;
+                    var boxtri1 = [rotbox[0],rotbox[1],rotbox[2],  rotbox[3],rotbox[4],rotbox[5],  rotbox[6],rotbox[7],rotbox[8]];
+                    var boxtri2 = [rotbox[9],rotbox[10],rotbox[11],  rotbox[3],rotbox[4],rotbox[5],  rotbox[6],rotbox[7],rotbox[8]];
 
-                    for (var m = 0; m < minGroundIndex.length; m++) {
-                        var mindex = minGroundIndex[m];
+                    for (var m = 0; m < ground.positions.length / 3; m++) {//(var m = 0; m < minGroundIndex.length; m++) {
+
+                        var p1xDiff = (ground.positions[ground.indices[m * 3 + 0] * 3 + 0] - objectFoot.x);
+                        var p1yDiff = (ground.positions[ground.indices[m * 3 + 0] * 3 + 1] - objectFoot.y);
+                        var p1zDiff = (ground.positions[ground.indices[m * 3 + 0] * 3 + 2] - objectFoot.z);
+
+                        var p2xDiff = (ground.positions[ground.indices[m * 3 + 1] * 3 + 0] - objectFoot.x);
+                        var p2yDiff = (ground.positions[ground.indices[m * 3 + 1] * 3 + 1] - objectFoot.y);
+                        var p2zDiff = (ground.positions[ground.indices[m * 3 + 1] * 3 + 2] - objectFoot.z);
+
+                        var p3xDiff = (ground.positions[ground.indices[m * 3 + 2] * 3 + 0] - objectFoot.x);
+                        var p3yDiff = (ground.positions[ground.indices[m * 3 + 2] * 3 + 1] - objectFoot.y);
+                        var p3zDiff = (ground.positions[ground.indices[m * 3 + 2] * 3 + 2] - objectFoot.z);
+
+                        var p1GroundDistSquared = p1xDiff * p1xDiff + p1zDiff * p1zDiff;
+                        var p2GroundDistSquared = p2xDiff * p2xDiff + p2zDiff * p2zDiff;
+                        var p3GroundDistSquared = p3xDiff * p3xDiff + p3zDiff * p3zDiff;
+
+                        var xCrossesMidd = Math.sign(p1xDiff) == Math.sign(p2xDiff) && Math.sign(p2xDiff) == Math.sign(p3xDiff);
+                        var yCrossesMidd = Math.sign(p1yDiff) == Math.sign(p2yDiff) && Math.sign(p2yDiff) == Math.sign(p3yDiff);
+                        var zCrossesMidd = Math.sign(p1zDiff) == Math.sign(p2zDiff) && Math.sign(p2zDiff) == Math.sign(p3zDiff);
+
+                        if (!xCrossesMidd && !yCrossesMidd && !zCrossesMidd && (p1GroundDistSquared > boxDiagonal || p2GroundDistSquared > boxDiagonal || p3GroundDistSquared > boxDiagonal)) {
+                            continue;
+                        }
+
+                        var mindex = m;//minGroundIndex[m];
                         for (var p = 0; p < 3; p++) {
+
+                            var px = ground.positions[ground.indices[m * 3 + p] * 3 + 0];
+                            var py = ground.positions[ground.indices[m * 3 + p] * 3 + 1];
+                            var pz = ground.positions[ground.indices[m * 3 + p] * 3 + 2];
+
+                            var tri1result = IsPointInTriangleIncludeY({ x: px, y: py, z: pz },
+                                {
+                                    a: { x: boxtri1[0], y: boxtri1[1], z: boxtri1[2] },
+                                    b: { x: boxtri1[3], y: boxtri1[4], z: boxtri1[5] },
+                                    c: { x: boxtri1[6], y: boxtri1[7], z: boxtri1[8] },
+                                });
+
+                            if (tri1result.didHit) {
+                                console.log(tri1result.hity);
+                                floorheight = tri1result.hity;
+                                hasHit = true;
+                                p = 4;
+                                op = 5;
+                                m = ground.positions.length;//minGroundIndex.length;
+                                continue;
+                            }
+                            var tri2result = IsPointInTriangleIncludeY({ x: px, y: py, z: pz },
+                                {
+                                    a: { x: boxtri2[0], y: boxtri2[1], z: boxtri2[2] },
+                                    b: { x: boxtri2[3], y: boxtri2[4], z: boxtri2[5] },
+                                    c: { x: boxtri2[6], y: boxtri2[7], z: boxtri2[8] },
+                                });
+
+                            if (tri2result.didHit) {
+                                console.log(tri2result.hity);
+                                floorheight = tri2result.hity;
+                                hasHit = true;
+                                p = 4;
+                                op = 5;
+                                m = ground.positions.length;//minGroundIndex.length;
+                                continue;
+                            }
+
+
                             for (var op = 0; op < 4; op++) {
 
                                 var line1 = [ground.positions[ground.indices[mindex * 3 + p] * 3 + 0], ground.positions[ground.indices[mindex * 3 + p] * 3 + 2], ground.positions[ground.indices[mindex * 3 + ((p + 1) % 3)] * 3 + 0], ground.positions[ground.indices[mindex * 3 + ((p + 1) % 3)] * 3 + 2]];
@@ -1191,8 +1264,8 @@ const FrameLogic = (function () {
                                 //console.log(line1);
                                 //console.log(line2);
                                 if (hitIntersect) {
-                                    console.log('AAAHHHHHHH');
-                                    console.log(hitIntersect);
+                                    //console.log('AAAHHHHHHH');
+                                    //console.log(hitIntersect);
 
                                     var result = IsPointInTriangleIncludeY({ x: hitIntersect.x, y: oby, z: hitIntersect.y },
                                         {
@@ -1205,7 +1278,7 @@ const FrameLogic = (function () {
                                     hasHit = true;
                                     p = 4;
                                     op = 5;
-                                    m = minGroundIndex.length;
+                                    m = ground.positions.length;//minGroundIndex.length;
                                 }
                             }
                         }
@@ -1214,7 +1287,7 @@ const FrameLogic = (function () {
             }
             if (!object.confirmGrounded) { object.confirmGrounded = true; object.isGrounded = false; }
             if (Math.abs(floorheight - object.matrix[y]) > 0.0001) {
-                if (object.matrix[y] <= floorheight + 0.0001 && object.matrix[y] > (floorheight - Math.abs(velyOrig) - 0.01)) {
+                if (object.matrix[y] <= floorheight + 0.0001 && object.matrix[y] > (floorheight - Math.abs(velyOrig) - 0.01)) { // + 0.0001 and
                     //console.log('o dear itsa ' + floorheight);
                     if (floorheight < 1000) {
                         object.matrix[y] = floorheight;
