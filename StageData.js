@@ -281,7 +281,11 @@ const StageData = (function () {
             color: [color[0], color[1], color[2]]
         };
 
-        if (rollpitchyaw[1] != 0) {
+        mat4.translate(dirlight.lightmat,     // destination matrix
+            dirlight.lightmat,     // matrix to translate
+            [-pos[0], -pos[1], -pos[2]]);
+
+        if (rollpitchyaw[0] != 0) {
             mat4.rotate(dirlight.lightmat,  // destination matrix
                 dirlight.lightmat,  // matrix to rotate
                 rollpitchyaw[0],//-1.5707,//.7,   // amount to rotate in radians
@@ -299,15 +303,12 @@ const StageData = (function () {
                 rollpitchyaw[2],//-1.5707,//.7,   // amount to rotate in radians
                 [0, 0, 1]);
         }
-        mat4.translate(dirlight.lightmat,     // destination matrix
-            dirlight.lightmat,     // matrix to translate
-            [-pos[0], -pos[1], -pos[2]]);
 
         if (mainDirLightIndex != null) {
             StageLights[mainDirLightIndex] = dirlight;
         } else {
             StageLights.push(dirlight);
-            mainDirLightIndex = StageLights.length;
+            mainDirLightIndex = StageLights.length - 1;
         }
     };
 

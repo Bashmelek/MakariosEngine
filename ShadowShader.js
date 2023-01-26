@@ -145,7 +145,7 @@ const ShadowShader = (function () {
         //console.log(lights);
         mat4.translate(modnew,     // destination matrix
             lights[0].lightmat,     // matrix to translate
-            [-projScaler, 0.0, 0.0]);
+            [0.0, 0.0, 0.0]);
 
         
          //testing only

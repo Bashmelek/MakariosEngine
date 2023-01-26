@@ -568,9 +568,9 @@ const GltfConverter = (function () {
             normarr[(i + 1) * 3 + 0] = vres[0];
             normarr[(i + 2) * 3 + 0] = vres[0];
 
-            normarr[i * 3 + 0] = vres[1];
-            normarr[(i + 1) * 3 + 0] = vres[1];
-            normarr[(i + 2) * 3 + 0] = vres[1];
+            normarr[i * 3 + 1] = vres[1];
+            normarr[(i + 1) * 3 + 1] = vres[1];
+            normarr[(i + 2) * 3 + 1] = vres[1];
 
             normarr[i * 3 + 2] = vres[2];
             normarr[(i + 1) * 3 + 2] = vres[2];

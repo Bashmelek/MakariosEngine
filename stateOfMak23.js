@@ -181,7 +181,7 @@ const StateOfMakarios23 = (function () {
                 highp vec3 directionalVector = normalize(uLightDirection);
                 highp vec4 transformedNormal = uNormalMatrix  * vec4(aVertexNormal, 1.0);
                 highp float directional = max(dot(transformedNormal.xyz, directionalVector), 0.0);
-                vLighting = ambientLight + (directionalLightColor * directional);
+                vLighting = ambientLight + (directionalLightColor * directional) * 0.8;
 
                 // tyref: webglfundamentals3dpointlighting
                 // compute the world position of the surface
@@ -190,7 +190,7 @@ const StateOfMakarios23 = (function () {
                 // compute the vector of the surface to the light
                 // and pass it to the fragment shader
                 vNormWorld = mat3(worldSpaceMat) * aVertexNormal;
-                vPosToLight = (worldSpaceMat * vec4(8.0, 1.4, 8.0, 1.0)).xyz - pointWorldPos;//ulightWorldPos - surfaceWorldPosition; 
+                vPosToLight = (worldSpaceMat * vec4(8.0, 1.4, 8.0, 1.0)).xyz - pointWorldPos;//vec4(ulightWorldPos, 1.0)).xyz - pointWorldPos;//vec4(8.0, 1.4, 8.0, 1.0)).xyz - pointWorldPos;//ulightWorldPos - surfaceWorldPosition; 
                 // compute the vector of the surface to the view/camera
                 // and pass it to the fragment shader
                 vPosToCam = vec3(uProjectionMatrix[3][0], uProjectionMatrix[3][1], uProjectionMatrix[3][2]) - pointWorldPos;
@@ -236,7 +236,17 @@ const StateOfMakarios23 = (function () {
         var canvas = document.getElementById("glCanvas");
         wgl = canvas.getContext("webgl");
         customUniforms.push({
-            name: 'ulightWorldPos'
+            name: 'ulightWorldPos',
+            //loc: wgl.getUniformLocation(globalMainProgramInfo.program, 'ulightWorldPos'),
+            //frameset: function (attr, gl) {
+
+            //    var lpoint = [0.0, 0.0, 0.0];
+            //    var lightLocMat = mat4.create();
+            //    mat4.invert(lightLocMat, StageData.StageLights[0].lightmat);
+            //    linTransformRange(lpoint, lpoint, lightLocMat, 0, 3, null);
+            //    gl.uniform3fv(attr.loc, lpoint);//[0.000 * StageData.ticks + 0.5, 0.002 * StageData.ticks, 0.0]
+            //    console.log(lpoint);
+            //}
         });
         customUniforms.push({
             name: 'uOverTextureMatrix',
@@ -266,7 +276,7 @@ const StateOfMakarios23 = (function () {
                 var shadowProjScaler = ShadowShader.getProjScaler();
                 mat4.translate(textureMatrix,     // destination matrix
                     StageData.StageLights[0].lightmat,     // matrix to translate
-                    [-shadowProjScaler, -0.0, 0.0]);
+                    [0.0, -0.0, 0.0]);
 
                 if (StageData.defShadowProjMat && true) {
                     mat4.multiply(textureMatrix, StageData.defShadowProjMat, textureMatrix);
@@ -344,10 +354,42 @@ const StateOfMakarios23 = (function () {
     };
 
     var ProcInLoading = function () {
+        var vmat = mat4.create();
+        // Now move the drawing position a bit to where we want to
+        // start drawing the square.
+        mat4.translate(vmat,     // destination matrix
+            vmat,     // matrix to translate
+            [-0.0, 0.0, -camDist]); //negative camdist
+        //mat4.rotate(gmod, gmod, (e.clientY - lastmousedownpoint.y) * 0.001, [gmod[0], gmod[4], gmod[8]]);
+        yaw = .6;
+        pitch = 0.65
+        mat4.rotate(vmat, vmat, .6, [vmat[1], vmat[5], vmat[9]]);
+        mat4.rotate(gmod, vmat, 0.65, [vmat[0], vmat[4], vmat[8]]);
+
+
         WanderProc = MainProc;
     };
 
     var MainProc = function () {
+
+
+        //StageData.SetMainDirLight([0.5, 0.001 * StageData.ticks, 0.0], [0.0, 0.0, 18.0], [1.0, 1.0, 1.0]);
+        StageData.SetMainDirLight([0.000 * StageData.ticks + 0.5, 0.0002 * StageData.ticks, 0.0], [0.0, 0.0, 18.0], [1.0, 1.0, 1.0]);
+
+        var lpoint = [0.0, 0.0, 0.0];
+        var lightLocMat = mat4.create();
+        mat4.invert(lightLocMat, StageData.StageLights[0].lightmat);
+        linTransformRange(lpoint, lpoint, lightLocMat, 0, 3, null);
+        //lpoint = [-lpoint[0], -lpoint[1], -lpoint[2]];//[0.85, 0.8, 0.75];//[-lpoint[0], -lpoint[1], -lpoint[2]]
+        //lpoint = [0.9, 0.9, 0.9];
+        var lpointvec = vec3.create();
+        lpointvec[0] = lpoint[0]; lpointvec[1] = lpoint[1]; lpointvec[2] = lpoint[2];
+        vec3.normalize(lpointvec, lpointvec);
+        wgl.uniform3fv(
+            globalMainProgramInfo.uniformLocations.lightDirection,
+            lpoint);////[0.000 * StageData.ticks + 0.5, 0.002 * StageData.ticks, 0.0]);
+        //console.log(lpoint);
+
         //if (gproj != null) {
         //    var transformedPlane = [
         //        // Top face

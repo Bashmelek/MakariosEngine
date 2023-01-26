@@ -1302,11 +1302,11 @@ function onCamChange() {
                 maxProjectedDist = d;
             }
         }
-        var scaling = 12.0 / maxProjectedDist;
+        var scaling = 16.0 / maxProjectedDist;
         ShadowShader.setProjScaler(scaling);//44.0;// scaling;
         console.log(scaling);
         mat4.ortho(StageData.defShadowProjMat,
-            -scaling, scaling, -scaling, scaling, 0.1, maxZFar + 1000);//maxZFar
+            -scaling, scaling, -scaling / 2.0, scaling / 2.0, 0.1, maxZFar + 1000);//maxZFar
 
 
         var shadowBoundMat = mat4.create();
@@ -1450,6 +1450,12 @@ function recursiveCheckAllObjectsIfScreenPointHits(object, parent, itsfullmatrix
             //don't need to rebind anymore, because we do this all the time yeah?
             console.log('flippeditfor ' + lowestztri.triid + 'z: ' + lowestztri.z);
             console.log('moreinfo: ' + (lowestztri.triid * 3 + 0) + 'z: ' + ((object.indices[lowestztri.triid * 3 + 0]) * 2));
+            console.log(object.vertexNormals[(object.indices[lowestztri.triid * 3 + 0]) * 3 + 0] + ", " + object.vertexNormals[(object.indices[lowestztri.triid * 3 + 0]) * 3 + 1] + ", " + object.vertexNormals[(object.indices[lowestztri.triid * 3 + 0]) * 3 + 2]);
+            var lpoint = [0.0, 0.0, 0.0];
+            var lightLocMat = mat4.create();
+            mat4.invert(lightLocMat, StageData.StageLights[0].lightmat);
+            linTransformRange(lpoint, lpoint, lightLocMat, 0, 3, null);
+            console.log(lpoint);
         }
     }
 

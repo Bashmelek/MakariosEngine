@@ -105,7 +105,7 @@ const ShadowShader = (function () {
           ////vec4 projectedTexColor = vec4(texture2D(u_projectedTexture, projectedTexcoord.xy).rrr, 1);
           vec4 texColor = texture2D(uSampler, v_texcoord);// * u_colorMult;
           float projectedAmount = inRange ? 1.0 : 0.0;
-          gl_FragColor = vec4(0.2, 0.2, v_projectedTexcoord.z / v_projectedTexcoord.w, 1.0);// texColor;//// mix(texColor, vec4(0.0, 0.0, 0.0, 0.0), projectedAmount);
+          gl_FragColor = vec4(0.2, 0.2, -0.003 * v_projectedTexcoord.z / v_projectedTexcoord.w, 1.0);// texColor;//// mix(texColor, vec4(0.0, 0.0, 0.0, 0.0), projectedAmount);
         }
     `;
 
@@ -136,8 +136,8 @@ const ShadowShader = (function () {
         projScaler = newval;
     };
 
-    var drawShadowsToTexture = function (modMat, projMat, vertices, indices, useParentMatrix, objects, textBuffer) {// (projMat, modMat) {
-        if (!isLoaded || !isSet) { return; }
+    var drawShadowsToTexture = function (modMat, projMat, vertices, indices, useParentMatrix, objects, lights, textBuffer) {// (projMat, modMat) {
+        if (!isLoaded || !isSet || !lights || lights.length == 0) { return; }
 
         //console.log('drawed dasky?');
         wgl.useProgram(shaderprogram);
@@ -182,17 +182,21 @@ const ShadowShader = (function () {
         //    [0, 1, 0]); //console.log(Date.now() * .01);
 
 
-        mat4.rotate(modnew,  // destination matrix
-            modnew,  // matrix to rotate
-            .052,//.252,//(Date.now() * .001),//-.452,//.7,   // amount to rotate in radians
-            [1, 0, 0]); //console.log(Date.now() * .01);
-        mat4.rotate(modnew,  // destination matrix
-            modnew,  // matrix to rotate
-            -1.752,//.7,   // amount to rotate in radians
-            [0, 1, 0]);
+        //mat4.rotate(modnew,  // destination matrix
+        //    modnew,  // matrix to rotate
+        //    .052,//.252,//(Date.now() * .001),//-.452,//.7,   // amount to rotate in radians
+        //    [1, 0, 0]); //console.log(Date.now() * .01);
+        //mat4.rotate(modnew,  // destination matrix
+        //    modnew,  // matrix to rotate
+        //    -1.752,//.7,   // amount to rotate in radians
+        //    [0, 1, 0]);
+        //mat4.translate(modnew,     // destination matrix
+        //    modnew,     // matrix to translate
+        //    [-44.0, -8.0, 0.0]);//[-44.0, -18.0, 0.0]);//[-11.0, -4.0, 0.0]);
+
         mat4.translate(modnew,     // destination matrix
-            modnew,     // matrix to translate
-            [-44.0, -8.0, 0.0]);//[-44.0, -18.0, 0.0]);//[-11.0, -4.0, 0.0]);
+            lights[0].lightmat,     // matrix to translate
+            [-(projScaler + 88) * 0.0, 0.0, +22 * 0.0]);
 
         ////mat4.scale(modnew, modnew, [10.5, 35.5, 21.5]);
         ////mat4.scale(fullproj, fullproj, [10.5, 35.5, 21.5]);
