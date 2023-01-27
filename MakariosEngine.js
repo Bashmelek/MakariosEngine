@@ -69,20 +69,12 @@ const vsSource = `
                 else {
                     gl_Position = uProjectionMatrix * uParentMatrix * aVertexPosition;//aVertexPosition;//uProjectionMatrix * uParentMatrix * aVertexPosition;
                 }
-                //gl_Position = uModelViewMatrix * aVertexPosition;
-                //gl_Position[2] = -1.9;
-                //gl_Position = uProjectionMatrix * uModelViewMatrix * aVertexPosition;//vec4(-0.9, -0.9, -0.9, 1.0);
-                //gl_Position[0] += -4.0;
-                //gl_Position[1] += -4.0;
-                //gl_Position[2] += -14.0;
-                //vColor = aVertexColor;
+
                 vTextureCoord = aTextureCoord;
 
                 // Apply lighting effect
                 highp vec3 ambientLight = vec3(0.2, 0.2, 0.2);
-                //if(aVertexPosition[3] == 1.0){
-                //    ambientLight = vec3(1.0/0.0, 0.0, 0.0);
-                //}
+
                 highp vec3 origin = vec3(0.0, 0.0, 0.0);
                 highp vec3 directionalLightColor = vec3(distance(origin, vec3(uModelViewMatrix[0][0], uModelViewMatrix[0][1], uModelViewMatrix[0][2])), distance(origin, vec3(uModelViewMatrix[1][0], uModelViewMatrix[1][1], uModelViewMatrix[1][2])), distance(origin, vec3(uModelViewMatrix[2][0], uModelViewMatrix[2][1], uModelViewMatrix[2][2])));
                 highp vec3 directionalVector = normalize(uLightDirection);// normalize(vec3(0.85, 0.8, 0.75));

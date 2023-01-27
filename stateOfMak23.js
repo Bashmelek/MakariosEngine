@@ -56,7 +56,7 @@ const StateOfMakarios23 = (function () {
                 //tyref: funglshadows
                 vec3 projectedTexcoord = v_projectedTexcoord.xyz / (v_projectedTexcoord.w * 1.0);
                 //from the shadow shader: gl_Position[2] * gl_Position[3] * 0.01;
-                float currentDepth = projectedTexcoord.z - 0.0010;
+                float currentDepth = projectedTexcoord.z - 0.00030;//0.0010;
                 bool inRange = 
                       projectedTexcoord.x >= 0.0 &&
                       projectedTexcoord.x <= 1.0 &&
@@ -66,7 +66,7 @@ const StateOfMakarios23 = (function () {
                 float textureDepth = texture2D(uProjectedTexture, projectedTexcoord.xy).r;
                 float interpolatedTextureVal = 0.0;
                 float shadelessLight = inRange ? 1.0 : -1.00;//(inRange && textureDepth <= currentDepth) ? 0.0 : 1.0; 
-                float interpCheckDepth = projectedTexcoord.z - 0.0010; 
+                float interpCheckDepth = projectedTexcoord.z - 0.00030;//0.0010;  
                 if (inRange && textureDepth <= currentDepth) {
                     shadelessLight = 0.0;
                     float leftBorder = onePixel.x * floor(projectedTexcoord.x / onePixel.x);
@@ -77,7 +77,7 @@ const StateOfMakarios23 = (function () {
                     interpolatedTextureVal += (texture2D(uProjectedTexture, projectedTexcoord.xy + vec2(0.0, onePixel.y)).r <= interpCheckDepth) ? 0.0 : abs(projectedTexcoord.y - topBorder) / onePixel.y;
                     interpolatedTextureVal += (texture2D(uProjectedTexture, projectedTexcoord.xy + vec2(0.0, -onePixel.y)).r <= interpCheckDepth) ? 0.0 : abs((topBorder + onePixel.y) - projectedTexcoord.y) / onePixel.y;
 
-                    shadelessLight += min(interpolatedTextureVal / 1.0, 1.0);
+                    shadelessLight += min(interpolatedTextureVal / 1.0, 1.0);interpolatedTextureVal;//min(interpolatedTextureVal / 1.0, 1.0);
                 }
                 //else if (inRange) {
                 //    shadelessLight = 0.0;
@@ -96,10 +96,11 @@ const StateOfMakarios23 = (function () {
 
                 highp vec3 surfaceToLightDirection = normalize(vPosToLight);
                 highp vec3 normWorld = normalize(vNormWorld);
-                highp float pointlight = max(abs(dot(normWorld, surfaceToLightDirection)), 0.0); 
+                highp float pointlight = max(abs(dot(normWorld, surfaceToLightDirection)), 0.0) * 0.0; 
 
-                resultColor = vec4(texelColor.rgb * vLighting, texelColor.a * 1.0);
-                resultColor.rgb *= (1.0 + shadelessLight * pointlight * vec3(0.4, 0.85,  1.0));
+                resultColor = vec4(texelColor.rgb * (vLighting), texelColor.a * 1.0);
+                resultColor.rgb *= (1.0 + shadelessLight + pointlight * vec3(0.4, 0.85,  1.0));
+//resultColor.rgb = vec3(shadelessLight, shadelessLight,  shadelessLight);
 
                 //testval
                 ////resultColor = vec4(texture2D(uProjectedTexture, projectedTexcoord.xy * 1.0).rrr * 0.333, 1);//
@@ -174,14 +175,14 @@ const StateOfMakarios23 = (function () {
                 vTextureCoord = aTextureCoord;
 
                 // Apply lighting effect
-                highp vec3 ambientLight = vec3(0.2, 0.2, 0.2);
+                highp vec3 ambientLight = vec3(0.1, 0.1, 0.1);//vec3(0.2, 0.2, 0.2);
 
                 highp vec3 origin = vec3(0.0, 0.0, 0.0);
                 highp vec3 directionalLightColor = vec3(distance(origin, vec3(worldSpaceMat[0][0], worldSpaceMat[0][1], worldSpaceMat[0][2])), distance(origin, vec3(worldSpaceMat[1][0], worldSpaceMat[1][1], worldSpaceMat[1][2])), distance(origin, vec3(worldSpaceMat[2][0], worldSpaceMat[2][1], worldSpaceMat[2][2])));
                 highp vec3 directionalVector = normalize(uLightDirection);
                 highp vec4 transformedNormal = uNormalMatrix  * vec4(aVertexNormal, 1.0);
                 highp float directional = max(dot(transformedNormal.xyz, directionalVector), 0.0);
-                vLighting = ambientLight + (directionalLightColor * directional) * 0.8;
+                vLighting = ambientLight + (directionalLightColor * directional) * 0.45;
 
                 // tyref: webglfundamentals3dpointlighting
                 // compute the world position of the surface
@@ -214,7 +215,7 @@ const StateOfMakarios23 = (function () {
         console.log(camDist);
         maxCamDist = 300.0;//global scope, plz fix
         maxZFar = 550.0;//this global too
-        ShadowShader.setProjScaler(74.0);
+        ShadowShader.setProjScaler(198.0);
         var initShadowProjScaler = ShadowShader.getProjScaler();
 
         //ortho(out, left, right, bottom, top, near, far)
@@ -258,21 +259,6 @@ const StateOfMakarios23 = (function () {
                 //attempt 3
                 var tempmat3 = mat4.create();
 
-                //attempt 4
-                //mat4.rotate(tempmat3,  // destination matrix
-                //    tempmat3,  // matrix to rotate
-                //    .192,//.252,//(Date.now() * .001),//-.452,//.7,   // amount to rotate in radians
-                //    [1, 0, 0]); //console.log(Date.now() * .01);
-                //mat4.rotate(tempmat3,  // destination matrix
-                //    tempmat3,  // matrix to rotate
-                //    -1.752,//-1.5707,//.7,   // amount to rotate in radians
-                //    [0, 1, 0]);
-                //var shadowProjScaler = ShadowShader.getProjScaler();
-                //mat4.translate(tempmat3,     // destination matrix
-                //    tempmat3,     // matrix to translate
-                //    [-shadowProjScaler, -18.0, 0.0]);
-                //mat4.multiply(textureMatrix, textureMatrix, tempmat3);
-
                 var shadowProjScaler = ShadowShader.getProjScaler();
                 mat4.translate(textureMatrix,     // destination matrix
                     StageData.StageLights[0].lightmat,     // matrix to translate
@@ -310,12 +296,14 @@ const StateOfMakarios23 = (function () {
             frameset: function (attr, gl) {
 
                 var modinv = mat4.create();
-                mat4.invert(modinv, gmod);////just temp out
+                if (gmod) {
+                    mat4.invert(modinv, gmod);////just temp out
 
-                gl.uniformMatrix4fv(
-                    attr.loc,
-                    false,
-                    modinv);
+                    gl.uniformMatrix4fv(
+                        attr.loc,
+                        false,
+                        modinv);
+                }
             }
         });
 
@@ -333,27 +321,18 @@ const StateOfMakarios23 = (function () {
                     Primitives.shapes["testbox"].animations[res.animations[a].name] = Primitives.animations[Primitives.animations.length - 1];
                 }
             }
+
+            isLoading = false;
             console.log(Primitives.shapes["testbox"]);
-            var ob5 = Makarios.instantiate(Primitives.shapes["testbox"], Primitives.shapes["testbox"].textureUrl, null, {});//'plainsky.jpg'  Primitives.shapes["testbox"].textureUrl
-            Makarios.SetAnimation(ob5, "Survey");//"0"    Survey  Run
-
-            mat4.fromScaling(ob5.matrix, [0.1, 0.1, 0.1]);
-            console.log(ob5.matrix);
-
-
-            var obplane = Makarios.instantiate(Primitives.shapes["plane"], 'plainsky.jpg', null, {});
-            mat4.fromScaling(obplane.matrix, [104.0, 104.0, 104.0]);//[14.0, 4.0, 14.0]);
-
-
-            var oblightdummy = Makarios.instantiate(Primitives.shapes["tetrahedron"], 'plainsky.jpg', null, {});
-            mat4.translate(oblightdummy.matrix, oblightdummy.matrix, [8.0, 1.4, 8.0]);
-
-            Makarios.setCamDist(40.0);
         });
 
     };
-
+    
+    var isLoading = true;
     var ProcInLoading = function () {
+
+        if (isLoading) { return };
+
         var vmat = mat4.create();
         // Now move the drawing position a bit to where we want to
         // start drawing the square.
@@ -366,6 +345,19 @@ const StateOfMakarios23 = (function () {
         mat4.rotate(vmat, vmat, .6, [vmat[1], vmat[5], vmat[9]]);
         mat4.rotate(gmod, vmat, 0.65, [vmat[0], vmat[4], vmat[8]]);
 
+        var ob5 = Makarios.instantiate(Primitives.shapes["testbox"], Primitives.shapes["testbox"].textureUrl, null, {});//'plainsky.jpg'  Primitives.shapes["testbox"].textureUrl
+        Makarios.SetAnimation(ob5, "Survey");//"0"    Survey  Run
+
+        mat4.fromScaling(ob5.matrix, [0.1, 0.1, 0.1]);
+
+        var obplane = Makarios.instantiate(Primitives.shapes["plane"], 'plainsky.jpg', null, {});
+        mat4.fromScaling(obplane.matrix, [104.0, 104.0, 104.0]);//[14.0, 4.0, 14.0]);
+
+
+        var oblightdummy = Makarios.instantiate(Primitives.shapes["tetrahedron"], 'plainsky.jpg', null, {});
+        mat4.translate(oblightdummy.matrix, oblightdummy.matrix, [8.0, 1.4, 8.0]);
+
+        Makarios.setCamDist(40.0);
 
         WanderProc = MainProc;
     };
