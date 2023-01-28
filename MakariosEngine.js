@@ -420,6 +420,10 @@ var camDist;
 var maxCamDist = 70.0;
 var maxZFar = 160.0;
 
+//Debug specials
+var FREEZE = false;
+var SLOWDOWN = 1.0;
+
 function drawScene(gl, programInfo, buffers) {  //deltaTime
     gl.clearColor(0.0, 0.0, 0.0, 1.0);  // Clear to black, fully opaque
     gl.clearDepth(1.0);                 // Clear everything
@@ -1136,6 +1140,7 @@ function setupSkeletalAnimationMatrix(rootobj, obj, thekey, invmat, poschain) {/
         mat4.multiply(newcomp, newcomp, obj.prim.primmattran);
     }
     if (obj.applyanimrot) {
+        //console.log(obj.currentAnimation);
         mat4.multiply(obj.skellmatrix, obj.skellmatrix, obj.matrot);
         mat4.multiply(newcomp, newcomp, obj.matrot);
     } else if (obj.prim.primmatrot) {
@@ -1173,7 +1178,8 @@ function applySkeletalMatrixTransforms(obj, thekey) {
     //}
     //linTransformRangeWithOffsetsForSkeletonMat3(Entera.buffers.positions, Entera.buffers.positions, obj.startContPosIndex, obj.startContPosIndex + obj.positions.length, obj.positionsBufferStart,
     //    obj.skeletonkey, obj.prim.skellyjoints, obj.prim.skellyweights);
-    linTransformRangeWithOffsetsForSkeletonMat3(Entera.buffers.positions, Entera.buffers.positions, obj.startContPosIndex + obj.positionsBufferStart, obj.startContPosIndex + obj.positions.length, obj.startContPosIndex + obj.positionsBufferStart,
+    //console.log(obj.positionsBufferStart);
+    linTransformRangeWithOffsetsForSkeletonMat3(Entera.buffers.positions, Entera.buffers.positions, obj.startContPosIndex + obj.positionsBufferStart, obj.startContPosIndex + obj.positionsBufferStart + obj.positions.length, obj.startContPosIndex + obj.positionsBufferStart,
         obj.skeletonkey, obj.prim.skellyjoints, obj.prim.skellyweights);
 }
 
@@ -1649,7 +1655,7 @@ function linTransformRangeWithOffsetsMat3(dest, source, mat, sourceStart, source
 function linTransformRangeWithOffsetsForSkeletonMat3(dest, source, sourceStart, sourceEndExclusive, destStart, skeletonkey, joints, weights) {
     //console.log('from ' + rangeStart + ' to ' + rangeEndExclusive);
     var psize = sourceEndExclusive / 3;
-    //console.log('from ' + rangeStart + ' to ' + rangeEndExclusive)
+    //console.log('from ' + sourceStart + ' to ' + sourceEndExclusive)
     var mat = mat4.create();
 
     for (var i = (sourceStart / 3); i < psize; i++) {
@@ -1822,28 +1828,49 @@ function IsPointInTriangleIncludeZ(point, tri)/*(px, py, ax, ay, bx, by, cx, cy)
 function UpdateObjAnimation(obj) {
 
     if (obj && obj.currentAnimation != null) {
+        //console.log(obj);
         //console.log('todo');
         var anim = obj.prim.animations[obj.currentAnimation];
         //console.log(obj.currentAnimation);
         if (anim != null) {
-            obj.animframe += StageData.timeDelta;//(StageData.timeDelta / 4);
+            //if (!FREEZE) {
+            obj.animframe += StageData.timeDelta;// / SLOWDOWN;//StageData.vticks;//StageData.timeDelta / SLOWDOWN;//(StageData.timeDelta / 4);
+            //} else {
+            //    obj.animframe += StageData.vticks;//+= StageData.timeDelta / 12.0;
+            //}
             for (var i = 0; i < anim.components.length; i++) {
                 var primcomp = anim.components[i];
                 //reset positions from obj.prim.positions
+                //console.log(obj.positionsBufferStart);
                 for (var pp = 0; pp < obj.prim.positions.length; pp++) {
                     Entera.buffers.positions[obj.positionsBufferStart + pp] = obj.prim.positions[pp];
                 }
                 //rotation animation
                 if (primcomp.type == Makarios.animTypeRot) {
                     obj.animcomps[i].currentframe = obj.animframe % (obj.animcomps[i].endTime + 1);
+
+                    //console.log(obj.animcomps[i].endTime);
                     for (var f = 0; f < primcomp.keytimes.length; f++) {
                         var realkey = (obj.animcomps[i].currentKey + f) % primcomp.keytimes.length;
-                        if (obj.animcomps[i].currentframe >= primcomp.keytimes[realkey] * 1000 &&
+                        if ((obj.animcomps[i].currentframe >= primcomp.keytimes[realkey] * 1000 || (obj.animcomps[i].currentframe < primcomp.keytimes[0] * 1000 && realkey == 0)) &&
                             ((realkey == (primcomp.keytimes.length - 1)) || (obj.animcomps[i].currentframe < primcomp.keytimes[realkey + 1] * 1000))) {
                             obj.animcomps[i].currentKey = realkey;
+                            //if (realkey >= primcomp.keytimes.length - 2 && realkey == 44) { //|| realkey <= 0) {
+                            //    console.log(realkey + '   currentkey: ' + obj.animcomps[i].currentKey + '   keytimeslen:' + primcomp.keytimes.length);
+                            //    console.log('currentframe: ' + obj.animcomps[i].currentframe + '   nexkeytime: ' + primcomp.keytimes[realkey + 1] * 1000);
+                            //    console.log('keystart: ' + primcomp.keytimes[realkey] * 1000);
+                            //    //console.log(realkey);
+                            //    //FREEZE = true;
+                            //}
                             f = primcomp.keytimes.length;
                         }
-                    }
+                    } 
+                    //if (obj.animcomps[i].currentKey == 0 && obj.animframe % (obj.animcomps[i].endTime + 1) < 10.0) {
+                    //    console.log(obj.animframe % (obj.animcomps[i].endTime + 1));
+                    //    SLOWDOWN = 244.0
+                    //} else {
+                    //    SLOWDOWN = 1.0;//1.0;
+                    //}
 
                     var quat = [0.0, 0.0, 0.0, 0.0];
                     var thekey = obj.animcomps[i].currentKey;
@@ -1888,7 +1915,7 @@ function UpdateObjAnimation(obj) {
 
                         //thank you with a little help from https://github.khronos.org/glTF-Tutorials/gltfTutorial/gltfTutorial_007_Animations.html
                         //they say to use: interpolationValue = (currentTime - previousTime) / (nextTime - previousTime)
-                        var interpolScale = (obj.animcomps[i].currentframe - 1000.0 * primcomp.keytimes[thekey]) / (1000.0 * primcomp.keytimes[(thekey + 1)] - 1000.0 * primcomp.keytimes[thekey])
+                        var interpolScale = (obj.animcomps[i].currentframe - 1000.0 * primcomp.keytimes[thekey]) / (1000.0 * primcomp.keytimes[(thekey + 1)] - 1000.0 * primcomp.keytimes[thekey]);
                         var q0 = quat = [primcomp.keydeformations[thekey * 4 + 0], primcomp.keydeformations[thekey * 4 + 1],
                         primcomp.keydeformations[thekey * 4 + 2], primcomp.keydeformations[thekey * 4 + 3]];
                         var q1 = [primcomp.keydeformations[(thekey + 1) * 4 + 0], primcomp.keydeformations[(thekey + 1) * 4 + 1],
@@ -1914,6 +1941,7 @@ function UpdateObjAnimation(obj) {
                             skellobj.applyanimrot = 1;
                             ////mat4.fromQuat(skellobj.skellmatrix, quat);
                             mat4.fromQuat(skellobj.matrot, quat);
+                            //console.log(obj.currentAnimation);
                             //}
                         } else {
                             var nodalobj = obj.glnodes[obj.animcomps[i].node].nodeobj;
@@ -1939,7 +1967,7 @@ function UpdateObjAnimation(obj) {
                     obj.animcomps[i].currentframe = obj.animframe % (obj.animcomps[i].endTime + 1);
                     for (var f = 0; f < primcomp.keytimes.length; f++) {
                         var realkey = (obj.animcomps[i].currentKey + f) % primcomp.keytimes.length;
-                        if (obj.animcomps[i].currentframe >= primcomp.keytimes[realkey] * 1000 &&
+                        if ((obj.animcomps[i].currentframe >= primcomp.keytimes[realkey] * 1000 || (obj.animcomps[i].currentframe < primcomp.keytimes[0] * 1000 && realkey == 0)) &&
                             ((realkey == (primcomp.keytimes.length - 1)) || (obj.animcomps[i].currentframe < primcomp.keytimes[realkey + 1] * 1000))) {
                             obj.animcomps[i].currentKey = realkey;
                             f = primcomp.keytimes.length;
@@ -2099,6 +2127,11 @@ const Makarios = (function () {
         return _useSingleDrawCall;
     };
 
+    self.itemsToPreload = 0;
+    self.isPreloading = function () {
+        return self.itemsToPreload > 0;
+    }
+
     self.instantiate = function (prim, textureUrl, objectOnFrame, customprops, idealstartTime) {
         var newobj = StageData.instantiate(prim, textureUrl, objectOnFrame, customprops);
         if (idealstartTime != null && StageData.vticks > idealstartTime) {
@@ -2137,6 +2170,7 @@ const Makarios = (function () {
                 };
                 obj.animcomps.push(newcomp);
             }
+            //console.log(obj.animcomps);
         }
     }
 
@@ -2144,6 +2178,25 @@ const Makarios = (function () {
         ggl.useProgram(globalMainProgramInfo.program);
         ggl.uniform1f(globalMainProgramInfo.uniformLocations.ucelStep, stepCount);
     }
+
+    self.preloadGltfPrimitiveFromJsResource = function (pathloc, primname) {
+        if (Primitives.shapes[primname]) { return; }
+        console.log(primname + '==');
+
+        self.itemsToPreload++;
+        GltfConverter.getPrimitiveFromJsResource(pathloc, function (res) {
+            console.log('==' + primname);
+            Primitives.shapes[primname] = res.prim;
+            Primitives.shapes[primname].animations = [];
+            if (res.animations) {
+                for (var a = 0; a < res.animations.length; a++) {
+                    Primitives.animations.push(res.animations[a]);
+                    Primitives.shapes[primname].animations[res.animations[a].name] = Primitives.animations[Primitives.animations.length - 1];
+                }
+            }
+            self.itemsToPreload--;
+        });
+    };
 
     self.writeToUI = function (text, pos, font, dontClear) {
         self.uiState.text = text;

@@ -310,36 +310,27 @@ const StateOfMakarios23 = (function () {
 
 
         var foxloc = 'SampleModels/Fox/glTF-Embedded/Fox.gltf';
+        Makarios.preloadGltfPrimitiveFromJsResource(foxloc, "testbox");
 
-        GltfConverter.getPrimitiveFromJsResource(foxloc, function (res) {
-            console.log('!'); console.log(res);
-            Primitives.shapes["testbox"] = res.prim;
-            Primitives.shapes["testbox"].animations = [];
-            if (res.animations) {
-                for (var a = 0; a < res.animations.length; a++) {
-                    Primitives.animations.push(res.animations[a]);
-                    Primitives.shapes["testbox"].animations[res.animations[a].name] = Primitives.animations[Primitives.animations.length - 1];
-                }
-            }
+        var milktruckloc = 'SampleModels/CesiumMilkTruck/glTF-Embedded/CesiumMilkTruck.gltf';
+        Makarios.preloadGltfPrimitiveFromJsResource(milktruckloc, "milktruck");
 
-            isLoading = false;
-            console.log(Primitives.shapes["testbox"]);
-        });
+        var caesarloc = 'SampleModels/CesiumMan/glTF-Embedded/CesiumMan.gltf';
+        Makarios.preloadGltfPrimitiveFromJsResource(caesarloc, "caesar");
+
+        isLoading = false;
 
     };
     
     var isLoading = true;
     var ProcInLoading = function () {
 
-        if (isLoading) { return };
+        if (isLoading || Makarios.isPreloading()) { return };
 
         var vmat = mat4.create();
-        // Now move the drawing position a bit to where we want to
-        // start drawing the square.
         mat4.translate(vmat,     // destination matrix
             vmat,     // matrix to translate
             [-0.0, 0.0, -camDist]); //negative camdist
-        //mat4.rotate(gmod, gmod, (e.clientY - lastmousedownpoint.y) * 0.001, [gmod[0], gmod[4], gmod[8]]);
         yaw = .6;
         pitch = 0.65
         mat4.rotate(vmat, vmat, .6, [vmat[1], vmat[5], vmat[9]]);
@@ -347,8 +338,22 @@ const StateOfMakarios23 = (function () {
 
         var ob5 = Makarios.instantiate(Primitives.shapes["testbox"], Primitives.shapes["testbox"].textureUrl, null, {});//'plainsky.jpg'  Primitives.shapes["testbox"].textureUrl
         Makarios.SetAnimation(ob5, "Survey");//"0"    Survey  Run
-
         mat4.fromScaling(ob5.matrix, [0.1, 0.1, 0.1]);
+
+        var ob6 = Makarios.instantiate(Primitives.shapes["milktruck"], Primitives.shapes["milktruck"].textureUrl, null, {});//'plainsky.jpg'  Primitives.shapes["testbox"].textureUrl
+        //Makarios.SetAnimation(ob6, "Survey");//"0"    Survey  Run
+        //mat4.fromScaling(ob6.matrix, [0.1, 0.1, 0.1]);
+        mat4.translate(ob6.matrix, ob6.matrix, [-8.0, 0.0, 8.0]);
+        mat4.rotate(ob6.matrix, ob6.matrix, Math.PI / 2.0, [ob6.matrix[0], ob6.matrix[4], ob6.matrix[8]]);
+
+        var ob7 = Makarios.instantiate(Primitives.shapes["caesar"], Primitives.shapes["caesar"].textureUrl, null, {});//'plainsky.jpg'  Primitives.shapes["testbox"].textureUrl
+        //console.log(Primitives.shapes["caesar"].animations);
+        Makarios.SetAnimation(ob7, "0");//"0"    Survey  Run
+        //mat4.rotate(ob7.matrix, ob7.matrix, 0.65, [vmat[0], vmat[4], vmat[8]]);
+        mat4.translate(ob7.matrix, ob7.matrix, [-16.0, 0.0, -10.4]);
+        mat4.rotate(ob7.matrix, ob7.matrix, -Math.PI / 2.0, [ob7.matrix[0], ob7.matrix[4], ob7.matrix[8]]);
+        mat4.scale(ob7.matrix, ob7.matrix, [12.0, 12.0, 12.0]);
+        //console.log(ob7);
 
         var obplane = Makarios.instantiate(Primitives.shapes["plane"], 'plainsky.jpg', null, {});
         mat4.fromScaling(obplane.matrix, [104.0, 104.0, 104.0]);//[14.0, 4.0, 14.0]);
@@ -366,7 +371,7 @@ const StateOfMakarios23 = (function () {
 
 
         //StageData.SetMainDirLight([0.5, 0.001 * StageData.ticks, 0.0], [0.0, 0.0, 18.0], [1.0, 1.0, 1.0]);
-        StageData.SetMainDirLight([0.000 * StageData.ticks + 0.5, 0.0002 * StageData.ticks, 0.0], [0.0, 0.0, 18.0], [1.0, 1.0, 1.0]);
+        StageData.SetMainDirLight([0.000 * StageData.ticks + 0.5, 0.0002 * StageData.ticks, 0.0], [0.0, 0.0, 48.0], [1.0, 1.0, 1.0]);
 
         var lpoint = [0.0, 0.0, 0.0];
         var lightLocMat = mat4.create();
