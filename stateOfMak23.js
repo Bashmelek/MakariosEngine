@@ -47,7 +47,7 @@ const StateOfMakarios23 = (function () {
             varying vec4 v_projectedTexcoord;
 
             void main(void) {
-                mediump float utextureDim = 4096.0;
+                mediump float utextureDim = 2048.0;//2048
                 highp vec4 resultColor = vec4(1.0, 1.0, 1.0, 1.0);
                 
                 //thank you https://webglfundamentals.org/webgl/lessons/webgl-image-processing.html tyref: fungliproc
@@ -65,7 +65,7 @@ const StateOfMakarios23 = (function () {
 
                 float textureDepth = texture2D(uProjectedTexture, projectedTexcoord.xy).r;
                 float interpolatedTextureVal = 0.0;
-                float shadelessLight = inRange ? 1.0 : -1.00;//(inRange && textureDepth <= currentDepth) ? 0.0 : 1.0; 
+                float shadelessLight = inRange ? 1.0 : 0.00;//(inRange && textureDepth <= currentDepth) ? 0.0 : 1.0; 
                 float interpCheckDepth = projectedTexcoord.z - 0.00030;//0.0010;  
                 if (inRange && textureDepth <= currentDepth) {
                     shadelessLight = 0.0;
@@ -76,8 +76,13 @@ const StateOfMakarios23 = (function () {
                     interpolatedTextureVal += (texture2D(uProjectedTexture, projectedTexcoord.xy + vec2(-onePixel.x, 0.0)).r <= interpCheckDepth) ? 0.0 : abs((leftBorder + onePixel.x) - projectedTexcoord.x)/ onePixel.x;
                     interpolatedTextureVal += (texture2D(uProjectedTexture, projectedTexcoord.xy + vec2(0.0, onePixel.y)).r <= interpCheckDepth) ? 0.0 : abs(projectedTexcoord.y - topBorder) / onePixel.y;
                     interpolatedTextureVal += (texture2D(uProjectedTexture, projectedTexcoord.xy + vec2(0.0, -onePixel.y)).r <= interpCheckDepth) ? 0.0 : abs((topBorder + onePixel.y) - projectedTexcoord.y) / onePixel.y;
+                    
+                    interpolatedTextureVal += (texture2D(uProjectedTexture, projectedTexcoord.xy + vec2(onePixel.x, onePixel.y)).r <= interpCheckDepth) ? 0.0 : 0.12;//abs(projectedTexcoord.x - leftBorder) / onePixel.x;//1.0;
+                    interpolatedTextureVal += (texture2D(uProjectedTexture, projectedTexcoord.xy + vec2(-onePixel.x, onePixel.y)).r <= interpCheckDepth) ? 0.0 : 0.12;//abs((leftBorder + onePixel.x) - projectedTexcoord.x)/ onePixel.x;
+                    interpolatedTextureVal += (texture2D(uProjectedTexture, projectedTexcoord.xy + vec2(onePixel.x, -onePixel.y)).r <= interpCheckDepth) ? 0.0 : 0.12;//abs(projectedTexcoord.y - topBorder) / onePixel.y;
+                    interpolatedTextureVal += (texture2D(uProjectedTexture, projectedTexcoord.xy + vec2(-onePixel.x, -onePixel.y)).r <= interpCheckDepth) ? 0.0 : 0.12;//abs((topBorder + onePixel.y) - projectedTexcoord.y) / onePixel.y;
 
-                    shadelessLight += min(interpolatedTextureVal / 1.0, 1.0);interpolatedTextureVal;//min(interpolatedTextureVal / 1.0, 1.0);
+                    shadelessLight += min(pow(interpolatedTextureVal, 0.5) / 1.6, 1.0);//interpolatedTextureVal;//min(interpolatedTextureVal / 1.0, 1.0);
                 }
                 //else if (inRange) {
                 //    shadelessLight = 0.0;
@@ -89,7 +94,7 @@ const StateOfMakarios23 = (function () {
                 //    interpolatedTextureVal -= (texture2D(uProjectedTexture, projectedTexcoord.xy + vec2(0.0, onePixel.y)).r <= interpCheckDepth) ? abs(projectedTexcoord.y - topBorder) / onePixel.y : 0.0;
                 //    interpolatedTextureVal -= (texture2D(uProjectedTexture, projectedTexcoord.xy + vec2(0.0, -onePixel.y)).r <= interpCheckDepth) ? abs((topBorder + onePixel.y) - projectedTexcoord.y) / onePixel.y : 0.0;
 
-                //    shadelessLight += min(interpolatedTextureVal / 1.0, 1.0);
+                //    shadelessLight += min(pow(interpolatedTextureVal, 0.25) / 1.0, 1.0);
                 //}
 
                 highp vec4 texelColor = texture2D(uSampler, vec2(vTextureCoord[0], vTextureCoord[1]));// vTextureCoord);
@@ -208,6 +213,7 @@ const StateOfMakarios23 = (function () {
 
     var Init = function () {
         StageData.ticks = 0;
+        SkyboxRenderer.useSkybox('skybox');
         ShadowShader.setup(null, [1.0, 0.6, 1.0]);
         OutlineRenderer.setup(null, [1.0, 0.6, 1.0]);
         ////Makarios.setStepsForCelShading(4.0);
@@ -215,11 +221,11 @@ const StateOfMakarios23 = (function () {
         console.log(camDist);
         maxCamDist = 300.0;//global scope, plz fix
         maxZFar = 550.0;//this global too
-        ShadowShader.setProjScaler(198.0);
+        ShadowShader.setProjScaler(98.0);
         var initShadowProjScaler = ShadowShader.getProjScaler();
 
         //ortho(out, left, right, bottom, top, near, far)
-        StageData.SetMainDirLight([.192, -1.752, 0.0], [0.0, 18.0, 0.0], [1.0, 1.0, 1.0]);
+        StageData.SetMainDirLight([.192, -1.752, 0.0], [0.0, 48.0, 0.0], [1.0, 1.0, 1.0]);
         StageData.defShadowProjMat = mat4.create();
         mat4.ortho(StageData.defShadowProjMat,
             -initShadowProjScaler, initShadowProjScaler, -initShadowProjScaler, initShadowProjScaler, 0.1, maxZFar + 1000);
@@ -263,6 +269,24 @@ const StateOfMakarios23 = (function () {
                 mat4.translate(textureMatrix,     // destination matrix
                     StageData.StageLights[0].lightmat,     // matrix to translate
                     [0.0, -0.0, 0.0]);
+
+                if (gmod) {
+                    var lpoint = [0.0, 0.0, 0.0];
+                    var modinv = mat4.create();
+                    mat4.invert(modinv, gmod);
+                    linTransformRange(lpoint, lpoint, modinv, 0, 3, null);
+                    //console.log(lpoint);
+                    var gnorm = vec3.create()
+                    gnorm[0] = lpoint[0]; gnorm[1] = lpoint[1]; gnorm[2] = lpoint[2];
+                    vec3.normalize(gnorm, gnorm);
+
+                    mat4.translate(textureMatrix,     // destination matrix
+                        textureMatrix,     // matrix to translate
+                        [gnorm[0] * shadowProjScaler - lpoint[0], 0.0, gnorm[2] * shadowProjScaler - lpoint[2]]);//[lpoint[0], 0.0, lpoint[2]]);
+                    //textureMatrix[12] = lpoint[0];
+                    //textureMatrix[14] = lpoint[2];
+                    //textureMatrix[14] = 8;
+                }
 
                 if (StageData.defShadowProjMat && true) {
                     mat4.multiply(textureMatrix, StageData.defShadowProjMat, textureMatrix);
@@ -356,7 +380,7 @@ const StateOfMakarios23 = (function () {
         //console.log(ob7);
 
         var obplane = Makarios.instantiate(Primitives.shapes["plane"], 'plainsky.jpg', null, {});
-        mat4.fromScaling(obplane.matrix, [104.0, 104.0, 104.0]);//[14.0, 4.0, 14.0]);
+        mat4.fromScaling(obplane.matrix, [194.0, 194.0, 194.0]);//[14.0, 4.0, 14.0]);
 
 
         var oblightdummy = Makarios.instantiate(Primitives.shapes["tetrahedron"], 'plainsky.jpg', null, {});
@@ -371,7 +395,7 @@ const StateOfMakarios23 = (function () {
 
 
         //StageData.SetMainDirLight([0.5, 0.001 * StageData.ticks, 0.0], [0.0, 0.0, 18.0], [1.0, 1.0, 1.0]);
-        StageData.SetMainDirLight([0.000 * StageData.ticks + 0.5, 0.0002 * StageData.ticks, 0.0], [0.0, 0.0, 48.0], [1.0, 1.0, 1.0]);
+        StageData.SetMainDirLight([0.000 * StageData.ticks + 0.5, 0.0002 * StageData.ticks, 0.0], [0.0, 0.0, 76.0], [1.0, 1.0, 1.0]);
 
         var lpoint = [0.0, 0.0, 0.0];
         var lightLocMat = mat4.create();

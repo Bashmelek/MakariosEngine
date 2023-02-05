@@ -69,7 +69,7 @@ const ShadowShader = (function () {
 
 
 
-    const depthTextureSize = 4096;// * 4;//4096;//16384;//4096;
+    const depthTextureSize = 2048;// * 4;//4096;//16384;//4096;
     var depthTexture;
     var depthFramebuffer;
     var projScaler = 44.0;
@@ -147,6 +147,30 @@ const ShadowShader = (function () {
             lights[0].lightmat,     // matrix to translate
             [0.0, 0.0, 0.0]);
 
+        if (gmod) {
+            var lpoint = [0.0, 0.0, 0.0];
+            var modinv = mat4.create();
+            mat4.invert(modinv, gmod);
+            linTransformRange(lpoint, lpoint, modinv, 0, 3, null);
+            //console.log(modnew[12] + ',   ' + modnew[14]);
+
+            var gnorm = vec3.create()
+            gnorm[0] = lpoint[0]; gnorm[1] = lpoint[1]; gnorm[2] = lpoint[2];
+            vec3.normalize(gnorm, gnorm);
+
+            mat4.translate(modnew,     // destination matrix
+                modnew,     // matrix to translate
+                [gnorm[0] * projScaler - lpoint[0], 0.0, gnorm[2] * projScaler - lpoint[2]]);
+
+            //console.log(gnorm[0] * projScaler - lpoint[0]);
+            //mat4.translate(modnew,     // destination matrix
+            //    modnew,     // matrix to translate
+            //    [lpoint[0], 0.0, lpoint[2]]);
+
+            //modnew[12] += lpoint[0];
+            //modnew[14] += lpoint[2];
+            //modnew[14] = 8;
+        }
         
          //testing only
         //var shadowBoundMat = mat4.create();

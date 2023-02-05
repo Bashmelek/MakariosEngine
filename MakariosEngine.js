@@ -1300,7 +1300,7 @@ function onCamChange() {
                 maxProjectedDist = d;
             }
         }
-        var scaling = 16.0 / maxProjectedDist;
+        var scaling = 8.0 / maxProjectedDist;
         ShadowShader.setProjScaler(scaling);//44.0;// scaling;
         console.log(scaling);
         mat4.ortho(StageData.defShadowProjMat,
