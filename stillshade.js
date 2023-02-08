@@ -247,6 +247,8 @@ const StillShade = (function () {
                 */
 
                 //attempt 4
+                //this was good earlier
+                /*
                 mat4.rotate(tempmat3,  // destination matrix
                     tempmat3,  // matrix to rotate
                     .052,//.252,//(Date.now() * .001),//-.452,//.7,   // amount to rotate in radians
@@ -258,8 +260,16 @@ const StillShade = (function () {
                 mat4.translate(tempmat3,     // destination matrix
                     tempmat3,     // matrix to translate
                     [-44.0, -18.0, 0.0]);
-                mat4.multiply(textureMatrix, textureMatrix, tempmat3);
-                if (gproj && true) {
+                mat4.multiply(textureMatrix, textureMatrix, tempmat3);*/
+                StageData.SetMainDirLight([0.000, -1.052, 0.0], [0.0, 0.0, 76.0], [1.0, 1.0, 1.0]);
+                var shadowProjScaler = ShadowShader.getProjScaler();
+                mat4.translate(textureMatrix,     // destination matrix
+                    StageData.StageLights[0].lightmat,     // matrix to translate
+                    [0.0, -0.0, 0.0]);
+
+                if (StageData.defShadowProjMat && false) {
+                    mat4.multiply(textureMatrix, StageData.defShadowProjMat, textureMatrix);
+                } else if (gproj && true) {
                     mat4.multiply(textureMatrix, gproj, textureMatrix);
                 }
 
@@ -272,6 +282,8 @@ const StillShade = (function () {
                     [0.50, 0.50, 0.50]);
                 mat4.scale(tempmat3, tempmat3, [0.5, 0.5, 0.5]);
                 mat4.multiply(textureMatrix, tempmat3, textureMatrix);
+
+                //StageData.SetMainDirLight([0.000, -1.052, 0.0], [0.0, 0.0, 76.0], [1.0, 1.0, 1.0]);
 
                 //mat4.translate(textureMatrix,     // destination matrix
                 //    textureMatrix,     // matrix to translate

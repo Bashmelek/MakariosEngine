@@ -61,7 +61,10 @@ const StateOfMakarios23 = (function () {
                       projectedTexcoord.x >= 0.0 &&
                       projectedTexcoord.x <= 1.0 &&
                       projectedTexcoord.y >= 0.0 &&
-                      projectedTexcoord.y <= 1.0;
+                      projectedTexcoord.y <= 1.0 &&
+                      projectedTexcoord.x <= 1.0 &&
+                      projectedTexcoord.z >= 0.0 &&
+                      projectedTexcoord.z <= 1.0;
 
                 float textureDepth = texture2D(uProjectedTexture, projectedTexcoord.xy).r;
                 float interpolatedTextureVal = 0.0;
@@ -277,12 +280,15 @@ const StateOfMakarios23 = (function () {
                     linTransformRange(lpoint, lpoint, modinv, 0, 3, null);
                     //console.log(lpoint);
                     var gnorm = vec3.create()
-                    gnorm[0] = lpoint[0]; gnorm[1] = lpoint[1]; gnorm[2] = lpoint[2];
+                    gnorm[0] = lpoint[0]; gnorm[1] = 0.0; gnorm[2] = lpoint[2];
                     vec3.normalize(gnorm, gnorm);
 
                     mat4.translate(textureMatrix,     // destination matrix
                         textureMatrix,     // matrix to translate
-                        [gnorm[0] * shadowProjScaler - lpoint[0], 0.0, gnorm[2] * shadowProjScaler - lpoint[2]]);//[lpoint[0], 0.0, lpoint[2]]);
+                        [gnorm[0] * shadowProjScaler - lpoint[0] * 1.0, 0.0, gnorm[2] * shadowProjScaler - lpoint[2] * 1.0 ]);//[lpoint[0], 0.0, lpoint[2]]);
+                    //textureMatrix[12] += gnorm[0] * shadowProjScaler - lpoint[0];
+                    //textureMatrix[14] -= gnorm[2] * shadowProjScaler - lpoint[2];
+                                        
                     //textureMatrix[12] = lpoint[0];
                     //textureMatrix[14] = lpoint[2];
                     //textureMatrix[14] = 8;
@@ -360,9 +366,9 @@ const StateOfMakarios23 = (function () {
         mat4.rotate(vmat, vmat, .6, [vmat[1], vmat[5], vmat[9]]);
         mat4.rotate(gmod, vmat, 0.65, [vmat[0], vmat[4], vmat[8]]);
 
-        var ob5 = Makarios.instantiate(Primitives.shapes["testbox"], Primitives.shapes["testbox"].textureUrl, null, {});//'plainsky.jpg'  Primitives.shapes["testbox"].textureUrl
-        Makarios.SetAnimation(ob5, "Survey");//"0"    Survey  Run
-        mat4.fromScaling(ob5.matrix, [0.1, 0.1, 0.1]);
+        var obFox = Makarios.instantiate(Primitives.shapes["testbox"], Primitives.shapes["testbox"].textureUrl, null, {});//'plainsky.jpg'  Primitives.shapes["testbox"].textureUrl
+        Makarios.SetAnimation(obFox, "Survey");//"0"    Survey  Run
+        mat4.fromScaling(obFox.matrix, [0.1, 0.1, 0.1]);
 
         var ob6 = Makarios.instantiate(Primitives.shapes["milktruck"], Primitives.shapes["milktruck"].textureUrl, null, {});//'plainsky.jpg'  Primitives.shapes["testbox"].textureUrl
         //Makarios.SetAnimation(ob6, "Survey");//"0"    Survey  Run
@@ -379,8 +385,56 @@ const StateOfMakarios23 = (function () {
         mat4.scale(ob7.matrix, ob7.matrix, [12.0, 12.0, 12.0]);
         //console.log(ob7);
 
-        var obplane = Makarios.instantiate(Primitives.shapes["plane"], 'plainsky.jpg', null, {});
+        var testground = {
+            id: 3,
+            isComposite: false,
+            positions: [
+                // Top face
+                -194.0, 0.0, -194.0,
+                -194.0, 0.0, 194.0,
+                194.0, 0.0, 194.0,
+                194.0, 0.0, -194.0,
+            ],
+
+            textureCoordinates: [
+                // Top
+                0.0, 1.0,
+                1.0, 1.0,
+                1.0, 0.0,
+                0.0, 0.0,
+            ],
+
+            textureCoordinatesWithAlpha: [
+                // Top
+                0.0, 1.0, 1.0,
+                1.0, 1.0, 1.0,
+                1.0, 0.0, 1.0,
+                0.0, 0.0, 1.0,
+            ],
+
+            indices: [
+                0, 1, 2, 0, 2, 3,
+            ],
+
+            vertexNormals: [
+                // Top
+                0.0, 1.0, 0.0,
+                0.0, 1.0, 0.0,
+                0.0, 1.0, 0.0,
+                0.0, 1.0, 0.0,
+            ]
+        };
+
+        var obplane = Makarios.instantiate(Primitives.shapes["plane"], 'plainsky.jpg', null, {});//Primitives.shapes["plane"]
+        obplane.matrix = mat4.create();
         mat4.fromScaling(obplane.matrix, [194.0, 194.0, 194.0]);//[14.0, 4.0, 14.0]);
+        //obplane.positions = [
+        //    // Top face
+        //    -194.0, 0.0, -194.0,
+        //    -194.0, 0.0, 194.0,
+        //    194.0, 0.0, 194.0,
+        //    194.0, 0.0, -194.0,
+        //]
 
 
         var oblightdummy = Makarios.instantiate(Primitives.shapes["tetrahedron"], 'plainsky.jpg', null, {});
@@ -388,14 +442,24 @@ const StateOfMakarios23 = (function () {
 
         Makarios.setCamDist(40.0);
 
+        obFox.collider = {
+            type: 'yrotbox',
+            hwidth: 1,
+            hdepth: 1,
+            hheight: 1.0
+            //type: 'rotationlesscylinder',
+            //radius: 1.0,
+            //hheight: 1.0
+        };
+
         WanderProc = MainProc;
     };
 
     var MainProc = function () {
 
-
+        FrameLogic.onFrame();
         //StageData.SetMainDirLight([0.5, 0.001 * StageData.ticks, 0.0], [0.0, 0.0, 18.0], [1.0, 1.0, 1.0]);
-        StageData.SetMainDirLight([0.000 * StageData.ticks + 0.5, 0.0002 * StageData.ticks, 0.0], [0.0, 0.0, 76.0], [1.0, 1.0, 1.0]);
+        StageData.SetMainDirLight([0.000 * StageData.ticks + 0.5, 0.0002 * StageData.ticks, 0.0], [0.0, 0.0, 144.0], [1.0, 1.0, 1.0]);//176
 
         var lpoint = [0.0, 0.0, 0.0];
         var lightLocMat = mat4.create();

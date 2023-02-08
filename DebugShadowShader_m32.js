@@ -58,14 +58,12 @@ const ShadowShader = (function () {
               projectedTexcoord.x >= 0.0 &&
               projectedTexcoord.x <= 1.0 &&
               projectedTexcoord.y >= 0.0 &&
-              projectedTexcoord.y <= 1.0 &&
-              projectedTexcoord.z >= 0.0 &&
-              projectedTexcoord.z <= 1.0;
+              projectedTexcoord.y <= 1.0;
 
           // the 'r' channel has the depth values
           vec4 texColor = texture2D(uSampler, v_texcoord) * u_colorMult;
           float projectedAmount = inRange ? 1.0 : 0.0;
-          gl_FragColor = texColor;
+          gl_FragColor = vec4(0.2, 0.2, -0.003 * v_projectedTexcoord.z / v_projectedTexcoord.w, 1.0);//texColor;
         }
     `;
 
@@ -103,7 +101,7 @@ const ShadowShader = (function () {
         wgl.useProgram(shaderprogram);
         ////wgl.activeTexture(wgl.TEXTURE7);
         //wgl.uniform1i(uniform_projectedTexture, 3);
-        wgl.bindFramebuffer(wgl.FRAMEBUFFER, depthFramebuffer);
+        //wgl.bindFramebuffer(wgl.FRAMEBUFFER, depthFramebuffer);
 
         ////wgl.enable(wgl.CULL_FACE);
         wgl.enable(wgl.DEPTH_TEST);
@@ -113,7 +111,7 @@ const ShadowShader = (function () {
         wgl.depthFunc(wgl.LEQUAL);            // Near things obscure far things
 
         //set viewport. Important. Don't forget it!
-        wgl.viewport(0, 0, depthTextureSize, depthTextureSize);
+        ////wgl.viewport(0, 0, depthTextureSize, depthTextureSize);
 
         ////wgl.clearColor(0.0, 0.4, 0.0, 1.0);
         wgl.clear(wgl.COLOR_BUFFER_BIT | wgl.DEPTH_BUFFER_BIT);
@@ -160,12 +158,16 @@ const ShadowShader = (function () {
             gnorm[0] = lpoint[0]; gnorm[1] = 0.0; gnorm[2] = lpoint[2];
             vec3.normalize(gnorm, gnorm);
 
-            ////mat4.multiply(modnew, transl, modnew);
             mat4.translate(modnew,     // destination matrix
                 modnew,     // matrix to translate
-                [gnorm[0] * projScaler - lpoint[0] * 1.0, 0.0, gnorm[2] * projScaler - lpoint[2] * 1.0 ]);
-            //modnew[12] += gnorm[0] * projScaler - lpoint[0];
-            //modnew[14] -= gnorm[2] * projScaler - lpoint[2];
+                [gnorm[0] * projScaler - lpoint[0], 0.0, gnorm[2] * projScaler - lpoint[2] ]);
+            //modnew[12] = gnorm[0] * projScaler - lpoint[0];
+            //modnew[14] = gnorm[2] * projScaler - lpoint[2];
+
+            //console.log(gnorm[0] * projScaler - lpoint[0]);
+            //mat4.translate(modnew,     // destination matrix
+            //    modnew,     // matrix to translate
+            //    [lpoint[0], 0.0, lpoint[2]]);
 
             //modnew[12] += lpoint[0];
             //modnew[14] += lpoint[2];
@@ -248,8 +250,8 @@ const ShadowShader = (function () {
         //request++;// = 0;
 
         //reset viewport. Also important. Don't forget it!
-        wgl.bindFramebuffer(wgl.FRAMEBUFFER, null);
-        wgl.viewport(0, 0, wgl.canvas.width, wgl.canvas.height);
+        //wgl.bindFramebuffer(wgl.FRAMEBUFFER, null);
+        ////wgl.viewport(0, 0, wgl.canvas.width, wgl.canvas.height);
         wgl.activeTexture(wgl.TEXTURE0);
     }
 
