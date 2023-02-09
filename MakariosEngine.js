@@ -2154,7 +2154,8 @@ const Makarios = (function () {
         StageData.destroy(inst);
     }
 
-    self.SetAnimation = function(obj, animname){
+    self.SetAnimation = function (obj, animname, withReset) {
+        if (!withReset && obj.currentAnimation == animname) { return; }
         obj.currentAnimation = animname;
         obj.animframe = 0;
         var anim = obj.prim.animations[obj.currentAnimation];

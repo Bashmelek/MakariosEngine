@@ -11,30 +11,48 @@ const FrameLogic = (function () {
     var onFrame = function () {
         //console.log('why lparen why')
         framenum++;
-        if (keystates[37] && !keystates[39]) {
-            tryMoveObject(StageData.objects[0], [-0.07, 0.0, 0.0]);
-        }
-        if (keystates[39] && !keystates[37]) {
-            tryMoveObject(StageData.objects[0], [0.07, 0.0, 0.0]);
-        }
-        if (keystates[38] && !keystates[40]) {//upkey
-            tryMoveObject(StageData.objects[0], [0.0, 0.0, -0.07]);
-        }
-        if (keystates[40] && !keystates[38]) {
-            tryMoveObject(StageData.objects[0], [0.0, 0.0, 0.07]);
-        }
-        if (keystates[65] && !keystates[68]) {
-            tryRotateObject(StageData.objects[0], 0.05);
-        }
-        if (keystates[68] && !keystates[65]) {
-            tryRotateObject(StageData.objects[0], -0.05);
-        }
-        if (keystates[32]) {
-            if (!spaceWasDown.value) {
-                tryJump(StageData.objects[0]);
-                spaceWasDown.value = true;
+
+        //just for mainChar right now, who has yrot
+        if (StageData.objects[0].yrot != null) {
+
+            var theobj = StageData.objects[0];
+            theobj.isRunning = false;
+
+            if (keystates[87] && !keystates[83]) {//w key
+                tryMoveObject(theobj, [Math.sin(theobj.yrot) * theobj.baseSpeed, 0.0, Math.cos(theobj.yrot) * theobj.baseSpeed]);
+                theobj.isRunning = true;
+            }
+            if (keystates[83] && !keystates[87]) {//s key
+                tryMoveObject(theobj, [Math.sin(theobj.yrot) * -theobj.baseSpeed, 0.0, Math.cos(theobj.yrot) * -theobj.baseSpeed]);
+                theobj.isRunning = true;
+            }
+
+            //if (keystates[37] && !keystates[39]) {//right
+            //    tryMoveObject(StageData.objects[0], [-0.07, 0.0, 0.0]);
+            //}
+            //if (keystates[39] && !keystates[37]) {//left
+            //    tryMoveObject(StageData.objects[0], [0.07, 0.0, 0.0]);
+            //}
+            //if (keystates[38] && !keystates[40]) {//upkey
+            //    tryMoveObject(StageData.objects[0], [0.0, 0.0, -0.07]);
+            //}
+            //if (keystates[40] && !keystates[38]) {//down
+            //    tryMoveObject(StageData.objects[0], [0.0, 0.0, 0.07]);
+            //}
+            if (keystates[65] && !keystates[68]) {
+                tryRotateObject(theobj, theobj.baseRotSpeed);
+            }
+            if (keystates[68] && !keystates[65]) {
+                tryRotateObject(theobj, -theobj.baseRotSpeed);
+            }
+            if (keystates[32]) {
+                if (!spaceWasDown.value) {
+                    tryJump(StageData.objects[0]);
+                    spaceWasDown.value = true;
+                }
             }
         }
+                       
 
         applyVeleocity();
         applyGravityAndGround();
@@ -1088,6 +1106,10 @@ const FrameLogic = (function () {
         //        vec[b] = 0.0;
         //    }
         //}
+        if (object.yrot != null) {
+            object.yrot += rot;
+        }
+
         mat4.rotate(object.matrix,  // destination matrix
             object.matrix,  // matrix to rotate
             rot,   // amount to rotate in radians

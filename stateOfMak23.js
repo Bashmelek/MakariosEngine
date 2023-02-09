@@ -23,6 +23,7 @@ var vsOverride;
 const StateOfMakarios23 = (function () {
     const mat4 = glMatrix.mat4;
     const vec3 = glMatrix.vec3;
+    const quat = glMatrix.quat;
     var objects = [];
 
     fsOverride = `
@@ -214,6 +215,11 @@ const StateOfMakarios23 = (function () {
     customUniforms = [];
     var textureMatrix = mat4.create();
 
+    var mainChar = null;
+    var mainCharRot = null;
+    var baseGmod = null;
+
+
     var Init = function () {
         StageData.ticks = 0;
         SkyboxRenderer.useSkybox('skybox');
@@ -358,14 +364,14 @@ const StateOfMakarios23 = (function () {
 
         if (isLoading || Makarios.isPreloading()) { return };
 
-        var vmat = mat4.create();
-        mat4.translate(vmat,     // destination matrix
-            vmat,     // matrix to translate
-            [-0.0, 0.0, -camDist]); //negative camdist
-        yaw = .6;
-        pitch = 0.65
-        mat4.rotate(vmat, vmat, .6, [vmat[1], vmat[5], vmat[9]]);
-        mat4.rotate(gmod, vmat, 0.65, [vmat[0], vmat[4], vmat[8]]);
+        //var vmat = mat4.create();
+        //mat4.translate(vmat,     // destination matrix
+        //    vmat,     // matrix to translate
+        //    [-0.0, 0.0, -camDist]); //negative camdist
+        yaw = Math.PI / 1.0;//.6;
+        pitch = Math.PI / 12.0;//0.65
+        //mat4.rotate(vmat, vmat, Math.PI, [vmat[1], vmat[5], vmat[9]]);//.6
+        //mat4.rotate(gmod, vmat, Math.PI / 12.0, [vmat[0], vmat[4], vmat[8]]);//0.65
 
         var obFox = Makarios.instantiate(Primitives.shapes["testbox"], Primitives.shapes["testbox"].textureUrl, null, {});//'plainsky.jpg'  Primitives.shapes["testbox"].textureUrl
         Makarios.SetAnimation(obFox, "Survey");//"0"    Survey  Run
@@ -452,6 +458,12 @@ const StateOfMakarios23 = (function () {
             //radius: 1.0,
             //hheight: 1.0
         };
+        mainChar = obFox;
+        mainChar.objBaseMat = mat4.clone(obFox.matrix);
+        mainChar.yrot = 0.0;
+        mainChar.baseSpeed = 0.24;
+        mainChar.baseRotSpeed = 0.02;//0.05
+        mainChar.isRunning = false;
 
         WanderProc = MainProc;
     };
@@ -474,7 +486,39 @@ const StateOfMakarios23 = (function () {
         wgl.uniform3fv(
             globalMainProgramInfo.uniformLocations.lightDirection,
             lpoint);////[0.000 * StageData.ticks + 0.5, 0.002 * StageData.ticks, 0.0]);
-        //console.log(lpoint);
+        //console.log(gmod);
+
+        if (gmod && !baseGmod) {
+            baseGmod = mat4.create();
+            baseGmod = mat4.clone(gmod);
+        }
+        var qcharRot = quat.create();
+        mat4.getRotation(qcharRot, mainChar.matrix);
+
+        //var charRotMat = mat4.create();
+        //fromQuat(charRotMat, qcharRot);
+        //console.log((QuatToEulers(qcharRot)[1] + 360.0) % 360.0);
+
+        var vmat = mat4.create();
+        mat4.translate(vmat,     // destination matrix
+            baseGmod,     // matrix to translate
+            [-0.0, 0.0, 0.0]);
+        yaw = Math.PI - mainChar.yrot;
+        mat4.rotate(vmat, vmat, yaw, [vmat[1], vmat[5], vmat[9]]);//.6
+        mat4.rotate(vmat, vmat, pitch, [vmat[0], vmat[4], vmat[8]]);
+        mat4.translate(gmod,     // destination matrix
+            vmat,     // matrix to translate
+            [-mainChar.matrix[12], -mainChar.matrix[13], -mainChar.matrix[14]]);
+
+        if (mainChar.isRunning == true) {
+            Makarios.SetAnimation(mainChar, "Walk");
+        } else {
+            Makarios.SetAnimation(mainChar, "Survey");
+        }
+
+        //gmod[12] = -mainChar.matrix[12];
+        //gmod[13] = -mainChar.matrix[13];
+        //gmod[14] = -40 - mainChar.matrix[14];
 
         //if (gproj != null) {
         //    var transformedPlane = [
