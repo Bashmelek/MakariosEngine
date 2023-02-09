@@ -288,6 +288,7 @@ const StateOfMakarios23 = (function () {
                         [gnorm[0] * shadowProjScaler - lpoint[0] * 1.0, 0.0, gnorm[2] * shadowProjScaler - lpoint[2] * 1.0 ]);//[lpoint[0], 0.0, lpoint[2]]);
                     //textureMatrix[12] += gnorm[0] * shadowProjScaler - lpoint[0];
                     //textureMatrix[14] -= gnorm[2] * shadowProjScaler - lpoint[2];
+                    textureMatrix[14] -= shadowProjScaler;
                                         
                     //textureMatrix[12] = lpoint[0];
                     //textureMatrix[14] = lpoint[2];

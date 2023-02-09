@@ -166,6 +166,7 @@ const ShadowShader = (function () {
                 [gnorm[0] * projScaler - lpoint[0] * 1.0, 0.0, gnorm[2] * projScaler - lpoint[2] * 1.0 ]);
             //modnew[12] += gnorm[0] * projScaler - lpoint[0];
             //modnew[14] -= gnorm[2] * projScaler - lpoint[2];
+            modnew[14] -= projScaler;
 
             //modnew[12] += lpoint[0];
             //modnew[14] += lpoint[2];
