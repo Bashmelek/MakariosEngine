@@ -308,10 +308,132 @@ const MyFirstPhysics = (function () {
         ]
     });
 
+    objects.push({
+        id: 4,
+        positions: [
+            // Front face
+            -1.0, -1.0, 1.0,
+            1.0, -1.0, 1.0,
+            1.0, 1.0, 1.0,
+            -1.0, 1.0, 1.0,
+
+            // Back face
+            -1.0, -1.0, -1.0,
+            -1.0, 1.0, -1.0,
+            1.0, 1.0, -1.0,
+            1.0, -1.0, -1.0,
+
+            // Top face
+            -1.0, 1.0, -1.0,
+            -1.0, 1.0, 1.0,
+            1.0, 1.0, 1.0,
+            1.0, 1.0, -1.0,
+
+            // Bottom face
+            -1.0, -1.0, -1.0,
+            1.0, -1.0, -1.0,
+            1.0, -1.0, 1.0,
+            -1.0, -1.0, 1.0,
+
+            // Right face
+            1.0, -1.0, -1.0,
+            1.0, 1.0, -1.0,
+            1.0, 1.0, 1.0,
+            1.0, -1.0, 1.0,
+
+            // Left face
+            -1.0, -1.0, -1.0,
+            -1.0, -1.0, 1.0,
+            -1.0, 1.0, 1.0,
+            -1.0, 1.0, -1.0
+        ],
+
+        textureCoordinates: [
+            // Front
+            0.0, 1.0, 1.0,//mess up numba 1 face if first says 1.0
+            1.0, 1.0, 1.0,
+            1.0, 0.0, 1.0,
+            0.0, 0.0, 1.0,
+            // Back
+            0.0, 1.0, 1.0,
+            1.0, 1.0, 1.0,
+            1.0, 0.0, 1.0,
+            0.0, 0.0, 1.0,
+            // Top
+            0.0, 1.0, 1.0,
+            1.0, 1.0, 1.0,
+            1.0, 0.0, 1.0,
+            0.0, 0.0, 1.0,
+            // Bottom
+            0.0, 1.0, 1.0,
+            1.0, 1.0, 1.0,
+            1.0, 0.0, 1.0,
+            0.0, 0.0, 1.0,
+            // Right
+            0.0, 1.0, 1.0,
+            1.0, 1.0, 1.0,
+            1.0, 0.0, 1.0,
+            0.0, 0.0, 1.0,
+            // Left
+            0.0, 1.0, 1.0,
+            1.0, 1.0, 1.0,
+            1.0, 0.0, 1.0,
+            0.0, 0.0, 1.0,
+        ],
+
+        indices: [
+            0, 1, 2, 0, 2, 3,    // front
+            4, 5, 6, 4, 6, 7,    // back
+            8, 9, 10, 8, 10, 11,   // top
+            12, 13, 14, 12, 14, 15,   // bottom
+            16, 17, 18, 16, 18, 19,   // right
+            20, 21, 22, 20, 22, 23
+        ],
+
+        vertexNormals: [
+            // Front
+            0.0, 0.0, 1.0,
+            0.0, 0.0, 1.0,
+            0.0, 0.0, 1.0,
+            0.0, 0.0, 1.0,
+
+            // Back
+            0.0, 0.0, -1.0,
+            0.0, 0.0, -1.0,
+            0.0, 0.0, -1.0,
+            0.0, 0.0, -1.0,
+
+            // Top
+            0.0, 1.0, 0.0,
+            0.0, 1.0, 0.0,
+            0.0, 1.0, 0.0,
+            0.0, 1.0, 0.0,
+
+            // Bottom
+            0.0, -1.0, 0.0,
+            0.0, -1.0, 0.0,
+            0.0, -1.0, 0.0,
+            0.0, -1.0, 0.0,
+
+            // Right
+            1.0, 0.0, 0.0,
+            1.0, 0.0, 0.0,
+            1.0, 0.0, 0.0,
+            1.0, 0.0, 0.0,
+
+            // Left
+            -1.0, 0.0, 0.0,
+            -1.0, 0.0, 0.0,
+            -1.0, 0.0, 0.0,
+            -1.0, 0.0, 0.0
+        ]
+    });
+
 
     objects[0].useParentMatrix = new Array(objects[0].positions.length / 3).fill().map(x => 0.0);
     //objects[0].useParentMatrix = objects[0].useParentMatrix.map(x => 0.0);
     objects[0].matrix = mat4.create();
+    //mat4.scale(objects[0].matrix, objects[0].matrix, [1.5, 1.5, 1.5]);
     objects[1].matrix = mat4.create();
     mat4.translate(objects[1].matrix,     // destination matrix
         objects[1].matrix,     // matrix to translate
@@ -320,12 +442,24 @@ const MyFirstPhysics = (function () {
         objects[1].matrix,  // matrix to rotate
         .3,   // amount to rotate in radians
         [0, 1, 0]);
+    //mat4.scale(objects[1].matrix, objects[1].matrix, [1.5, 1.5, 1.5]);
     objects[1].useParentMatrix = new Array(objects[1].positions.length / 3).fill().map(x => 0.0);
     //objects[1].useParentMatrix = objects[1].useParentMatrix.map(x => 0.0);
+
+    objects[3].useParentMatrix = new Array(objects[3].positions.length / 3).fill().map(x => 0.0);
+    //objects[0].useParentMatrix = objects[0].useParentMatrix.map(x => 0.0);
+    objects[3].matrix = mat4.create();
+    mat4.translate(objects[3].matrix,     // destination matrix
+        objects[3].matrix,     // matrix to translate
+        [3.5, 0.0, 3.0]);
+
+
     objects[0].childrenCustom = [];
     objects[1].childrenCustom = [];
+    objects[3].childrenCustom = [];
     initVelocity(objects[0]);
     initVelocity(objects[1]);
+    initVelocity(objects[3]);
 
     //objects[0].collider = {
     //    type: 'rotationlesscylinder',
@@ -344,6 +478,16 @@ const MyFirstPhysics = (function () {
     };
 
     objects[1].collider = {
+        type: 'yrotbox',
+        hwidth: 1,
+        hdepth: 1,
+        hheight: 1.0
+        //type: 'rotationlesscylinder',
+        //radius: 1.0,
+        //height: 1.0
+    };
+
+    objects[3].collider = {
         type: 'yrotbox',
         hwidth: 1,
         hdepth: 1,
@@ -456,7 +600,10 @@ const MyFirstPhysics = (function () {
     }
 
 
+
+
     var Init = function () {
+        InitDefaultInputActions();
         StageData.ticks = 0;
         SkyboxRenderer.useSkybox('skybox');//"penguins (26)");//StageData.skybox = "penguins (26)";
         //OutlineRenderer.setup();
@@ -470,7 +617,9 @@ const MyFirstPhysics = (function () {
         ob2.collider = objects[1].collider;
         var ob3 = Makarios.instantiate(objects[2], 'smile1.jpg', null, {});
         ob3.matrix = objects[2].matrix;
-        //ob3.collider = objects[2].collider;
+        var obb = Makarios.instantiate(objects[3], 'smile1.jpg', null, {});
+        obb.matrix = objects[3].matrix;
+        obb.collider = objects[3].collider;
 
 
         var ob4 = Makarios.instantiateChild(ob1, objects[0].childrenCustom[0], 'plainsky.jpg', null, {});
@@ -480,6 +629,7 @@ const MyFirstPhysics = (function () {
 
         initVelocity(ob1);
         initVelocity(ob2);
+        initVelocity(obb);
 
         //with a little thanks to https://stackoverflow.com/questions/8977369/drawing-png-to-a-canvas-element-not-showing-transparency thank you!
         smileyimage = new Image();

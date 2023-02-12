@@ -67,12 +67,15 @@ const FrameLogic = (function () {
         var probx = object.matrix[x] + vec[0];
         var proby = object.matrix[y] + vec[1];
         var probz = object.matrix[z] + vec[2];
+
+        var botOffset = (object.collider ? object.collider.bot || 0.0 : 0.0);
         //console.log(probx + ', ' + proby + ', ' + probz);
 
 
         for (var oo = 0; oo < StageData.objects.length; oo++) {
             if (StageData.objects[oo] != object && oo != 3) {
                 var other = StageData.objects[oo];
+                if (!other || !other.collider || !object || !object.collider) { continue; }
                 if (object.collider && object.collider.type == 'rotationlesscylinder' && other.collider && other.collider.type == 'rotationlesscylinder') {
                     var movsquared = vec[0] * vec[0] + vec[2] * vec[2];
                     var movemag = Math.sqrt(movsquared);
@@ -88,7 +91,7 @@ const FrameLogic = (function () {
                     var centerdist = Math.sqrt(obdistsquared);
                     var vectorsMapToRelative = vec[0] != 0.0 ? [0, 2, 1] : [2, 0, 1];
                     var relativeVector = [movemag, 0.0, 0.0];//main, other, other; right handed system
-                    if (maxallowedrad > centerdist && (Math.abs(oy - proby) < (other.collider.hheight + object.collider.hheight + 0.0001))) {
+                    if (maxallowedrad > centerdist && (Math.abs(oy - proby) < (other.collider.hheight + object.collider.hheight + botOffset + 0.0001))) {
 
                         //var incursionz;
                         //var incursionpoint = [ , 0.0, ];
@@ -238,7 +241,7 @@ const FrameLogic = (function () {
                     var centerdist = Math.sqrt(obdistsquared);
                     var vectorsMapToRelative = vec[0] != 0.0 ? [0, 2, 1] : [2, 0, 1];
                     var relativeVector = [movemag, 0.0, 0.0];//main, other, other; right handed system
-                    if (maxallowedrad > centerdist && (Math.abs(oy - proby) < (other.collider.hheight + object.collider.hheight + 0.0001))) {
+                    if (maxallowedrad > centerdist && (Math.abs(oy - proby) < (other.collider.hheight + botOffset + object.collider.hheight + 0.0001))) {
 
                         //not finding a round intersection tangent its just the angle of the face
                         //var intersectionArcSin = Math.asin(-diffz / centerdist);
@@ -257,15 +260,15 @@ const FrameLogic = (function () {
                         // (thing to divide original vector by) ^ 2 = (a^2 + b^2) / (newdist ^ 2)
                         var ratior = Math.ceil(Math.sqrt(movsquared / (allowedmove * allowedmove)));
 
-                        if ((Math.abs(oy - object.matrix[y]) > (other.collider.hheight + object.collider.hheight - 0.0001))) {
+                        if ((Math.abs(oy - object.matrix[y]) > (other.collider.hheight + botOffset + object.collider.hheight - 0.0001))) {
                             if (oy < object.matrix[y]) {
-                                vec[1] = -(object.matrix[y] - oy - (other.collider.hheight + object.collider.hheight + 0.0001));
+                                vec[1] = -(object.matrix[y] - oy - (other.collider.hheight + botOffset + object.collider.hheight + 0.0001));
                                 proby = object.matrix[y] + (vec[1]);
                                 object.isGrounded = true;
                                 object.confirmGrounded = true;
                                 object.velocity.y = 0.0;
                             } else {
-                                vec[1] = other.matrix[y] - object.matrix[y] - (other.collider.hheight + object.collider.hheight + 0.0001);
+                                vec[1] = other.matrix[y] - object.matrix[y] - (other.collider.hheight + botOffset + object.collider.hheight + 0.0001);
                                 proby = object.matrix[y] + (vec[1]);
                                 //other.isGrounded = true;
                                 object.velocity.y = 0.0;
@@ -284,6 +287,7 @@ const FrameLogic = (function () {
                     }
 
                 } else if (other.collider && other.collider.type == 'yrotbox' && object.collider) {
+                    //two yrotbox
                     //matrix of a y rotation
                     //credit https://developer.mozilla.org/en-US/docs/Web/API/WebGL_API/Matrix_math_for_the_web
                     //remember this INCLUDES the weird gl column major system
@@ -298,15 +302,16 @@ const FrameLogic = (function () {
                     var ox = other.matrix[x];
                     var oy = other.matrix[y];
                     var oz = other.matrix[z];
-                    var otherboxcoords = [other.collider.hdepth, 0.0, other.collider.hwidth,
-                    -other.collider.hdepth, 0.0, other.collider.hwidth,
-                    other.collider.hdepth, 0.0, -other.collider.hwidth,
-                    -other.collider.hdepth, 0.0, -other.collider.hwidth,
+                    var obotOffset = (other.collider ? other.collider.bot || 0.0 : 0.0);// - other.collider.hheight;
+                    var otherboxcoords = [other.collider.hdepth, obotOffset, other.collider.hwidth,
+                        -other.collider.hdepth, obotOffset, other.collider.hwidth,
+                        other.collider.hdepth, obotOffset, -other.collider.hwidth,
+                        -other.collider.hdepth, obotOffset, -other.collider.hwidth,
                     ];
-                    var objectboxcoords = [object.collider.hdepth, 0.0, object.collider.hwidth,
-                    -object.collider.hdepth, 0.0, object.collider.hwidth,
-                    object.collider.hdepth, 0.0, -object.collider.hwidth,
-                    -object.collider.hdepth, 0.0, -object.collider.hwidth,
+                    var objectboxcoords = [object.collider.hdepth, botOffset, object.collider.hwidth,
+                        -object.collider.hdepth, botOffset, object.collider.hwidth,
+                        object.collider.hdepth, botOffset, -object.collider.hwidth,
+                        -object.collider.hdepth, botOffset, -object.collider.hwidth,
                     ];
                     //var basisx = [boxcoords[0] - boxcoords[6], 0.0, boxcoords[2] - boxcoords[8]];
                     //var basisz = [boxcoords[0] - boxcoords[9], 0.0, boxcoords[2] - boxcoords[11]];
@@ -339,21 +344,22 @@ const FrameLogic = (function () {
                         //console.log(rotatedboxcoords + ' $$ ' + framenum)
                         if (rotatedboxcoords[c * 3 + 0] >= (otherboxcoords[3] - .00001) && rotatedboxcoords[c * 3 + 0] <= (otherboxcoords[0] + .00001)) {
                             if (rotatedboxcoords[c * 3 + 2] >= (otherboxcoords[8] - .00001) && rotatedboxcoords[c * 3 + 2] <= (otherboxcoords[2] + .00001)) {
-                                console.log('clang clang ' + framenum);
+                                console.log('aclang clang ' + framenum);
                                 blocked = false;
                                 console.log(rotatedPreMoveboxcoords[c * 3 + 0] + ', ' + rotatedPreMoveboxcoords[c * 3 + 1] + ', ' + rotatedPreMoveboxcoords[c * 3 + 2]);
 
-                                if (Math.abs(oy - object.matrix[y]) > (other.collider.hheight + object.collider.hheight - 0.0001)) {
+                                if (Math.abs(oy + other.collider.hheight + obotOffset - (object.matrix[y] + object.collider.hheight + botOffset)) > (other.collider.hheight + object.collider.hheight - 0.0001)) {
+                                //if ((object.matrix[y] + botOffset) > (other.collider.hheight + obotOffset + oy - 0.0001)) {
                                     console.log('GROUNDED');
-                                    if (Math.abs(oy - proby) < (other.collider.hheight + object.collider.hheight + 0.0001)) {
-                                        if (oy < object.matrix[y]) {
-                                            vec[1] = -(object.matrix[y] - oy - (other.collider.hheight + object.collider.hheight + 0.0001));
+                                    if (Math.abs(oy + other.collider.hheight + obotOffset - (proby + object.collider.hheight + botOffset)) < (other.collider.hheight + object.collider.hheight + 0.0001)) {
+                                        if (oy + other.collider.hheight + obotOffset < object.matrix[y] + botOffset) {
+                                            vec[1] = -((object.matrix[y] + botOffset) - (oy + obotOffset) - (other.collider.hheight + other.collider.hheight + 0.0001));
                                             proby = object.matrix[y] + (vec[1]);
                                             object.isGrounded = true;
                                             object.confirmGrounded = true;
                                             object.velocity.y = 0.0;
                                         } else {
-                                            vec[1] = other.matrix[y] - object.matrix[y] - (other.collider.hheight + object.collider.hheight + 0.0001);
+                                            vec[1] = (other.matrix[y] + obotOffset) - (object.matrix[y] + botOffset) - (object.collider.hheight + object.collider.hheight + 0.0001);
                                             proby = object.matrix[y] + (vec[1]);
                                             //other.isGrounded = true;
                                             object.velocity.y = 0.0;
@@ -506,16 +512,16 @@ const FrameLogic = (function () {
                                 //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------//
                                 //---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------//
                                 var blocked = false;
-                                if ((Math.abs(oy - object.matrix[y]) > (other.collider.hheight + object.collider.hheight - 0.0001))) {
-                                    if (Math.abs(oy - proby) < (other.collider.hheight + object.collider.hheight + 0.0001)) {
-                                        if (oy < object.matrix[y]) {
-                                            vec[1] = -(object.matrix[y] - oy - (other.collider.hheight + object.collider.hheight + 0.0001));
+                                if (Math.abs(oy + other.collider.hheight + obotOffset - (object.matrix[y] + object.collider.hheight + botOffset)) > (other.collider.hheight + object.collider.hheight - 0.0001)) {
+                                    if (Math.abs(oy + other.collider.hheight + obotOffset - (proby + object.collider.hheight + botOffset)) < (other.collider.hheight + object.collider.hheight + 0.0001)) {
+                                        if (oy + other.collider.hheight + obotOffset < object.matrix[y] + botOffset) {
+                                            vec[1] = -((object.matrix[y] + botOffset) - (oy + obotOffset) - (other.collider.hheight + other.collider.hheight + 0.0001));
                                             proby = object.matrix[y] + (vec[1]);
                                             object.isGrounded = true;
                                             object.confirmGrounded = true;
                                             object.velocity.y = 0.0;
                                         } else {
-                                            vec[1] = other.matrix[y] - object.matrix[y] - (other.collider.hheight + object.collider.hheight + 0.0001);
+                                            vec[1] = (other.matrix[y] + obotOffset) - (object.matrix[y] + botOffset) - (object.collider.hheight + object.collider.hheight + 0.0001);
                                             proby = object.matrix[y] + (vec[1]);
                                             //other.isGrounded = true;
                                             object.velocity.y = 0.0;
@@ -592,8 +598,8 @@ const FrameLogic = (function () {
                     }
 
 
-                    if ((Math.abs(oy - object.matrix[y]) > (other.collider.hheight + object.collider.hheight - 0.0001))) {
-                        if (Math.abs(oy - proby) < (other.collider.hheight + object.collider.hheight + 0.0001)) {
+                    if (Math.abs(oy + other.collider.hheight + obotOffset - (object.matrix[y] + object.collider.hheight + botOffset)) > (other.collider.hheight + object.collider.hheight - 0.0001)) {
+                        if (Math.abs(oy + other.collider.hheight + obotOffset - (proby + object.collider.hheight + botOffset)) < (other.collider.hheight + object.collider.hheight + 0.0001)) {
                             //loop through all pairs of lines
                             for (var p = 0; p < 4; p++) {
                                 for (var op = 0; op < 4; op++) {
@@ -602,14 +608,14 @@ const FrameLogic = (function () {
                                     var hitIntersect = intersects(line1[0], line1[1], line1[2], line1[3], line2[0], line2[1], line2[2], line2[3]);
 
                                     if (hitIntersect) {
-                                        if (oy < object.matrix[y]) {
-                                            vec[1] = -(object.matrix[y] - oy - (other.collider.hheight + object.collider.hheight + 0.0001));
+                                        if (oy + other.collider.hheight + obotOffset < object.matrix[y] + botOffset) {
+                                            vec[1] = -((object.matrix[y] + botOffset) - (oy + obotOffset) - (other.collider.hheight + other.collider.hheight + 0.0001));
                                             proby = object.matrix[y] + (vec[1]);
                                             object.isGrounded = true;
                                             object.confirmGrounded = true;
                                             object.velocity.y = 0.0;
                                         } else {
-                                            vec[1] = other.matrix[y] - object.matrix[y] - (other.collider.hheight + object.collider.hheight + 0.0001);
+                                            vec[1] = other.matrix[y] + obotOffset - (object.matrix[y] + botOffset) - (object.collider.hheight + object.collider.hheight + 0.0001);
                                             proby = object.matrix[y] + (vec[1]);
                                             //other.isGrounded = true;
                                             object.velocity.y = 0.0;
@@ -656,6 +662,12 @@ const FrameLogic = (function () {
                         console.log(vec[0] - (1.0 || 1.0) * ((initialrotatedboxcoords[0] + ox) - newveccoords[0]) + (1.0 || 1.0) * ((otherinitialrotatedboxcoords[0] - ox) - newveccoords2[0]) );
 
                     }
+                    //console.log(initialrotatedboxcoords[0] + ',' + initialrotatedboxcoords[1] + ','  + initialrotatedboxcoords[2]);
+                    //console.log(newveccoords[0] + ',' + newveccoords[1] + ',' + newveccoords[2]);
+                    //console.log('---2---');
+                    //console.log(otherinitialrotatedboxcoords[0] + ',' + otherinitialrotatedboxcoords[1] + ',' + otherinitialrotatedboxcoords[2]);
+                    //console.log(newveccoords2[0] + ',' + newveccoords2[1] + ',' + newveccoords2[2]);
+                    //console.log(vec[0] + ',' + vec[1] + ','  + vec[2]);
                     vec[0] = vec[0] - (1.0 || 1.0) * ((initialrotatedboxcoords[0] + ox) - newveccoords[0]);
                     vec[1] = vec[1] - (1.0 || 1.0) * ((initialrotatedboxcoords[1] + oy) - newveccoords[1]);
                     vec[2] = vec[2] - (1.0 || 1.0) * ((initialrotatedboxcoords[2] + oz) - newveccoords[2]);
@@ -663,6 +675,7 @@ const FrameLogic = (function () {
                     vec[0] = vec[0] + (1.0 || 1.0) * ((otherinitialrotatedboxcoords[0] - ox) - newveccoords2[0]);
                     vec[1] = vec[1] + (1.0 || 1.0) * ((otherinitialrotatedboxcoords[1] - oy) - newveccoords2[1]);
                     vec[2] = vec[2] + (1.0 || 1.0) * ((otherinitialrotatedboxcoords[2] - oz) - newveccoords2[2]);
+                    //console.log(vec[0] + ',' + vec[1] + ',' + vec[2]);
                     if (blocked) {
                         console.log(newveccoords2);
                         console.log(vec[0] + ', ' + vec[1] + ', ' + vec[2]);
@@ -805,7 +818,7 @@ const FrameLogic = (function () {
                         //console.log(rotatedboxcoords + ' $$ ' + framenum)
                         if (rotatedboxcoords[c * 3 + 0] >= (otherboxcoords[3] - .00001) && rotatedboxcoords[c * 3 + 0] <= (otherboxcoords[0] + .00001)) {
                             if (rotatedboxcoords[c * 3 + 2] >= (otherboxcoords[8] - .00001) && rotatedboxcoords[c * 3 + 2] <= (otherboxcoords[2] + .00001)) {
-                                console.log('clang clang ' + framenum);
+                                console.log('bclang clang ' + framenum);
                                 var blocked = false;
                                 console.log(rotatedPreMoveboxcoords[c * 3 + 0] + ', ' + rotatedPreMoveboxcoords[c * 3 + 1] + ', ' + rotatedPreMoveboxcoords[c * 3 + 2]);
                                 if (rotatedPreMoveboxcoords[c * 3 + 0] < (otherboxcoords[3] + .00001)) {
@@ -984,6 +997,8 @@ const FrameLogic = (function () {
         var probx = object.matrix[x];
         var proby = object.matrix[y];
         var probz = object.matrix[z];
+
+        var botOffset = (object.collider ? object.collider.bot || 0.0 : 0.0);
         //console.log(probx + ', ' + proby + ', ' + probz);
 
 
@@ -1017,6 +1032,7 @@ const FrameLogic = (function () {
                     object.collider.hdepth, 0.0, -object.collider.hwidth,
                     -object.collider.hdepth, 0.0, -object.collider.hwidth,
                     ];
+                    var obotOffset = (other.collider ? other.collider.bot || 0.0 : 0.0);
 
                     var rotatedMatrix = mat4.create();
                     mat4.rotate(rotatedMatrix,  // destination matrix
@@ -1047,8 +1063,8 @@ const FrameLogic = (function () {
                         //console.log(rotatedboxcoords + ' $$ ' + framenum)
                         if (rotatedboxcoords[c * 3 + 0] >= (otherboxcoords[3] - .00001) && rotatedboxcoords[c * 3 + 0] <= (otherboxcoords[0] + .00001)) {
                             if (rotatedboxcoords[c * 3 + 2] >= (otherboxcoords[8] - .00001) && rotatedboxcoords[c * 3 + 2] <= (otherboxcoords[2] + .00001)) {
-                                if (Math.abs(oy - object.matrix[y]) <= (other.collider.hheight + object.collider.hheight - 0.0001)) {
-                                    console.log('clang clang ' + framenum);
+                                if (Math.abs(oy + obotOffset - (object.matrix[y] + botOffset)) <= (other.collider.hheight + object.collider.hheight - 0.0001)) {
+                                    console.log('cclang clang ' + framenum);
                                     var blocked = false;
 
                                     if (!blocked) {
@@ -1073,14 +1089,14 @@ const FrameLogic = (function () {
                         otherCoordsPostRotation[irc * 3 + 1] += -object.matrix[y] + oy;
                         otherCoordsPostRotation[irc * 3 + 2] += -object.matrix[z] + oz;
                     }
-                    console.log(ox + ', ' + object.matrix[x] + ', ' + oz + '== ' + otherCoordsPostRotation);
+                    //console.log(ox + ', ' + object.matrix[x] + ', ' + oz + '== ' + otherCoordsPostRotation);
                     var orotatedboxcoords = useYRotToGetInverseRotatedVectors(rotatedMatrix, otherCoordsPostRotation);
                     var orotatedPreMoveboxcoords = useYRotToGetInverseRotatedVectors(object.matrix, otherCoordsBeforeRotation);
                     //console.log(objectboxcoords);
                     for (var c = 0; c < orotatedboxcoords.length / 3; c++) {
                         if (orotatedboxcoords[c * 3 + 0] >= objectboxcoords[3] && orotatedboxcoords[c * 3 + 0] <= objectboxcoords[0]) {
                             if (orotatedboxcoords[c * 3 + 2] >= objectboxcoords[8] && orotatedboxcoords[c * 3 + 2] <= objectboxcoords[2]) {
-                                if (Math.abs(oy - object.matrix[y]) <= (other.collider.hheight + object.collider.hheight - 0.0001)) {
+                                if (Math.abs(oy + obotOffset - (object.matrix[y] + botOffset)) <= (other.collider.hheight + object.collider.hheight - 0.0001)) {
                                     console.log('kling kling'); //vec = [0, 0, 0];
 
 
@@ -1137,7 +1153,7 @@ const FrameLogic = (function () {
         const z = 14;
 
         for (var i = 0; i < StageData.objects.length; i++) {
-            if (i == 2) { continue; }
+            if (i == 3) { continue; }
 
             var hasHit = false;
 
@@ -1148,7 +1164,8 @@ const FrameLogic = (function () {
             var obx = object.matrix[x];
             var oby = object.matrix[y];
             var obz = object.matrix[z];
-            var objectFoot = { x: obx, y: oby, z: obz };
+            var obotOffset = (object.collider ? object.collider.bot || 0.0 : 0.0);
+            var objectFoot = { x: obx, y: oby + obotOffset, z: obz };
             var floorheight = 1000.0;
 
             var groundPos = new Array(ground.positions.length);
@@ -1292,7 +1309,7 @@ const FrameLogic = (function () {
                                     //console.log('AAAHHHHHHH');
                                     //console.log(hitIntersect);
 
-                                    var result = IsPointInTriangleIncludeY({ x: hitIntersect.x, y: oby, z: hitIntersect.y },
+                                    var result = IsPointInTriangleIncludeY({ x: hitIntersect.x, y: objectFoot.y, z: hitIntersect.y },
                                         {
                                             a: { x: groundPos[ground.indices[mindex * 3 + 0] * 3 + 0], y: groundPos[ground.indices[mindex * 3 + 0] * 3 + 1], z: groundPos[ground.indices[mindex * 3 + 0] * 3 + 2] },
                                             b: { x: groundPos[ground.indices[mindex * 3 + 1] * 3 + 0], y: groundPos[ground.indices[mindex * 3 + 1] * 3 + 1], z: groundPos[ground.indices[mindex * 3 + 1] * 3 + 2] },
@@ -1311,11 +1328,11 @@ const FrameLogic = (function () {
                 }
             }
             if (!object.confirmGrounded) { object.confirmGrounded = true; object.isGrounded = false; }
-            if (Math.abs(floorheight - object.matrix[y]) > 0.0001) {
-                if (object.matrix[y] <= floorheight + 0.0001 && object.matrix[y] > (floorheight - Math.abs(velyOrig) - 0.01)) { // + 0.0001 and
+            if (Math.abs(floorheight - objectFoot.y) > 0.0001) {
+                if (objectFoot.y <= floorheight + 0.0001 && objectFoot.y > (floorheight - Math.abs(velyOrig) - 0.01)) { // + 0.0001 and
                     //console.log('o dear itsa ' + floorheight);
                     if (floorheight < 1000) {
-                        object.matrix[y] = floorheight;
+                        object.matrix[y] = floorheight - obotOffset;
                         object.isGrounded = true;
                         object.velocity.y = 0; //console.log('sayw ' + object.matrix[x] + ', ' + object.matrix[y] + ', '  + object.matrix[z]);
                     } else {
@@ -1323,11 +1340,17 @@ const FrameLogic = (function () {
                         object.confirmGrounded = false;
                     }
 
-                } else if (object.isGrounded && Math.abs(floorheight - object.matrix[y]) < 0.1) {
-                    object.matrix[y] = floorheight;
+                } else if (object.isGrounded && Math.abs(floorheight - objectFoot.y) < 0.1) {
+                    object.matrix[y] = floorheight - obotOffset;
                     //console.log('your grunded at ' + floorheight);
                 } else {
-                    object.velocity.y -= 0.004;
+                    if (i == 80) {
+                        console.log(object.isGrounded);
+                        console.log(floorheight);
+                        console.log(object.matrix[y]);
+                    } else {
+                        object.velocity.y -= 0.004;
+                    }
                     object.confirmGrounded = false;
                 }
             } else if (!object.isGrounded) {
@@ -1430,11 +1453,16 @@ const FrameLogic = (function () {
         var psize = vec3sarray.length / 3;
         var transformedArray = new Array(vec3sarray.length);
 
+        var smat = mat4.create();
+        var scal = glMatrix.vec3.create();
+        mat4.getScaling(scal, mat); scal[0] = 1.0 / scal[0]; scal[1] = 1.0 / scal[1]; scal[2] = 1.0 / scal[2];
+        mat4.scale(smat, mat, scal);
+
         for (var i = 0; i < psize; i++) {
             var vstart = i * 3;
-            var rez = [vec3sarray[vstart] * mat[0] + vec3sarray[vstart + 1] * 0.0 + vec3sarray[vstart + 2] * mat[8] + 0.0,
+            var rez = [vec3sarray[vstart] * smat[0] + vec3sarray[vstart + 1] * 0.0 + vec3sarray[vstart + 2] * smat[8] + 0.0,
             vec3sarray[vstart] * 0.0 + vec3sarray[vstart + 1] * 1.0 + vec3sarray[vstart + 2] * 0.0 + 0.0,
-            vec3sarray[vstart] * mat[2] + vec3sarray[vstart + 1] * 0.0 + vec3sarray[vstart + 2] * mat[10] + 0.0,
+            vec3sarray[vstart] * smat[2] + vec3sarray[vstart + 1] * 0.0 + vec3sarray[vstart + 2] * smat[10] + 0.0,
             vec3sarray[vstart] * 0.0 + vec3sarray[vstart + 1] * 0.0 + vec3sarray[vstart + 2] * 0.0 + 1.0];
             //console.log( (320 + 320 * rez[0]) + ' ,' + (240 + 240 * rez[1]));
             transformedArray[i * 3] = (rez[0]);
@@ -1450,11 +1478,16 @@ const FrameLogic = (function () {
         var psize = vec3sarray.length / 3;
         var transformedArray = new Array(vec3sarray.length);
 
+        var smat = mat4.create();
+        var scal = glMatrix.vec3.create();
+        mat4.getScaling(scal, mat); scal[0] = 1.0 / scal[0]; scal[1] = 1.0 / scal[1]; scal[2] = 1.0 / scal[2];
+        mat4.scale(smat, mat, scal);
+
         for (var i = 0; i < psize; i++) {
             var vstart = i * 3;
-            var rez = [vec3sarray[vstart] * mat[0] + vec3sarray[vstart + 1] * 0.0 + (-1.0 * vec3sarray[vstart + 2]) * mat[8] + 0.0,
+            var rez = [vec3sarray[vstart] * smat[0] + vec3sarray[vstart + 1] * 0.0 + (-1.0 * vec3sarray[vstart + 2]) * smat[8] + 0.0,
             vec3sarray[vstart] * 0.0 + vec3sarray[vstart + 1] * 1.0 + vec3sarray[vstart + 2] * 0.0 + 0.0,
-            (-1.0 * vec3sarray[vstart]) * mat[2] + vec3sarray[vstart + 1] * 0.0 + vec3sarray[vstart + 2] * mat[10] + 0.0,
+            (-1.0 * vec3sarray[vstart]) * smat[2] + vec3sarray[vstart + 1] * 0.0 + vec3sarray[vstart + 2] * smat[10] + 0.0,
             vec3sarray[vstart] * 0.0 + vec3sarray[vstart + 1] * 0.0 + vec3sarray[vstart + 2] * 0.0 + 1.0];
             //console.log( (320 + 320 * rez[0]) + ' ,' + (240 + 240 * rez[1]));
             transformedArray[i * 3] = (rez[0]);

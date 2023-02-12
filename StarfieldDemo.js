@@ -46,6 +46,7 @@ const StarfieldDemo = (function () {
     };
 
     var Init = function () {
+        InitDefaultInputActions();
         StageData.ticks = 0;
         StageData.vticks = 0;
         Makarios.writeToUI('Welcome to Makarios Labs');

@@ -1129,16 +1129,19 @@ const FrameLogic = (function () {
             var objectFoot = { x: obx, y: oby, z: obz };
             var floorheight = 1000.0;
 
+            var groundPos = ground.positions;//new Array(ground.positions.length);
+            //linTransformRange(groundPos, ground.positions, ground.matrix, 0, ground.positions.length);
+
             var minGroundDistXYSquared = 10000000.0;
             var minGroundIndex = [];
-            for (var f = 0; f < ground.positions.length / 3; f++) {
+            for (var f = 0; f < groundPos.length / 3; f++) {
                 var isMin = false;
-                var groundDistXYSquared1 = (ground.positions[ground.indices[f * 3 + 0] * 3 + 0] - objectFoot.x) * (ground.positions[ground.indices[f * 3 + 0] * 3 + 0] - objectFoot.x) +
-                                            (ground.positions[ground.indices[f * 3 + 0] * 3 + 2] - objectFoot.z) * (ground.positions[ground.indices[f * 3 + 0] * 3 + 2] - objectFoot.z);
-                var groundDistXYSquared2 = (ground.positions[ground.indices[f * 3 + 1] * 3 + 0] - objectFoot.x) * (ground.positions[ground.indices[f * 3 + 1] * 3 + 0] - objectFoot.x) +
-                                            (ground.positions[ground.indices[f * 3 + 1] * 3 + 2] - objectFoot.z) * (ground.positions[ground.indices[f * 3 + 1] * 3 + 2] - objectFoot.z);
-                var groundDistXYSquared3 = (ground.positions[ground.indices[f * 3 + 2] * 3 + 0] - objectFoot.x) * (ground.positions[ground.indices[f * 3 + 2] * 3 + 0] - objectFoot.x) +
-                                            (ground.positions[ground.indices[f * 3 + 2] * 3 + 2] - objectFoot.z)  * (ground.positions[ground.indices[f * 3 + 2] * 3 + 2] - objectFoot.z);
+                var groundDistXYSquared1 = (groundPos[ground.indices[f * 3 + 0] * 3 + 0] - objectFoot.x) * (groundPos[ground.indices[f * 3 + 0] * 3 + 0] - objectFoot.x) +
+                                            (groundPos[ground.indices[f * 3 + 0] * 3 + 2] - objectFoot.z) * (groundPos[ground.indices[f * 3 + 0] * 3 + 2] - objectFoot.z);
+                var groundDistXYSquared2 = (groundPos[ground.indices[f * 3 + 1] * 3 + 0] - objectFoot.x) * (groundPos[ground.indices[f * 3 + 1] * 3 + 0] - objectFoot.x) +
+                                            (groundPos[ground.indices[f * 3 + 1] * 3 + 2] - objectFoot.z) * (groundPos[ground.indices[f * 3 + 1] * 3 + 2] - objectFoot.z);
+                var groundDistXYSquared3 = (groundPos[ground.indices[f * 3 + 2] * 3 + 0] - objectFoot.x) * (groundPos[ground.indices[f * 3 + 2] * 3 + 0] - objectFoot.x) +
+                                            (groundPos[ground.indices[f * 3 + 2] * 3 + 2] - objectFoot.z)  * (groundPos[ground.indices[f * 3 + 2] * 3 + 2] - objectFoot.z);
 
                 if (groundDistXYSquared1 < minGroundDistXYSquared) {
                     minGroundDistXYSquared = groundDistXYSquared1;
@@ -1158,9 +1161,9 @@ const FrameLogic = (function () {
 
                 var result = IsPointInTriangleIncludeY(objectFoot,
                     {
-                        a: { x: ground.positions[ground.indices[f * 3 + 0] * 3 + 0], y: ground.positions[ground.indices[f * 3 + 0] * 3 + 1], z: ground.positions[ground.indices[f * 3 + 0] * 3 + 2] },
-                        b: { x: ground.positions[ground.indices[f * 3 + 1] * 3 + 0], y: ground.positions[ground.indices[f * 3 + 1] * 3 + 1], z: ground.positions[ground.indices[f * 3 + 1] * 3 + 2] },
-                        c: { x: ground.positions[ground.indices[f * 3 + 2] * 3 + 0], y: ground.positions[ground.indices[f * 3 + 2] * 3 + 1], z: ground.positions[ground.indices[f * 3 + 2] * 3 + 2] },
+                        a: { x: groundPos[ground.indices[f * 3 + 0] * 3 + 0], y: groundPos[ground.indices[f * 3 + 0] * 3 + 1], z: groundPos[ground.indices[f * 3 + 0] * 3 + 2] },
+                        b: { x: groundPos[ground.indices[f * 3 + 1] * 3 + 0], y: groundPos[ground.indices[f * 3 + 1] * 3 + 1], z: groundPos[ground.indices[f * 3 + 1] * 3 + 2] },
+                        c: { x: groundPos[ground.indices[f * 3 + 2] * 3 + 0], y: groundPos[ground.indices[f * 3 + 2] * 3 + 1], z: groundPos[ground.indices[f * 3 + 2] * 3 + 2] },
                     });
                 if (result.didHit) {
 
@@ -1172,7 +1175,7 @@ const FrameLogic = (function () {
 
             //when the center is not directly over ground
             if (!hasHit && minGroundIndex.length > 0) {
-                if (object.collider.type == 'yrotbox') {
+                if (object.collider && object.collider.type == 'yrotbox') {
                     //console.log('stllhits');
 
                     var objectboxcoords = [object.collider.hdepth, 0.0, object.collider.hwidth,
@@ -1187,19 +1190,19 @@ const FrameLogic = (function () {
                     var boxtri1 = [rotbox[0],rotbox[1],rotbox[2],  rotbox[3],rotbox[4],rotbox[5],  rotbox[6],rotbox[7],rotbox[8]];
                     var boxtri2 = [rotbox[9],rotbox[10],rotbox[11],  rotbox[3],rotbox[4],rotbox[5],  rotbox[6],rotbox[7],rotbox[8]];
 
-                    for (var m = 0; m < ground.positions.length / 3; m++) {//(var m = 0; m < minGroundIndex.length; m++) {
+                    for (var m = 0; m < groundPos.length / 3; m++) {//(var m = 0; m < minGroundIndex.length; m++) {
 
-                        var p1xDiff = (ground.positions[ground.indices[m * 3 + 0] * 3 + 0] - objectFoot.x);
-                        var p1yDiff = (ground.positions[ground.indices[m * 3 + 0] * 3 + 1] - objectFoot.y);
-                        var p1zDiff = (ground.positions[ground.indices[m * 3 + 0] * 3 + 2] - objectFoot.z);
+                        var p1xDiff = (groundPos[ground.indices[m * 3 + 0] * 3 + 0] - objectFoot.x);
+                        var p1yDiff = (groundPos[ground.indices[m * 3 + 0] * 3 + 1] - objectFoot.y);
+                        var p1zDiff = (groundPos[ground.indices[m * 3 + 0] * 3 + 2] - objectFoot.z);
 
-                        var p2xDiff = (ground.positions[ground.indices[m * 3 + 1] * 3 + 0] - objectFoot.x);
-                        var p2yDiff = (ground.positions[ground.indices[m * 3 + 1] * 3 + 1] - objectFoot.y);
-                        var p2zDiff = (ground.positions[ground.indices[m * 3 + 1] * 3 + 2] - objectFoot.z);
+                        var p2xDiff = (groundPos[ground.indices[m * 3 + 1] * 3 + 0] - objectFoot.x);
+                        var p2yDiff = (groundPos[ground.indices[m * 3 + 1] * 3 + 1] - objectFoot.y);
+                        var p2zDiff = (groundPos[ground.indices[m * 3 + 1] * 3 + 2] - objectFoot.z);
 
-                        var p3xDiff = (ground.positions[ground.indices[m * 3 + 2] * 3 + 0] - objectFoot.x);
-                        var p3yDiff = (ground.positions[ground.indices[m * 3 + 2] * 3 + 1] - objectFoot.y);
-                        var p3zDiff = (ground.positions[ground.indices[m * 3 + 2] * 3 + 2] - objectFoot.z);
+                        var p3xDiff = (groundPos[ground.indices[m * 3 + 2] * 3 + 0] - objectFoot.x);
+                        var p3yDiff = (groundPos[ground.indices[m * 3 + 2] * 3 + 1] - objectFoot.y);
+                        var p3zDiff = (groundPos[ground.indices[m * 3 + 2] * 3 + 2] - objectFoot.z);
 
                         var p1GroundDistSquared = p1xDiff * p1xDiff + p1zDiff * p1zDiff;
                         var p2GroundDistSquared = p2xDiff * p2xDiff + p2zDiff * p2zDiff;
@@ -1216,9 +1219,9 @@ const FrameLogic = (function () {
                         var mindex = m;//minGroundIndex[m];
                         for (var p = 0; p < 3; p++) {
 
-                            var px = ground.positions[ground.indices[m * 3 + p] * 3 + 0];
-                            var py = ground.positions[ground.indices[m * 3 + p] * 3 + 1];
-                            var pz = ground.positions[ground.indices[m * 3 + p] * 3 + 2];
+                            var px = groundPos[ground.indices[m * 3 + p] * 3 + 0];
+                            var py = groundPos[ground.indices[m * 3 + p] * 3 + 1];
+                            var pz = groundPos[ground.indices[m * 3 + p] * 3 + 2];
 
                             var tri1result = IsPointInTriangleIncludeY({ x: px, y: py, z: pz },
                                 {
@@ -1233,7 +1236,7 @@ const FrameLogic = (function () {
                                 hasHit = true;
                                 p = 4;
                                 op = 5;
-                                m = ground.positions.length;//minGroundIndex.length;
+                                m = groundPos.length;//minGroundIndex.length;
                                 continue;
                             }
                             var tri2result = IsPointInTriangleIncludeY({ x: px, y: py, z: pz },
@@ -1249,14 +1252,14 @@ const FrameLogic = (function () {
                                 hasHit = true;
                                 p = 4;
                                 op = 5;
-                                m = ground.positions.length;//minGroundIndex.length;
+                                m = groundPos.length;//minGroundIndex.length;
                                 continue;
                             }
 
 
                             for (var op = 0; op < 4; op++) {
 
-                                var line1 = [ground.positions[ground.indices[mindex * 3 + p] * 3 + 0], ground.positions[ground.indices[mindex * 3 + p] * 3 + 2], ground.positions[ground.indices[mindex * 3 + ((p + 1) % 3)] * 3 + 0], ground.positions[ground.indices[mindex * 3 + ((p + 1) % 3)] * 3 + 2]];
+                                var line1 = [groundPos[ground.indices[mindex * 3 + p] * 3 + 0], groundPos[ground.indices[mindex * 3 + p] * 3 + 2], groundPos[ground.indices[mindex * 3 + ((p + 1) % 3)] * 3 + 0], groundPos[ground.indices[mindex * 3 + ((p + 1) % 3)] * 3 + 2]];
                                 var line2 = [initialrotatedboxcoords[op * 3 + 0], initialrotatedboxcoords[op * 3 + 2], initialrotatedboxcoords[((op + 1) % 4) * 3 + 0], initialrotatedboxcoords[((op + 1) % 4) * 3 + 2]];
                                 var hitIntersect = getIntersectPoint(line1[0], line1[1], line1[2], line1[3], line2[0], line2[1], line2[2], line2[3]);//getIntersectPoint
 
@@ -1269,16 +1272,16 @@ const FrameLogic = (function () {
 
                                     var result = IsPointInTriangleIncludeY({ x: hitIntersect.x, y: oby, z: hitIntersect.y },
                                         {
-                                            a: { x: ground.positions[ground.indices[mindex * 3 + 0] * 3 + 0], y: ground.positions[ground.indices[mindex * 3 + 0] * 3 + 1], z: ground.positions[ground.indices[mindex * 3 + 0] * 3 + 2] },
-                                            b: { x: ground.positions[ground.indices[mindex * 3 + 1] * 3 + 0], y: ground.positions[ground.indices[mindex * 3 + 1] * 3 + 1], z: ground.positions[ground.indices[mindex * 3 + 1] * 3 + 2] },
-                                            c: { x: ground.positions[ground.indices[mindex * 3 + 2] * 3 + 0], y: ground.positions[ground.indices[mindex * 3 + 2] * 3 + 1], z: ground.positions[ground.indices[mindex * 3 + 2] * 3 + 2] },
+                                            a: { x: groundPos[ground.indices[mindex * 3 + 0] * 3 + 0], y: groundPos[ground.indices[mindex * 3 + 0] * 3 + 1], z: groundPos[ground.indices[mindex * 3 + 0] * 3 + 2] },
+                                            b: { x: groundPos[ground.indices[mindex * 3 + 1] * 3 + 0], y: groundPos[ground.indices[mindex * 3 + 1] * 3 + 1], z: groundPos[ground.indices[mindex * 3 + 1] * 3 + 2] },
+                                            c: { x: groundPos[ground.indices[mindex * 3 + 2] * 3 + 0], y: groundPos[ground.indices[mindex * 3 + 2] * 3 + 1], z: groundPos[ground.indices[mindex * 3 + 2] * 3 + 2] },
                                         });
 
                                     floorheight = result.hity;
                                     hasHit = true;
                                     p = 4;
                                     op = 5;
-                                    m = ground.positions.length;//minGroundIndex.length;
+                                    m = groundPos.length;//minGroundIndex.length;
                                 }
                             }
                         }

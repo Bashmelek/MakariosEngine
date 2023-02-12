@@ -149,10 +149,17 @@ const ShadowShader = (function () {
             lights[0].lightmat,     // matrix to translate
             [0.0, 0.0, 0.0]);
 
-        if (gmod) {
+        if (gmod && baseGmod) {
+            var vmod = mat4.create();
+            mat4.translate(vmod,     // destination matrix
+                baseGmod,     // matrix to translate
+                [-0.0, 0.0, 0.0]);
+            mat4.rotate(vmod, vmod, yaw, [vmod[1], vmod[5], vmod[9]]);//.6
+            mat4.rotate(vmod, vmod, pitch, [vmod[0], vmod[4], vmod[8]]);
+
             var lpoint = [0.0, 0.0, 0.0];
             var modinv = mat4.create();
-            mat4.invert(modinv, gmod);
+            mat4.invert(modinv, vmod);
             linTransformRange(lpoint, lpoint, modinv, 0, 3, null);
             //console.log(modnew[12] + ',   ' + modnew[14]);
 
@@ -163,7 +170,7 @@ const ShadowShader = (function () {
             ////mat4.multiply(modnew, transl, modnew);
             mat4.translate(modnew,     // destination matrix
                 modnew,     // matrix to translate
-                [gnorm[0] * projScaler - lpoint[0] * 1.0, 0.0, gnorm[2] * projScaler - lpoint[2] * 1.0 ]);
+                [gnorm[0] * projScaler - lpoint[0] * 1.0 - StageData.objects[0].matrix[12], 0.0 - StageData.objects[0].matrix[13], gnorm[2] * projScaler - lpoint[2] * 1.0 - StageData.objects[0].matrix[14]]);
             //modnew[12] += gnorm[0] * projScaler - lpoint[0];
             //modnew[14] -= gnorm[2] * projScaler - lpoint[2];
             modnew[14] -= projScaler;

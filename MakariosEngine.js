@@ -657,9 +657,20 @@ function RenderObjects(gl, programInfo, objects, parentmatrix, depth, dataHolder
 
         var thisMatForNorm = mat4.create();
         var nMat = mat4.create();
+        var scal = glMatrix.vec3.create();
+        mat4.getScaling(scal, objects[oj].matrix); scal[0] = 1.0 / scal[0]; scal[1] = 1.0 / scal[1]; scal[2] = 1.0 / scal[2];
+        //scal[0] = 1.0 / Math.min(scal[0], scal[1], scal[2]);
+        //scal[1] = 1.0 / Math.min(scal[0], scal[1], scal[2]);
+        //scal[2] = 1.0 / Math.min(scal[0], scal[1], scal[2]);
+        mat4.scale(nMat, objects[oj].matrix, scal);
+
         mat4.multiply(thisMatForNorm,     // destination matrix
             baseMatrixForNorm,     // matrix to translate
-            objects[oj].matrix);
+            nMat);
+        //var scal = glMatrix.vec3.create();
+        //mat4.getScaling(scal, thisMatForNorm); scal[0] = 1.0 / scal[0]; scal[1] = 1.0 / scal[1]; scal[2] = 1.0 / scal[2];
+        //mat4.scale(thisMatForNorm, thisMatForNorm, scal);
+
         mat4.invert(nMat, thisMatForNorm);
         mat4.transpose(nMat, nMat);
         gl.uniformMatrix4fv(
@@ -846,6 +857,8 @@ function resizeCanvas() {
 
         halfheight = weightedHeight / 2;
         halfwidth = weightedWidth / 2;
+
+        //console.log(halfwidth + ', ' + halfheight);
     }
     if (ui.width != weightedWidth ||
         ui.height != weightedHeight || true) {
@@ -1250,17 +1263,6 @@ function onJustTouchUp(e) {
     mouseisdown = false;
 }
 
-//preemptive thanks to https://stackoverflow.com/questions/43714880/do-dom-events-work-with-pointer-lock
-//for the firefox workaround and the rightclick issue
-//will have to implement
-//also thanks https://stackoverflow.com/questions/43928704/mouse-down-event-not-working-on-canvas-control-in-my-wpf-application for the hint
-//regarding which elemet to add the listener
-document.querySelector('#uiCanvas').addEventListener("mousedown", onJustMouseDown)
-window.addEventListener("mouseup", onJustMouseUp)
-//thank you https://developer.mozilla.org/en-US/docs/Web/API/Touch_events for showing me this
-document.querySelector('#uiCanvas').addEventListener("touchstart", onJustTouchDown, false)
-document.querySelector('#uiCanvas').addEventListener("touchend", onJustTouchUp, false)
-document.querySelector('#uiCanvas').addEventListener("touchcancel", onJustTouchUp, false)
 
 
 window.addEventListener("keydown", function (e) {
@@ -1332,55 +1334,9 @@ function onCamChange() {
     }
 }
 
-//thank you https://developer.mozilla.org/en-US/docs/Web/API/Element/wheel_event
-window.addEventListener("wheel", function (event) {
-
-    if (StageData.noScroll) { return; }
-
-    var scrollDiff = event.deltaY * 0.01;
-
-    var oldDist = camDist;
-    camDist += scrollDiff;
-
-    if (camDist < 2.0) {
-        camDist = 2.0;
-    } else if (camDist > maxCamDist) {
-        camDist = maxCamDist;
-    }
-
-    var distDel = camDist - oldDist;
-    if (distDel == 0.0) {
-        return;
-    }
-
-    gmod[14] -= distDel;
-    onCamChange();
-})
 
 
-window.addEventListener("click", function (e) {
-
-    var matrices = [];
-    var basematrix = mat4.create();
-    mat4.multiply(basematrix, gproj, gmod);
-    matrices.push(basematrix);
-
-    var hittris = [];
-    var hitstuff = {};
-    hitstuff.tris = [];
-    hitstuff.objects = [];
-    var objcount = StageData.objects.length;
-
-    for (var objindex = 0; objindex < objcount; objindex++) {
-        if (!StageData.objects[objindex]) { continue; }
-        var objmatrix = mat4.create();
-        mat4.multiply(objmatrix, basematrix, StageData.objects[objindex].matrix);
-
-        recursiveCheckAllObjectsIfScreenPointHits(StageData.objects[objindex], null, objmatrix, [], hitstuff, { x: e.clientX, y: e.clientY }, []);
-    }
-})
-
-function recursiveCheckAllObjectsIfScreenPointHits(object, parent, itsfullmatrix, inheritedcoords, hitstuff, testpoint, inheritedTextCoordsList) {
+function recursiveCheckAllObjectsIfScreenPointHits(object, parent, itsfullmatrix, inheritedcoords, hitstuff, testpoint, inheritedTextCoordsList, rootobjindex) {
 
     var tricount = object.indices.length / 3;
 
@@ -1393,6 +1349,11 @@ function recursiveCheckAllObjectsIfScreenPointHits(object, parent, itsfullmatrix
     var beenhit = false;
     var myhittris = [];
     for (var c = 0; c < tricount; c++) {
+        //if ((StageData.vticks % 180) == 0)
+        //console.log(testpoint.x + ', ' + testpoint.y + '  >  [{' + screencoords[object.indices[c * 3 + 0] * 3 + 0] + ',' + screencoords[object.indices[c * 3 + 0] * 3 + 1] + '}, ' +
+        //    screencoords[object.indices[c * 3 + 1] * 3 + 0] + ',' + screencoords[object.indices[c * 3 + 1] * 3 + 1] + '},' +
+        //    screencoords[object.indices[c * 3 + 2] * 3 + 0] + ',' + screencoords[object.indices[c * 3 + 2] * 3 + 1] + '}]');
+
         var rez = IsPointInTriangleIncludeZ(testpoint, {
             a: { x: screencoords[object.indices[c * 3 + 0] * 3 + 0], y: screencoords[object.indices[c * 3 + 0] * 3 + 1], z: screencoords[object.indices[c * 3 + 0] * 3 + 2] },
             b: { x: screencoords[object.indices[c * 3 + 1] * 3 + 0], y: screencoords[object.indices[c * 3 + 1] * 3 + 1], z: screencoords[object.indices[c * 3 + 1] * 3 + 2] },
@@ -1403,14 +1364,15 @@ function recursiveCheckAllObjectsIfScreenPointHits(object, parent, itsfullmatrix
             myhittris.push({ triid: c, z: rez.hitz });
 
 
-            console.log('hit: ' + object.id.toString() + ' at ' + rez.hitz.toString() + ' ' + c.toString())
-            console.log({
-                a: { x: screencoords[object.indices[c * 3 + 0] * 3 + 0], y: screencoords[object.indices[c * 3 + 0] * 3 + 1] },
-                b: { x: screencoords[object.indices[c * 3 + 1] * 3 + 0], y: screencoords[object.indices[c * 3 + 1] * 3 + 1] },
-                c: { x: screencoords[object.indices[c * 3 + 2] * 3 + 0], y: screencoords[object.indices[c * 3 + 2] * 3 + 1] },
-            });
-            if (!beenhit) {
-                hitstuff.objects.push(object.id);
+            //console.log('hit: ' + object.id.toString() + ' at ' + rez.hitz.toString() + ' ' + c.toString())
+            //console.log({
+            //    a: { x: screencoords[object.indices[c * 3 + 0] * 3 + 0], y: screencoords[object.indices[c * 3 + 0] * 3 + 1] },
+            //    b: { x: screencoords[object.indices[c * 3 + 1] * 3 + 0], y: screencoords[object.indices[c * 3 + 1] * 3 + 1] },
+            //    c: { x: screencoords[object.indices[c * 3 + 2] * 3 + 0], y: screencoords[object.indices[c * 3 + 2] * 3 + 1] },
+            //});
+            if (!beenhit && rootobjindex != null) {
+                //console.log(rootobjindex);
+                hitstuff.objects.push(rootobjindex);//object.id);
                 beenhit = true;
             }
         }
@@ -1446,14 +1408,14 @@ function recursiveCheckAllObjectsIfScreenPointHits(object, parent, itsfullmatrix
             }
 
             //don't need to rebind anymore, because we do this all the time yeah?
-            console.log('flippeditfor ' + lowestztri.triid + 'z: ' + lowestztri.z);
-            console.log('moreinfo: ' + (lowestztri.triid * 3 + 0) + 'z: ' + ((object.indices[lowestztri.triid * 3 + 0]) * 2));
-            console.log(object.vertexNormals[(object.indices[lowestztri.triid * 3 + 0]) * 3 + 0] + ", " + object.vertexNormals[(object.indices[lowestztri.triid * 3 + 0]) * 3 + 1] + ", " + object.vertexNormals[(object.indices[lowestztri.triid * 3 + 0]) * 3 + 2]);
+            ////console.log('flippeditfor ' + lowestztri.triid + 'z: ' + lowestztri.z);
+            ////console.log('moreinfo: ' + (lowestztri.triid * 3 + 0) + 'z: ' + ((object.indices[lowestztri.triid * 3 + 0]) * 2));
+            ////console.log(object.vertexNormals[(object.indices[lowestztri.triid * 3 + 0]) * 3 + 0] + ", " + object.vertexNormals[(object.indices[lowestztri.triid * 3 + 0]) * 3 + 1] + ", " + object.vertexNormals[(object.indices[lowestztri.triid * 3 + 0]) * 3 + 2]);
             var lpoint = [0.0, 0.0, 0.0];
             var lightLocMat = mat4.create();
             mat4.invert(lightLocMat, StageData.StageLights[0].lightmat);
             linTransformRange(lpoint, lpoint, lightLocMat, 0, 3, null);
-            console.log(lpoint);
+            ////console.log(lpoint);
         }
     }
 
@@ -1464,7 +1426,7 @@ function recursiveCheckAllObjectsIfScreenPointHits(object, parent, itsfullmatrix
             //hmmm need something for chain of parents to support changing their textures?
             var nextInheritedTextCoords = inheritedTextCoordsList.slice(0);
             nextInheritedTextCoords.push(object.textureCoordinates);
-            recursiveCheckAllObjectsIfScreenPointHits(object.children[kid], object, kidmatrix, properCoords, hitstuff, testpoint, nextInheritedTextCoords)
+            recursiveCheckAllObjectsIfScreenPointHits(object.children[kid], object, kidmatrix, properCoords, hitstuff, testpoint, nextInheritedTextCoords, rootobjindex)
         }
     }
 
@@ -1547,8 +1509,74 @@ function onTouchDrag(e) {
     }
 }
 
-onmousemove = onDrag;
-document.querySelector('#uiCanvas').addEventListener("touchmove", onTouchDrag, false)
+var defaultInputsInitiated = false;
+function InitDefaultInputActions() {
+    if (defaultInputsInitiated) { return; }
+    //if (!overrideDefaultInputActions) {
+        onmousemove = onDrag;
+        document.querySelector('#uiCanvas').addEventListener("touchmove", onTouchDrag, false);
+
+
+        //preemptive thanks to https://stackoverflow.com/questions/43714880/do-dom-events-work-with-pointer-lock
+        //for the firefox workaround and the rightclick issue
+        //will have to implement
+        //also thanks https://stackoverflow.com/questions/43928704/mouse-down-event-not-working-on-canvas-control-in-my-wpf-application for the hint
+        //regarding which elemet to add the listener
+        document.querySelector('#uiCanvas').addEventListener("mousedown", onJustMouseDown);
+        window.addEventListener("mouseup", onJustMouseUp);
+        //thank you https://developer.mozilla.org/en-US/docs/Web/API/Touch_events for showing me this
+        document.querySelector('#uiCanvas').addEventListener("touchstart", onJustTouchDown, false);
+        document.querySelector('#uiCanvas').addEventListener("touchend", onJustTouchUp, false);
+        document.querySelector('#uiCanvas').addEventListener("touchcancel", onJustTouchUp, false);
+
+        window.addEventListener("wheel", function (event) {
+
+            if (StageData.noScroll) { return; }
+
+            var scrollDiff = event.deltaY * 0.01;
+
+            var oldDist = camDist;
+            camDist += scrollDiff;
+
+            if (camDist < 2.0) {
+                camDist = 2.0;
+            } else if (camDist > maxCamDist) {
+                camDist = maxCamDist;
+            }
+
+            var distDel = camDist - oldDist;
+            if (distDel == 0.0) {
+                return;
+            }
+
+            gmod[14] -= distDel;
+            onCamChange();
+        });
+
+
+        window.addEventListener("click", function (e) {
+
+            var matrices = [];
+            var basematrix = mat4.create();
+            mat4.multiply(basematrix, gproj, gmod);
+            matrices.push(basematrix);
+
+            var hittris = [];
+            var hitstuff = {};
+            hitstuff.tris = [];
+            hitstuff.objects = [];
+            var objcount = StageData.objects.length;
+
+            for (var objindex = 0; objindex < objcount; objindex++) {
+                if (!StageData.objects[objindex]) { continue; }
+                var objmatrix = mat4.create();
+                mat4.multiply(objmatrix, basematrix, StageData.objects[objindex].matrix);
+
+                recursiveCheckAllObjectsIfScreenPointHits(StageData.objects[objindex], null, objmatrix, [], hitstuff, { x: e.clientX, y: e.clientY }, [], objindex);
+            }
+        });
+    //}
+}
 
 
 function getAllScreenCoords(mat, vec3sarray) {
@@ -1802,7 +1830,7 @@ function IsPointInTriangleIncludeZ(point, tri)/*(px, py, ax, ay, bx, by, cx, cy)
     var v = (dot00 * dot12 - dot01 * dot02) * invDenom;
 
     result = {};
-    result.didHit = ((u >= 0) && (v >= 0) && (u + v <= 1));
+    result.didHit = ((u >= 0.0) && (v >= 0.0) && (u + v <= 1.0));
     if (!result.didHit) {
         return result;
     } else {

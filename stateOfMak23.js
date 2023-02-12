@@ -184,14 +184,14 @@ const StateOfMakarios23 = (function () {
                 vTextureCoord = aTextureCoord;
 
                 // Apply lighting effect
-                highp vec3 ambientLight = vec3(0.1, 0.1, 0.1);//vec3(0.2, 0.2, 0.2);
+                highp vec3 ambientLight = vec3(0.16, 0.16, 0.16);//vec3(0.2, 0.2, 0.2);
 
                 highp vec3 origin = vec3(0.0, 0.0, 0.0);
                 highp vec3 directionalLightColor = vec3(distance(origin, vec3(worldSpaceMat[0][0], worldSpaceMat[0][1], worldSpaceMat[0][2])), distance(origin, vec3(worldSpaceMat[1][0], worldSpaceMat[1][1], worldSpaceMat[1][2])), distance(origin, vec3(worldSpaceMat[2][0], worldSpaceMat[2][1], worldSpaceMat[2][2])));
                 highp vec3 directionalVector = normalize(uLightDirection);
                 highp vec4 transformedNormal = uNormalMatrix  * vec4(aVertexNormal, 1.0);
-                highp float directional = max(dot(transformedNormal.xyz, directionalVector), 0.0);
-                vLighting = ambientLight + (directionalLightColor * directional) * 0.45;
+                highp float directional = max(dot(transformedNormal.xyz, directionalVector), 0.0);//2.8;//max(dot(transformedNormal.xyz, directionalVector), 0.0);
+                vLighting = ambientLight + (vec3(1.0, 1.0, 1.0) * directional) * 0.28;//directionalLightColor *
 
                 // tyref: webglfundamentals3dpointlighting
                 // compute the world position of the surface
@@ -217,7 +217,8 @@ const StateOfMakarios23 = (function () {
 
     var mainChar = null;
     var mainCharRot = null;
-    var baseGmod = null;
+    baseGmod = null;
+    var mousePos = { x: 0.0, y: 0.0 };
 
 
     var Init = function () {
@@ -279,10 +280,18 @@ const StateOfMakarios23 = (function () {
                     StageData.StageLights[0].lightmat,     // matrix to translate
                     [0.0, -0.0, 0.0]);
 
-                if (gmod) {
+                if (gmod && baseGmod) {
+                    var vmod = mat4.create();
+                    mat4.translate(vmod,     // destination matrix
+                        baseGmod,     // matrix to translate
+                        [-0.0, 0.0, 0.0]);
+                    mat4.rotate(vmod, vmod, yaw, [vmod[1], vmod[5], vmod[9]]);//.6
+                    mat4.rotate(vmod, vmod, pitch, [vmod[0], vmod[4], vmod[8]]);
+
+
                     var lpoint = [0.0, 0.0, 0.0];
                     var modinv = mat4.create();
-                    mat4.invert(modinv, gmod);
+                    mat4.invert(modinv, vmod);
                     linTransformRange(lpoint, lpoint, modinv, 0, 3, null);
                     //console.log(lpoint);
                     var gnorm = vec3.create()
@@ -291,7 +300,7 @@ const StateOfMakarios23 = (function () {
 
                     mat4.translate(textureMatrix,     // destination matrix
                         textureMatrix,     // matrix to translate
-                        [gnorm[0] * shadowProjScaler - lpoint[0] * 1.0, 0.0, gnorm[2] * shadowProjScaler - lpoint[2] * 1.0 ]);//[lpoint[0], 0.0, lpoint[2]]);
+                        [gnorm[0] * shadowProjScaler - lpoint[0] * 1.0 - mainChar.matrix[12], 0.0 - mainChar.matrix[13], gnorm[2] * shadowProjScaler - lpoint[2] * 1.0 - mainChar.matrix[14]]);//[lpoint[0], 0.0, lpoint[2]]);
                     //textureMatrix[12] += gnorm[0] * shadowProjScaler - lpoint[0];
                     //textureMatrix[14] -= gnorm[2] * shadowProjScaler - lpoint[2];
                     textureMatrix[14] -= shadowProjScaler;
@@ -358,6 +367,14 @@ const StateOfMakarios23 = (function () {
         isLoading = false;
 
     };
+
+    function initVelocity(obj) {
+        obj.isGrounded = true,
+            obj.confirmGrounded = true,
+            obj.velocity = {
+                y: 0.0
+            };
+    };
     
     var isLoading = true;
     var ProcInLoading = function () {
@@ -390,29 +407,30 @@ const StateOfMakarios23 = (function () {
         mat4.translate(ob7.matrix, ob7.matrix, [-16.0, 0.0, -10.4]);
         mat4.rotate(ob7.matrix, ob7.matrix, -Math.PI / 2.0, [ob7.matrix[0], ob7.matrix[4], ob7.matrix[8]]);
         mat4.scale(ob7.matrix, ob7.matrix, [12.0, 12.0, 12.0]);
-        //console.log(ob7);
 
-        var testground = {
+        var pplane = {
             id: 3,
-            isComposite: false,
             positions: [
+
                 // Top face
-                -194.0, 0.0, -194.0,
-                -194.0, 0.0, 194.0,
-                194.0, 0.0, 194.0,
-                194.0, 0.0, -194.0,
+                -5.0, 0.0, -10.0,
+                -5.0, 0.0, 10.0,
+                10.0, 0.0, 10.0,
+                10.0, 0.0, -10.0,
+                // slope face
+                -5.0, 0.0, -10.0,
+                -5.0, 0.0, 10.0,
+                -10.0, 1.0, 10.0,
+                -10.0, 1.0, -10.0,
             ],
 
             textureCoordinates: [
                 // Top
-                0.0, 1.0,
-                1.0, 1.0,
-                1.0, 0.0,
-                0.0, 0.0,
-            ],
-
-            textureCoordinatesWithAlpha: [
-                // Top
+                0.0, 1.0, 1.0,
+                1.0, 1.0, 1.0,
+                1.0, 0.0, 1.0,
+                0.0, 0.0, 1.0,
+                // slope
                 0.0, 1.0, 1.0,
                 1.0, 1.0, 1.0,
                 1.0, 0.0, 1.0,
@@ -421,6 +439,7 @@ const StateOfMakarios23 = (function () {
 
             indices: [
                 0, 1, 2, 0, 2, 3,
+                4, 5, 6, 4, 6, 7,
             ],
 
             vertexNormals: [
@@ -429,12 +448,23 @@ const StateOfMakarios23 = (function () {
                 0.0, 1.0, 0.0,
                 0.0, 1.0, 0.0,
                 0.0, 1.0, 0.0,
+                // Top
+                0.0, 1.0, 0.0,
+                0.0, 1.0, 0.0,
+                0.0, 1.0, 0.0,
+                0.0, 1.0, 0.0,
             ]
         };
-
-        var obplane = Makarios.instantiate(Primitives.shapes["plane"], 'plainsky.jpg', null, {});//Primitives.shapes["plane"]
+        var obplane = Makarios.instantiate(Primitives.shapes["plane"], 'plainsky.jpg', null, {});//Primitives.shapes["plane"]  pplane
         obplane.matrix = mat4.create();
-        mat4.fromScaling(obplane.matrix, [194.0, 194.0, 194.0]);//[14.0, 4.0, 14.0]);
+        mat4.translate(obplane.matrix,     // destination matrix
+            obplane.matrix,     // matrix to translate
+            [0, -1.0, 0.0]);
+        mat4.scale(obplane.matrix, obplane.matrix, [194.0, 194.0, 194.0]);// [14.0, 4.0, 14.0]);
+        //obplane.isGrounded = null,
+        //obplane.confirmGrounded = null,
+        //obplane.velocity = null;
+        //mat4.fromScaling(obplane.matrix, [194.0, 194.0, 194.0]);//[14.0, 4.0, 14.0]);
         //obplane.positions = [
         //    // Top face
         //    -194.0, 0.0, -194.0,
@@ -447,23 +477,174 @@ const StateOfMakarios23 = (function () {
         var oblightdummy = Makarios.instantiate(Primitives.shapes["tetrahedron"], 'plainsky.jpg', null, {});
         mat4.translate(oblightdummy.matrix, oblightdummy.matrix, [8.0, 1.4, 8.0]);
 
-        Makarios.setCamDist(40.0);
+        var bprim = {
+            id: 5,
+            positions: [
+                // Front face
+                -1.0, -1.0, 1.0,
+                1.0, -1.0, 1.0,
+                1.0, 1.0, 1.0,
+                -1.0, 1.0, 1.0,
 
-        obFox.collider = {
+                // Back face
+                -1.0, -1.0, -1.0,
+                -1.0, 1.0, -1.0,
+                1.0, 1.0, -1.0,
+                1.0, -1.0, -1.0,
+
+                // Top face
+                -1.0, 1.0, -1.0,
+                -1.0, 1.0, 1.0,
+                1.0, 1.0, 1.0,
+                1.0, 1.0, -1.0,
+
+                // Bottom face
+                -1.0, -1.0, -1.0,
+                1.0, -1.0, -1.0,
+                1.0, -1.0, 1.0,
+                -1.0, -1.0, 1.0,
+
+                // Right face
+                1.0, -1.0, -1.0,
+                1.0, 1.0, -1.0,
+                1.0, 1.0, 1.0,
+                1.0, -1.0, 1.0,
+
+                // Left face
+                -1.0, -1.0, -1.0,
+                -1.0, -1.0, 1.0,
+                -1.0, 1.0, 1.0,
+                -1.0, 1.0, -1.0
+            ],
+
+            textureCoordinates: [
+                // Front
+                0.0, 1.0, 1.0,//mess up numba 1 face if first says 1.0
+                1.0, 1.0, 1.0,
+                1.0, 0.0, 1.0,
+                0.0, 0.0, 1.0,
+                // Back
+                0.0, 1.0, 1.0,
+                1.0, 1.0, 1.0,
+                1.0, 0.0, 1.0,
+                0.0, 0.0, 1.0,
+                // Top
+                0.0, 1.0, 1.0,
+                1.0, 1.0, 1.0,
+                1.0, 0.0, 1.0,
+                0.0, 0.0, 1.0,
+                // Bottom
+                0.0, 1.0, 1.0,
+                1.0, 1.0, 1.0,
+                1.0, 0.0, 1.0,
+                0.0, 0.0, 1.0,
+                // Right
+                0.0, 1.0, 1.0,
+                1.0, 1.0, 1.0,
+                1.0, 0.0, 1.0,
+                0.0, 0.0, 1.0,
+                // Left
+                0.0, 1.0, 1.0,
+                1.0, 1.0, 1.0,
+                1.0, 0.0, 1.0,
+                0.0, 0.0, 1.0,
+            ],
+
+            indices: [
+                0, 1, 2, 0, 2, 3,    // front
+                4, 5, 6, 4, 6, 7,    // back
+                8, 9, 10, 8, 10, 11,   // top
+                12, 13, 14, 12, 14, 15,   // bottom
+                16, 17, 18, 16, 18, 19,   // right
+                20, 21, 22, 20, 22, 23
+            ],
+
+            vertexNormals: [
+                // Front
+                0.0, 0.0, 1.0,
+                0.0, 0.0, 1.0,
+                0.0, 0.0, 1.0,
+                0.0, 0.0, 1.0,
+
+                // Back
+                0.0, 0.0, -1.0,
+                0.0, 0.0, -1.0,
+                0.0, 0.0, -1.0,
+                0.0, 0.0, -1.0,
+
+                // Top
+                0.0, 1.0, 0.0,
+                0.0, 1.0, 0.0,
+                0.0, 1.0, 0.0,
+                0.0, 1.0, 0.0,
+
+                // Bottom
+                0.0, -1.0, 0.0,
+                0.0, -1.0, 0.0,
+                0.0, -1.0, 0.0,
+                0.0, -1.0, 0.0,
+
+                // Right
+                1.0, 0.0, 0.0,
+                1.0, 0.0, 0.0,
+                1.0, 0.0, 0.0,
+                1.0, 0.0, 0.0,
+
+                // Left
+                -1.0, 0.0, 0.0,
+                -1.0, 0.0, 0.0,
+                -1.0, 0.0, 0.0,
+                -1.0, 0.0, 0.0
+            ]
+        };
+        var block1 = Makarios.instantiate(Primitives.shapes["cube"], 'plainsky.jpg', null, {});//bprim
+        glMatrix.mat4.translate(block1.matrix,     // destination matrix
+            block1.matrix,     // matrix to translate
+            [88.5, 8.0, 36.0]);
+        mat4.scale(block1.matrix, block1.matrix, [4.0, 2.0, 4.0]);
+        initVelocity(block1);
+        block1.collider = {
             type: 'yrotbox',
-            hwidth: 1,
-            hdepth: 1,
-            hheight: 1.0
+            hwidth: 4,
+            hdepth: 4,
+            hheight: 2.0,
+            bot: -2.0
             //type: 'rotationlesscylinder',
             //radius: 1.0,
             //hheight: 1.0
         };
+
+        var block2 = Makarios.instantiate(Primitives.shapes["cube"], 'plainsky.jpg', null, {});//bprim
+        glMatrix.mat4.translate(block2.matrix,     // destination matrix
+            block2.matrix,     // matrix to translate
+            [88.5, 8.0, 40.0]);
+
+
+        Makarios.setCamDist(40.0);
+
+        obFox.collider = {
+            type: 'yrotbox',
+            hwidth: 1.0,
+            hdepth: 1.0,
+            hheight: 1.0,
+            bot: 0.0, //-1.0
+            //type: 'rotationlesscylinder',
+            //radius: 1.0,
+            //hheight: 1.0
+        };
+        initVelocity(obFox);
         mainChar = obFox;
         mainChar.objBaseMat = mat4.clone(obFox.matrix);
         mainChar.yrot = 0.0;
         mainChar.baseSpeed = 0.24;
         mainChar.baseRotSpeed = 0.02;//0.05
         mainChar.isRunning = false;
+
+        document.querySelector('#uiCanvas').onmousemove = function (e) {
+            e = e || window.event;
+            mousePos = { x: e.clientX, y: e.clientY };
+        }
+        console.log(StageData.objects);
 
         WanderProc = MainProc;
     };
@@ -516,23 +697,30 @@ const StateOfMakarios23 = (function () {
             Makarios.SetAnimation(mainChar, "Survey");
         }
 
-        //gmod[12] = -mainChar.matrix[12];
-        //gmod[13] = -mainChar.matrix[13];
-        //gmod[14] = -40 - mainChar.matrix[14];
 
-        //if (gproj != null) {
-        //    var transformedPlane = [
-        //        // Top face
-        //        -1.0, 0.0, -1.0,
-        //        -1.0, 0.0, 1.0,
-        //        1.0, 0.0, 1.0,
-        //        1.0, 0.0, -1.0,
-        //    ];
-        //    var gProjMod = mat4.create();
-        //    mat4.multiply(gProjMod, gproj, gmod);
-        //    linTransformRange(transformedPlane, Primitives.shapes["plane"].positions, gProjMod, 0, 12, null);
-        //    console.log(transformedPlane);
-        //}
+
+        var basematrix = mat4.create();
+        mat4.multiply(basematrix, gproj, gmod);
+
+        var hitstuff = {};
+        hitstuff.tris = [];
+        hitstuff.objects = [];
+        var objcount = StageData.objects.length;
+
+        for (var objindex = 0; objindex < objcount; objindex++) {
+            if (!StageData.objects[objindex]) { continue; }
+            StageData.objects[objindex].outlineColor = [1.0, 0.6, 1.0];
+            var objmatrix = mat4.create();
+            mat4.multiply(objmatrix, basematrix, StageData.objects[objindex].matrix);
+
+            //recursiveCheckAllObjectsIfScreenPointHits(StageData.objects[objindex], null, objmatrix, [], hitstuff, { x: mousePos.x, y: mousePos.y }, [], objindex);
+        }
+        for (var hitdex = 0; hitdex < hitstuff.objects.length; hitdex++) {
+            //console.log(hitstuff.objects[hitdex]);
+            StageData.objects[hitstuff.objects[hitdex]].outlineColor = [1.0, 1.0, 0.1];
+        }
+
+
     };
 
     var WanderProc = ProcInLoading;

@@ -229,6 +229,7 @@ const OutlineRenderer = (function () {
             false,
             nMat);
 
+        //if (obj.outlineColor) { console.log(obj.outlineColor); }
         if (obj.outlineColor != null && (obj.outlineColor[0] != outlineColor[0] || obj.outlineColor[1] != outlineColor[1] || obj.outlineColor[2] != outlineColor[2])) {
             outlineColor = obj.outlineColor;
             wgl.uniform3fv(uniform_outlineColor, obj.outlineColor);
