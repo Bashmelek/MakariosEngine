@@ -354,7 +354,8 @@ const StateOfMakarios23 = (function () {
         });
 
 
-
+        var defmat1 = mat4.create();
+        mat4.fromScaling(defmat1, [0.1, 0.1, 0.1]);
         var foxloc = 'SampleModels/Fox/glTF-Embedded/Fox.gltf';
         Makarios.preloadGltfPrimitiveFromJsResource(foxloc, "testbox");
 
@@ -408,59 +409,12 @@ const StateOfMakarios23 = (function () {
         mat4.rotate(ob7.matrix, ob7.matrix, -Math.PI / 2.0, [ob7.matrix[0], ob7.matrix[4], ob7.matrix[8]]);
         mat4.scale(ob7.matrix, ob7.matrix, [12.0, 12.0, 12.0]);
 
-        var pplane = {
-            id: 3,
-            positions: [
-
-                // Top face
-                -5.0, 0.0, -10.0,
-                -5.0, 0.0, 10.0,
-                10.0, 0.0, 10.0,
-                10.0, 0.0, -10.0,
-                // slope face
-                -5.0, 0.0, -10.0,
-                -5.0, 0.0, 10.0,
-                -10.0, 1.0, 10.0,
-                -10.0, 1.0, -10.0,
-            ],
-
-            textureCoordinates: [
-                // Top
-                0.0, 1.0, 1.0,
-                1.0, 1.0, 1.0,
-                1.0, 0.0, 1.0,
-                0.0, 0.0, 1.0,
-                // slope
-                0.0, 1.0, 1.0,
-                1.0, 1.0, 1.0,
-                1.0, 0.0, 1.0,
-                0.0, 0.0, 1.0,
-            ],
-
-            indices: [
-                0, 1, 2, 0, 2, 3,
-                4, 5, 6, 4, 6, 7,
-            ],
-
-            vertexNormals: [
-                // Top
-                0.0, 1.0, 0.0,
-                0.0, 1.0, 0.0,
-                0.0, 1.0, 0.0,
-                0.0, 1.0, 0.0,
-                // Top
-                0.0, 1.0, 0.0,
-                0.0, 1.0, 0.0,
-                0.0, 1.0, 0.0,
-                0.0, 1.0, 0.0,
-            ]
-        };
         var obplane = Makarios.instantiate(Primitives.shapes["plane"], 'plainsky.jpg', null, {});//Primitives.shapes["plane"]  pplane
         obplane.matrix = mat4.create();
         mat4.translate(obplane.matrix,     // destination matrix
             obplane.matrix,     // matrix to translate
             [0, -1.0, 0.0]);
-        mat4.scale(obplane.matrix, obplane.matrix, [194.0, 194.0, 194.0]);// [14.0, 4.0, 14.0]);
+        mat4.scale(obplane.matrix, obplane.matrix, [194.0, 194.0, 104.0]);// [14.0, 4.0, 14.0]);
         //obplane.isGrounded = null,
         //obplane.confirmGrounded = null,
         //obplane.velocity = null;
@@ -477,126 +431,6 @@ const StateOfMakarios23 = (function () {
         var oblightdummy = Makarios.instantiate(Primitives.shapes["tetrahedron"], 'plainsky.jpg', null, {});
         mat4.translate(oblightdummy.matrix, oblightdummy.matrix, [8.0, 1.4, 8.0]);
 
-        var bprim = {
-            id: 5,
-            positions: [
-                // Front face
-                -1.0, -1.0, 1.0,
-                1.0, -1.0, 1.0,
-                1.0, 1.0, 1.0,
-                -1.0, 1.0, 1.0,
-
-                // Back face
-                -1.0, -1.0, -1.0,
-                -1.0, 1.0, -1.0,
-                1.0, 1.0, -1.0,
-                1.0, -1.0, -1.0,
-
-                // Top face
-                -1.0, 1.0, -1.0,
-                -1.0, 1.0, 1.0,
-                1.0, 1.0, 1.0,
-                1.0, 1.0, -1.0,
-
-                // Bottom face
-                -1.0, -1.0, -1.0,
-                1.0, -1.0, -1.0,
-                1.0, -1.0, 1.0,
-                -1.0, -1.0, 1.0,
-
-                // Right face
-                1.0, -1.0, -1.0,
-                1.0, 1.0, -1.0,
-                1.0, 1.0, 1.0,
-                1.0, -1.0, 1.0,
-
-                // Left face
-                -1.0, -1.0, -1.0,
-                -1.0, -1.0, 1.0,
-                -1.0, 1.0, 1.0,
-                -1.0, 1.0, -1.0
-            ],
-
-            textureCoordinates: [
-                // Front
-                0.0, 1.0, 1.0,//mess up numba 1 face if first says 1.0
-                1.0, 1.0, 1.0,
-                1.0, 0.0, 1.0,
-                0.0, 0.0, 1.0,
-                // Back
-                0.0, 1.0, 1.0,
-                1.0, 1.0, 1.0,
-                1.0, 0.0, 1.0,
-                0.0, 0.0, 1.0,
-                // Top
-                0.0, 1.0, 1.0,
-                1.0, 1.0, 1.0,
-                1.0, 0.0, 1.0,
-                0.0, 0.0, 1.0,
-                // Bottom
-                0.0, 1.0, 1.0,
-                1.0, 1.0, 1.0,
-                1.0, 0.0, 1.0,
-                0.0, 0.0, 1.0,
-                // Right
-                0.0, 1.0, 1.0,
-                1.0, 1.0, 1.0,
-                1.0, 0.0, 1.0,
-                0.0, 0.0, 1.0,
-                // Left
-                0.0, 1.0, 1.0,
-                1.0, 1.0, 1.0,
-                1.0, 0.0, 1.0,
-                0.0, 0.0, 1.0,
-            ],
-
-            indices: [
-                0, 1, 2, 0, 2, 3,    // front
-                4, 5, 6, 4, 6, 7,    // back
-                8, 9, 10, 8, 10, 11,   // top
-                12, 13, 14, 12, 14, 15,   // bottom
-                16, 17, 18, 16, 18, 19,   // right
-                20, 21, 22, 20, 22, 23
-            ],
-
-            vertexNormals: [
-                // Front
-                0.0, 0.0, 1.0,
-                0.0, 0.0, 1.0,
-                0.0, 0.0, 1.0,
-                0.0, 0.0, 1.0,
-
-                // Back
-                0.0, 0.0, -1.0,
-                0.0, 0.0, -1.0,
-                0.0, 0.0, -1.0,
-                0.0, 0.0, -1.0,
-
-                // Top
-                0.0, 1.0, 0.0,
-                0.0, 1.0, 0.0,
-                0.0, 1.0, 0.0,
-                0.0, 1.0, 0.0,
-
-                // Bottom
-                0.0, -1.0, 0.0,
-                0.0, -1.0, 0.0,
-                0.0, -1.0, 0.0,
-                0.0, -1.0, 0.0,
-
-                // Right
-                1.0, 0.0, 0.0,
-                1.0, 0.0, 0.0,
-                1.0, 0.0, 0.0,
-                1.0, 0.0, 0.0,
-
-                // Left
-                -1.0, 0.0, 0.0,
-                -1.0, 0.0, 0.0,
-                -1.0, 0.0, 0.0,
-                -1.0, 0.0, 0.0
-            ]
-        };
         var block1 = Makarios.instantiate(Primitives.shapes["cube"], 'plainsky.jpg', null, {});//bprim
         glMatrix.mat4.translate(block1.matrix,     // destination matrix
             block1.matrix,     // matrix to translate
@@ -617,17 +451,90 @@ const StateOfMakarios23 = (function () {
         var block2 = Makarios.instantiate(Primitives.shapes["cube"], 'plainsky.jpg', null, {});//bprim
         glMatrix.mat4.translate(block2.matrix,     // destination matrix
             block2.matrix,     // matrix to translate
-            [88.5, 8.0, 40.0]);
+            [92.5, 8.0, 44.0]);
+        initVelocity(block2);
+        block2.collider = {
+            type: 'yrotbox',
+            hwidth: 1.0,
+            hdepth: 1.0,
+            hheight: 1.0,
+            bot: -1.0
+        };
+
+        var block3 = Makarios.instantiate(Primitives.shapes["cube"], 'plainsky.jpg', null, {});//bprim
+        glMatrix.mat4.translate(block3.matrix,     // destination matrix
+            block3.matrix,     // matrix to translate
+            [0, 8.0, 164.0]);
+        mat4.scale(block3.matrix, block3.matrix, [4.0, 3.0, 74.0])
+        initVelocity(block3);
+        block3.collider = {
+            type: 'yrotbox',
+            hwidth: 74.0,
+            hdepth: 4.0,
+            hheight: 3.0,
+            bot: -3.0
+        };
+
+
+
+        var c2 = Makarios.instantiate(Primitives.shapes["caesar"], Primitives.shapes["caesar"].textureUrl, null, {});//'plainsky.jpg'  Primitives.shapes["testbox"].textureUrl
+        //console.log(Primitives.shapes["caesar"].animations);
+        Makarios.SetAnimation(c2, "0");//"0"    Survey  Run
+        mat4.translate(c2.matrix, c2.matrix, [-26.0, 0.0, -12.4]);
+        mat4.rotate(c2.matrix, c2.matrix, -Math.PI / 2.0, [c2.matrix[0], c2.matrix[4], c2.matrix[8]]);
+        mat4.scale(c2.matrix, c2.matrix, [12.0, 12.0, 12.0]);
+        //var c2invBase = mat4.create();
+        //mat4.rotate(c2invBase, c2invBase, -Math.PI / 2.0, [c2invBase, c2invBase[4], c2invBase[8]]);
+        //mat4.scale(c2invBase, c2invBase, [12.0, 12.0, 12.0]);
+        //mat4.invert(c2invBase, c2invBase);
+        //initVelocity(c2);
+        //c2.collider = {
+        //    type: 'yrotbox',
+        //    hwidth: 1.0,
+        //    hdepth: 1.0,
+        //    hheight: 1.0,
+        //    bot: 0.0,
+        //    invmat: c2invBase,
+        //};
+
+        var c3 = Makarios.instantiate(Primitives.shapes["caesar"], Primitives.shapes["caesar"].textureUrl, null, {});//'plainsky.jpg'  Primitives.shapes["testbox"].textureUrl
+        Makarios.SetAnimation(c3, "0");//"0"    Survey  Run
+        mat4.translate(c3.matrix, c3.matrix, [-26.0, 0.0, 12.4]);
+        mat4.rotate(c3.matrix, c3.matrix, -Math.PI / 2.0, [c3.matrix[0], c3.matrix[4], c3.matrix[8]]);
+        mat4.scale(c3.matrix, c3.matrix, [10.0, 10.0, 10.0]);
+
+
+        var c4 = Makarios.instantiate(Primitives.shapes["caesar"], Primitives.shapes["caesar"].textureUrl, null, {});//'plainsky.jpg'  Primitives.shapes["testbox"].textureUrl
+        Makarios.SetAnimation(c4, "0");//"0"    Survey  Run
+        mat4.translate(c4.matrix, c4.matrix, [-26.0, 0.0, 32.4]);
+        mat4.rotate(c4.matrix, c4.matrix, -Math.PI / 2.0, [c4.matrix[0], c4.matrix[4], c4.matrix[8]]);
+        mat4.scale(c4.matrix, c4.matrix, [10.0, 10.0, 10.0]);
+
+        var c5 = Makarios.instantiate(Primitives.shapes["caesar"], Primitives.shapes["caesar"].textureUrl, null, {});//'plainsky.jpg'  Primitives.shapes["testbox"].textureUrl
+        Makarios.SetAnimation(c5, "0");//"0"    Survey  Run
+        mat4.translate(c5.matrix, c5.matrix, [26.0, 0.0, 12.4]);
+        mat4.rotate(c5.matrix, c5.matrix, -Math.PI / 2.0, [c5.matrix[0], c5.matrix[4], c5.matrix[8]]);
+        mat4.scale(c5.matrix, c5.matrix, [10.0, 10.0, 10.0]);
+
+        var c6 = Makarios.instantiate(Primitives.shapes["caesar"], Primitives.shapes["caesar"].textureUrl, null, {});//'plainsky.jpg'  Primitives.shapes["testbox"].textureUrl
+        Makarios.SetAnimation(c6, "0");//"0"    Survey  Run
+        mat4.translate(c6.matrix, c6.matrix, [26.0, 0.0, -19.4]);
+        mat4.rotate(c6.matrix, c6.matrix, -Math.PI / 2.0, [c6.matrix[0], c6.matrix[4], c6.matrix[8]]);
+        mat4.scale(c6.matrix, c6.matrix, [10.0, 10.0, 10.0]);
 
 
         Makarios.setCamDist(40.0);
 
+        var foxinvBase = mat4.create();
+        mat4.fromScaling(foxinvBase, [0.1, 0.1, 0.1]);
+        mat4.invert(foxinvBase, foxinvBase);
         obFox.collider = {
             type: 'yrotbox',
             hwidth: 1.0,
             hdepth: 1.0,
             hheight: 1.0,
             bot: 0.0, //-1.0
+            invmat: foxinvBase,
             //type: 'rotationlesscylinder',
             //radius: 1.0,
             //hheight: 1.0

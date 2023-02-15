@@ -478,16 +478,6 @@ function drawScene(gl, programInfo, buffers) {  //deltaTime
         gl.useProgram(programInfo.program);
     }
 
-    if (typeof OutlineRenderer !== 'undefined') {
-        OutlineRenderer.drawOutline(modelViewMatrix, projectionMatrix, Entera.buffers.positions, Entera.buffers.vertexNormals, Entera.buffers.indices, Entera.buffers.useParentMatrix, StageData.objects);
-        gl.useProgram(programInfo.program); //return;
-    }
-    if (typeof ShadowShader !== 'undefined') {
-        var shadowProjectionMat = StageData.defShadowProjMat || projectionMatrix;
-        ShadowShader.drawShadowsToTexture(modelViewMatrix, shadowProjectionMat, Entera.buffers.positions, Entera.buffers.indices, Entera.buffers.useParentMatrix, StageData.objects, StageData.StageLights, Entera.buffers.textureCoordinates);
-        gl.useProgram(programInfo.program); //return;
-    }
-
     const normalMatrix = mat4.create();
 
     mat4.translate(normalMatrix,     // destination matrix
@@ -553,6 +543,7 @@ function drawScene(gl, programInfo, buffers) {  //deltaTime
     }
 
     // tell webgl how to pull out the answer to whether to use parent matrix from buffer
+    if (StageData.vticks < 200)
     {
         const num = 1; // every coordinate composed of 1 values
         const type = gl.FLOAT; // the data in the buffer is 32 bit float
@@ -565,7 +556,22 @@ function drawScene(gl, programInfo, buffers) {  //deltaTime
     }
 
     // Tell WebGL which indices to use to index the vertices
+    if(StageData.vticks < 200)
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, buffers.indices);
+
+
+
+
+    if (typeof OutlineRenderer !== 'undefined') {
+        OutlineRenderer.drawOutline(modelViewMatrix, projectionMatrix, Entera.buffers.positions, Entera.buffers.vertexNormals, Entera.buffers.indices, Entera.buffers.useParentMatrix, StageData.objects);
+        gl.useProgram(programInfo.program); //return;
+    }
+    if (typeof ShadowShader !== 'undefined') {
+        var shadowProjectionMat = StageData.defShadowProjMat || projectionMatrix;
+        ShadowShader.drawShadowsToTexture(modelViewMatrix, shadowProjectionMat, Entera.buffers.positions, Entera.buffers.indices, Entera.buffers.useParentMatrix, StageData.objects, StageData.StageLights, Entera.buffers.textureCoordinates);
+        gl.useProgram(programInfo.program); //return;
+    }
+
 
     // Tell WebGL to use our program when drawing
     gl.useProgram(programInfo.program);
@@ -639,6 +645,9 @@ function drawScene(gl, programInfo, buffers) {  //deltaTime
 }
 
 function RenderObjects(gl, programInfo, objects, parentmatrix, depth, dataHolder, baseMatrixForNorm) {
+
+    var parentDataSet = false;
+
     for (var oj = 0; oj < objects.length; oj++) {
         if (!objects[oj]) { continue; };
         //const normalMatrix = mat4.create();
@@ -650,10 +659,10 @@ function RenderObjects(gl, programInfo, objects, parentmatrix, depth, dataHolder
         mat4.multiply(mat0,     // destination matrix
             parentmatrix,     // matrix to translate
             objects[oj].matrix);
-        gl.uniformMatrix4fv(
-            programInfo.uniformLocations.modelViewMatrix,
-            false,
-            depth > 0.0 ? mat0 : mat0);
+        //gl.uniformMatrix4fv(
+        //    programInfo.uniformLocations.modelViewMatrix,
+        //    false,
+        //    depth > 0.0 ? mat0 : mat0);
 
         var thisMatForNorm = mat4.create();
         var nMat = mat4.create();
@@ -673,10 +682,11 @@ function RenderObjects(gl, programInfo, objects, parentmatrix, depth, dataHolder
 
         mat4.invert(nMat, thisMatForNorm);
         mat4.transpose(nMat, nMat);
-        gl.uniformMatrix4fv(
-            programInfo.uniformLocations.normalMatrix,
-            false,
-            nMat);
+        //gl.uniformMatrix4fv(
+        //    programInfo.uniformLocations.normalMatrix,
+        //    false,
+        //    nMat);
+
         //modelViewMatrix
         //gl.uniformMatrix4fv(
         //    programInfo.uniformLocations.normalMatrix,
@@ -711,7 +721,27 @@ function RenderObjects(gl, programInfo, objects, parentmatrix, depth, dataHolder
         }
 
         //gl.uniform1f(programInfo.uniformLocations.matrixLevel, depth);
-        {            
+        if (objects[oj].indices.length > 0)
+        {
+            if (!parentDataSet) {
+                parentDataSet = true;
+                gl.uniformMatrix4fv(
+                    programInfo.uniformLocations.parentMatrix,
+                    false,
+                    parentmatrix);
+                //console.log(objects[oj].children[0]);
+                gl.uniform1f(programInfo.uniformLocations.matrixLevel, depth);
+            }
+
+            gl.uniformMatrix4fv(
+                programInfo.uniformLocations.modelViewMatrix,
+                false,
+                depth > 0.0 ? mat0 : mat0);
+            gl.uniformMatrix4fv(
+                programInfo.uniformLocations.normalMatrix,
+                false,
+                nMat);
+
             //console.log(ext);
             const vertexCount = objects[oj].indices.length;//36;
             const type = gl.UNSIGNED_INT;//gl.UNSIGNED_INT; //gl.UNSIGNED_SHORT;//gl.UNSIGNED_INT;
@@ -726,18 +756,18 @@ function RenderObjects(gl, programInfo, objects, parentmatrix, depth, dataHolder
         }
 
         if (objects[oj].children && objects[oj].children.length > 0) {
-            gl.uniformMatrix4fv(
-                programInfo.uniformLocations.parentMatrix,
-                false,
-                mat0);
-            //console.log(objects[oj].children[0]);
-            gl.uniform1f(programInfo.uniformLocations.matrixLevel, depth + 1.0);
+            //gl.uniformMatrix4fv(
+            //    programInfo.uniformLocations.parentMatrix,
+            //    false,
+            //    mat0);
+            ////console.log(objects[oj].children[0]);
+            //gl.uniform1f(programInfo.uniformLocations.matrixLevel, depth + 1.0);
             RenderObjects(gl, programInfo, objects[oj].children, mat0, depth + 1.0, dataHolder, thisMatForNorm);
-            gl.uniform1f(programInfo.uniformLocations.matrixLevel, depth);
-            gl.uniformMatrix4fv(
-                programInfo.uniformLocations.parentMatrix,
-                false,
-                parentmatrix);
+            //gl.uniform1f(programInfo.uniformLocations.matrixLevel, depth);
+            //gl.uniformMatrix4fv(
+            //    programInfo.uniformLocations.parentMatrix,
+            //    false,
+            //    parentmatrix);
         }
     }
 }
@@ -1685,33 +1715,44 @@ function linTransformRangeWithOffsetsForSkeletonMat3(dest, source, sourceStart, 
     var psize = sourceEndExclusive / 3;
     //console.log('from ' + sourceStart + ' to ' + sourceEndExclusive)
     var mat = mat4.create();
+    var startTri = sourceStart / 3;
+    var dStartDiff = destStart - sourceStart;
+    var currentSkellMat = mat4.create();
+    var currentWeight = 0;
 
-    for (var i = (sourceStart / 3); i < psize; i++) {
-        var dStart = destStart + i * 3 - sourceStart;
+    for (var i = startTri; i < psize; i++) {
+        var dStart = dStartDiff + i * 3;
         var rez = [0.0, 0.0, 0.0, 0.0]
+        var baseweightIndex = (i - startTri) * 4;
         for (var w = 0; w < 4; w++) {
-            var weightjointdex = (i - (sourceStart / 3)) * 4 + w;
+            var weightjointdex = baseweightIndex + w;
             //console.log(weightjointdex);
             //console.log(weights[weightjointdex]);
             if (weights[weightjointdex] != 0.0) {
+                if (skeletonkey.skellynodes[joints[weightjointdex]].nodeobj.skellmatrix != currentSkellMat || currentWeight != weights[weightjointdex]) {
+                currentSkellMat = skeletonkey.skellynodes[joints[weightjointdex]].nodeobj.skellmatrix;
+                currentWeight = weights[weightjointdex];
+
+                mat4.multiplyScalar(mat, skeletonkey.skellynodes[joints[weightjointdex]].nodeobj.skellmatrix, weights[weightjointdex]);
+                }
                 //console.log(weightjointdex);
                 //console.log(joints[weightjointdex]);
                 //console.log(weights[weightjointdex]);
-                mat4.multiplyScalar(mat, skeletonkey.skellynodes[joints[weightjointdex]].nodeobj.skellmatrix, weights[weightjointdex]);
+                //mat4.multiplyScalar(mat, skeletonkey.skellynodes[joints[weightjointdex]].nodeobj.skellmatrix, weights[weightjointdex]);
                 //console.log(mat);
 
                 var vstart = i * 3;
                 rez = [rez[0] + source[vstart] * mat[0] + source[vstart + 1] * mat[4] + source[vstart + 2] * mat[8] + 1.0 * mat[12],
-                    rez[1] + source[vstart] * mat[1] + source[vstart + 1] * mat[5] + source[vstart + 2] * mat[9] + 1.0 * mat[13],
-                    rez[2] + source[vstart] * mat[2] + source[vstart + 1] * mat[6] + source[vstart + 2] * mat[10] + 1.0* mat[14],
-                    rez[3] + source[vstart] * mat[3] + source[vstart + 1] * mat[7] + source[vstart + 2] * mat[11] + 1.0 * mat[15]];
+                rez[1] + source[vstart] * mat[1] + source[vstart + 1] * mat[5] + source[vstart + 2] * mat[9] + 1.0 * mat[13],
+                rez[2] + source[vstart] * mat[2] + source[vstart + 1] * mat[6] + source[vstart + 2] * mat[10] + 1.0 * mat[14],
+                rez[3] + source[vstart] * mat[3] + source[vstart + 1] * mat[7] + source[vstart + 2] * mat[11] + 1.0 * mat[15]];
 
 
 
                 //rez = [rez[0] + source[vstart] * mat[0] + source[vstart + 1] * mat[4] + source[vstart + 2] * mat[8],
                 //rez[1] + source[vstart] * mat[1] + source[vstart + 1] * mat[5] + source[vstart + 2] * mat[9],
                 //rez[2] + source[vstart] * mat[2] + source[vstart + 1] * mat[6] + source[vstart + 2] * mat[10]];
-            }
+            } else { break; }
         }
         dest[dStart] = (rez[0]);
         dest[dStart + 1] = (rez[1]);
@@ -2208,7 +2249,7 @@ const Makarios = (function () {
         ggl.uniform1f(globalMainProgramInfo.uniformLocations.ucelStep, stepCount);
     }
 
-    self.preloadGltfPrimitiveFromJsResource = function (pathloc, primname) {
+    self.preloadGltfPrimitiveFromJsResource = function (pathloc, primname, defaultTransform) {
         if (Primitives.shapes[primname]) { return; }
         console.log(primname + '==');
 
@@ -2223,9 +2264,31 @@ const Makarios = (function () {
                     Primitives.shapes[primname].animations[res.animations[a].name] = Primitives.animations[Primitives.animations.length - 1];
                 }
             }
+            if (defaultTransform != null) {
+                console.log(primname + ' applying default transofrm');
+                self.applyDefaultTransformRecursive(Primitives.shapes[primname], primname, defaultTransform);
+                //linTransformRange(Primitives.shapes[primname].positions, Primitives.shapes[primname].positions, defaultTransform, 0, Primitives.shapes[primname].positions.length);
+                //linTransformRange(Primitives.shapes[primname].vertexNormals, Primitives.shapes[primname].vertexNormals, defaultTransform, 0, Primitives.shapes[primname].vertexNormals.length);
+            }
             self.itemsToPreload--;
         });
     };
+
+    self.applyDefaultTransformRecursive = function (primnode, primname, defaultTransform) {
+
+        //if (primnode.inverseBaseMat) {
+        //    mat4.multiply(primnode.inverseBaseMat, primnode.inverseBaseMat, defaultTransform);
+        //}
+        //if (primnode.prim && primnode.prim.inverseBaseMat) {
+        //    mat4.multiply(primnode.prim.inverseBaseMat, primnode.prim.inverseBaseMat, defaultTransform);
+        //}
+        linTransformRange(primnode.positions, primnode.positions, defaultTransform, 0, primnode.positions.length);
+        linTransformRange(primnode.vertexNormals, primnode.vertexNormals, defaultTransform, 0, primnode.vertexNormals.length);
+        console.log(primnode.positions);
+        for (var c = 0; c < primnode.children.length; c++) {
+            self.applyDefaultTransformRecursive(primnode.children[c], primname, defaultTransform);
+        }
+    }
 
     self.writeToUI = function (text, pos, font, dontClear) {
         self.uiState.text = text;

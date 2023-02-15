@@ -25,9 +25,9 @@ const ShadowShader = (function () {
             // Multiply the position by the matrix.
             vec4 pointWorldPos;
                 mat4 worldSpaceMat = uModelViewMatrix;
-                if(aUseParentMatrix < uMatrixLevel) {
-                    worldSpaceMat = uParentMatrix;
-                }
+                //if(aUseParentMatrix < uMatrixLevel) {
+                //    worldSpaceMat = uParentMatrix;
+                //}
 
           pointWorldPos = worldSpaceMat * aVertexPosition;
 
@@ -209,26 +209,26 @@ const ShadowShader = (function () {
             uniform_projectionMatrix,
             false,
             projMat);
-        wgl.bindBuffer(wgl.ARRAY_BUFFER, vertex_buffer); 
-        wgl.bufferData(wgl.ARRAY_BUFFER,
-            new Float32Array(vertices),
-            wgl.STATIC_DRAW);
-        wgl.bindBuffer(wgl.ARRAY_BUFFER, vertex_buffer);
-        wgl.vertexAttribPointer(attribute_vertex_position, 3, wgl.FLOAT, false, 0, 0);
-        wgl.enableVertexAttribArray(attribute_vertex_position);
+        //wgl.bindBuffer(wgl.ARRAY_BUFFER, vertex_buffer); 
+        //wgl.bufferData(wgl.ARRAY_BUFFER,
+        //    new Float32Array(vertices),
+        //    wgl.STATIC_DRAW);
+        //wgl.bindBuffer(wgl.ARRAY_BUFFER, vertex_buffer);
+        //wgl.vertexAttribPointer(attribute_vertex_position, 3, wgl.FLOAT, false, 0, 0);
+        //wgl.enableVertexAttribArray(attribute_vertex_position);
 
 
-        const indexBuffer = wgl.createBuffer();
-        wgl.bindBuffer(wgl.ELEMENT_ARRAY_BUFFER, indexBuffer);
-        wgl.bufferData(wgl.ELEMENT_ARRAY_BUFFER,
-            new Uint32Array(indices), wgl.STATIC_DRAW);
+        //const indexBuffer = wgl.createBuffer();
+        //wgl.bindBuffer(wgl.ELEMENT_ARRAY_BUFFER, indexBuffer);
+        //wgl.bufferData(wgl.ELEMENT_ARRAY_BUFFER,
+        //    new Uint32Array(indices), wgl.STATIC_DRAW);
 
-        const useParent = wgl.createBuffer();
-        wgl.bindBuffer(wgl.ARRAY_BUFFER, useParent);
-        wgl.bufferData(wgl.ARRAY_BUFFER, new Float32Array(useParentMatrix),
-            wgl.STATIC_DRAW);
-        wgl.vertexAttribPointer(attribute_vertex_useParent, 1, wgl.FLOAT, false, 0, 0);
-        wgl.enableVertexAttribArray(attribute_vertex_useParent);
+        //const useParent = wgl.createBuffer();
+        //wgl.bindBuffer(wgl.ARRAY_BUFFER, useParent);
+        //wgl.bufferData(wgl.ARRAY_BUFFER, new Float32Array(useParentMatrix),
+        //    wgl.STATIC_DRAW);
+        //wgl.vertexAttribPointer(attribute_vertex_useParent, 1, wgl.FLOAT, false, 0, 0);
+        //wgl.enableVertexAttribArray(attribute_vertex_useParent);
 
         var baseParent = mat4.create();
         var baseNorm = mat4.create();
@@ -268,10 +268,6 @@ const ShadowShader = (function () {
         mat4.multiply(mat0,     // destination matrix
             parentmatrix,     // matrix to translate
             obj.matrix);
-        wgl.uniformMatrix4fv(
-            uniform_modelViewMatrix,
-            false,
-            depth > 0.0 ? mat0 : mat0);
 
         //dont seem to need this? yet?
         //var thisMatForNorm = mat4.create();
@@ -286,15 +282,24 @@ const ShadowShader = (function () {
         //    false,
         //    nMat);
 
-        if (obj.shadowColor != null && (obj.shadowColor[0] != shadowColor[0] || obj.shadowColor[1] != shadowColor[1] || obj.shadowColor[2] != shadowColor[2])) {
-            shadowColor = obj.shadowColor;
-        }
+        ////if (obj.shadowColor != null && (obj.shadowColor[0] != shadowColor[0] || obj.shadowColor[1] != shadowColor[1] || obj.shadowColor[2] != shadowColor[2])) {
+        ////    shadowColor = obj.shadowColor;
+        ////}
 
         const vertexCount = obj.indices.length;
         const offset = obj.indexOffset || 0;//obj.bufferOffset || 0;
         if (vertexCount > 0) {
-            ////console.log(mat0);
-            //wgl.uniform1f(uniform_dir, 1.0);
+            wgl.uniformMatrix4fv(
+                uniform_parentMatrix,
+                false,
+                parentmatrix);
+            //console.log(objects[oj].children[0]);
+            wgl.uniform1f(uniform_matrixLevel, depth);
+
+            wgl.uniformMatrix4fv(
+                uniform_modelViewMatrix,
+                false,
+                depth > 0.0 ? mat0 : mat0);
             wgl.drawElements(wgl.TRIANGLES, vertexCount, wgl.UNSIGNED_INT, offset * 2);//UNSIGNED_SHORT
 
             //wgl.uniform1f(uniform_dir, -1.0);
@@ -302,21 +307,21 @@ const ShadowShader = (function () {
         }
 
         if (obj.children && obj.children.length > 0) {
-            wgl.uniformMatrix4fv(
-                uniform_parentMatrix,
-                false,
-                mat0);
-            //console.log(objects[oj].children[0]);
-            wgl.uniform1f(uniform_matrixLevel, depth + 1.0);
+            //wgl.uniformMatrix4fv(
+            //    uniform_parentMatrix,
+            //    false,
+            //    mat0);
+            ////console.log(objects[oj].children[0]);
+            //wgl.uniform1f(uniform_matrixLevel, depth + 1.0);
             for (var c = 0; c < obj.children.length; c++) {
                 if (!obj.children[c]) { continue; };
                 shadowMapObject(obj.children[c], mat0, depth + 1.0);
             }
-            wgl.uniform1f(uniform_matrixLevel, depth);
-            wgl.uniformMatrix4fv(
-                uniform_parentMatrix,
-                false,
-                parentmatrix);
+            //wgl.uniform1f(uniform_matrixLevel, depth);
+            //wgl.uniformMatrix4fv(
+            //    uniform_parentMatrix,
+            //    false,
+            //    parentmatrix);
         }
     }
 
@@ -372,7 +377,7 @@ const ShadowShader = (function () {
         //uniform_outlineWidth = wgl.getUniformLocation(program, "uOutlineWidth");
         ////uniform_normalMatrix = wgl.getUniformLocation(program, "uNormalMatrix");
         uniform_parentMatrix = wgl.getUniformLocation(program, "uParentMatrix");
-        uniform_matrixLevel = wgl.getUniformLocation(program, "uMatrixLevel");
+        //uniform_matrixLevel = wgl.getUniformLocation(program, "uMatrixLevel");
 
 
         uniform_viewMatrix = wgl.getUniformLocation(program, "uViewMatrix");

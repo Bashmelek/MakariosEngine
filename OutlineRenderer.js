@@ -140,38 +140,38 @@ const OutlineRenderer = (function () {
             uniform_projectionMatrix,
             false,
             fullproj);
-        var basemodelView = mat4.create();
+        //var basemodelView = mat4.create();
         //wgl.uniformMatrix4fv(uniform_modelViewMatrix,
         //    false, basemodelView);
 
         //console.log(indices)
-        wgl.bindBuffer(wgl.ARRAY_BUFFER, vertex_buffer); 
-        wgl.bufferData(wgl.ARRAY_BUFFER,
-            new Float32Array(vertices),
-            wgl.STATIC_DRAW);
-        wgl.bindBuffer(wgl.ARRAY_BUFFER, vertex_buffer);
-        wgl.vertexAttribPointer(attribute_vertex_position, 3, wgl.FLOAT, false, 0, 0);
-        wgl.enableVertexAttribArray(attribute_vertex_position);
+        //wgl.bindBuffer(wgl.ARRAY_BUFFER, vertex_buffer); 
+        //wgl.bufferData(wgl.ARRAY_BUFFER,
+        //    new Float32Array(vertices),
+        //    wgl.STATIC_DRAW);
+        //wgl.bindBuffer(wgl.ARRAY_BUFFER, vertex_buffer);
+        //wgl.vertexAttribPointer(attribute_vertex_position, 3, wgl.FLOAT, false, 0, 0);
+        //wgl.enableVertexAttribArray(attribute_vertex_position);
 
-        wgl.bindBuffer(wgl.ARRAY_BUFFER, normal_buffer);
-        wgl.bufferData(wgl.ARRAY_BUFFER,
-            new Float32Array(normals),
-            wgl.STATIC_DRAW);
-        wgl.bindBuffer(wgl.ARRAY_BUFFER, normal_buffer);
-        wgl.vertexAttribPointer(attribute_vertex_normal, 3, wgl.FLOAT, false, 0, 0);
-        wgl.enableVertexAttribArray(attribute_vertex_normal);
+        //wgl.bindBuffer(wgl.ARRAY_BUFFER, normal_buffer);
+        //wgl.bufferData(wgl.ARRAY_BUFFER,
+        //    new Float32Array(normals),
+        //    wgl.STATIC_DRAW);
+        //wgl.bindBuffer(wgl.ARRAY_BUFFER, normal_buffer);
+        //wgl.vertexAttribPointer(attribute_vertex_normal, 3, wgl.FLOAT, false, 0, 0);
+        //wgl.enableVertexAttribArray(attribute_vertex_normal);
 
-        const indexBuffer = wgl.createBuffer();
-        wgl.bindBuffer(wgl.ELEMENT_ARRAY_BUFFER, indexBuffer);
-        wgl.bufferData(wgl.ELEMENT_ARRAY_BUFFER,
-            new Uint32Array(indices), wgl.STATIC_DRAW);
+        //const indexBuffer = wgl.createBuffer();
+        //wgl.bindBuffer(wgl.ELEMENT_ARRAY_BUFFER, indexBuffer);
+        //wgl.bufferData(wgl.ELEMENT_ARRAY_BUFFER,
+        //    new Uint32Array(indices), wgl.STATIC_DRAW);
 
-        const useParent = wgl.createBuffer();
-        wgl.bindBuffer(wgl.ARRAY_BUFFER, useParent);
-        wgl.bufferData(wgl.ARRAY_BUFFER, new Float32Array(useParentMatrix),
-            wgl.STATIC_DRAW);
-        wgl.vertexAttribPointer(attribute_vertex_useParent, 1, wgl.FLOAT, false, 0, 0);
-        wgl.enableVertexAttribArray(attribute_vertex_useParent);
+        //const useParent = wgl.createBuffer();
+        //wgl.bindBuffer(wgl.ARRAY_BUFFER, useParent);
+        //wgl.bufferData(wgl.ARRAY_BUFFER, new Float32Array(useParentMatrix),
+        //    wgl.STATIC_DRAW);
+        //wgl.vertexAttribPointer(attribute_vertex_useParent, 1, wgl.FLOAT, false, 0, 0);
+        //wgl.enableVertexAttribArray(attribute_vertex_useParent);
 
         //var nMat = mat4.create();
         ////mat4.multiply(thisMatForNorm,     // destination matrix
@@ -186,11 +186,11 @@ const OutlineRenderer = (function () {
 
         var baseParent = mat4.create();
         var baseNorm = mat4.create();
-        wgl.uniformMatrix4fv(
-                uniform_parentMatrix,
-                false,
-                baseParent);
-        wgl.uniform1f(uniform_matrixLevel, 0.0);
+        //wgl.uniformMatrix4fv(
+        //        uniform_parentMatrix,
+        //        false,
+        //        baseParent);
+        //wgl.uniform1f(uniform_matrixLevel, 0.0);
         //for (var i = 0; i < objects.length; i++) {
         for (var i = objects.length; i >= 0; i--) {
             //console.log(useParentMatrix);
@@ -211,10 +211,6 @@ const OutlineRenderer = (function () {
         mat4.multiply(mat0,     // destination matrix
             parentmatrix,     // matrix to translate
             obj.matrix);
-        wgl.uniformMatrix4fv(
-            uniform_modelViewMatrix,
-            false,
-            depth > 0.0 ? mat0 : mat0);
 
         //dont seem to need this? yet?
         var thisMatForNorm = mat4.create();
@@ -222,12 +218,7 @@ const OutlineRenderer = (function () {
         mat4.multiply(thisMatForNorm,     // destination matrix
             baseMatrixForNorm,     // matrix to translate
             obj.matrix);
-        mat4.invert(nMat, thisMatForNorm);
-        mat4.transpose(nMat, nMat);
-        wgl.uniformMatrix4fv(
-            uniform_normalMatrix,
-            false,
-            nMat);
+                
 
         //if (obj.outlineColor) { console.log(obj.outlineColor); }
         if (obj.outlineColor != null && (obj.outlineColor[0] != outlineColor[0] || obj.outlineColor[1] != outlineColor[1] || obj.outlineColor[2] != outlineColor[2])) {
@@ -238,7 +229,27 @@ const OutlineRenderer = (function () {
         const vertexCount = obj.indices.length;
         const offset = obj.indexOffset || 0;//obj.bufferOffset || 0;
         if (vertexCount > 0) {
-            ////console.log(mat0);
+
+            wgl.uniformMatrix4fv(
+                uniform_parentMatrix,
+                false,
+                parentmatrix);
+            //console.log(objects[oj].children[0]);
+            wgl.uniform1f(uniform_matrixLevel, depth);
+
+            wgl.uniformMatrix4fv(
+                uniform_modelViewMatrix,
+                false,
+                depth > 0.0 ? mat0 : mat0);
+
+            mat4.invert(nMat, thisMatForNorm);
+            mat4.transpose(nMat, nMat);
+            wgl.uniformMatrix4fv(
+                uniform_normalMatrix,
+                false,
+                nMat);
+
+
             wgl.uniform1f(uniform_dir, 1.0);
             wgl.drawElements(wgl.TRIANGLES, vertexCount, wgl.UNSIGNED_INT, offset * 2);//UNSIGNED_SHORT
 
@@ -247,21 +258,21 @@ const OutlineRenderer = (function () {
         }
 
         if (obj.children && obj.children.length > 0) {
-            wgl.uniformMatrix4fv(
-                uniform_parentMatrix,
-                false,
-                mat0);
-            //console.log(objects[oj].children[0]);
-            wgl.uniform1f(uniform_matrixLevel, depth + 1.0);
+            //wgl.uniformMatrix4fv(
+            //    uniform_parentMatrix,
+            //    false,
+            //    mat0);
+            ////console.log(objects[oj].children[0]);
+            //wgl.uniform1f(uniform_matrixLevel, depth + 1.0);
             for (var c = 0; c < obj.children.length; c++) {
                 if (!obj.children[c]) { continue; };
                 outlineObject(obj.children[c], mat0, depth + 1.0, thisMatForNorm);
             }
-            wgl.uniform1f(uniform_matrixLevel, depth);
-            wgl.uniformMatrix4fv(
-                uniform_parentMatrix,
-                false,
-                parentmatrix);
+            //wgl.uniform1f(uniform_matrixLevel, depth);
+            //wgl.uniformMatrix4fv(
+            //    uniform_parentMatrix,
+            //    false,
+            //    parentmatrix);
         }
     }
 

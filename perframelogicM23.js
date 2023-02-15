@@ -204,7 +204,7 @@ const FrameLogic = (function () {
                     other.collider.hdepth, 0.0, -other.collider.hwidth,
                     other.collider.hdepth, 0.0, 0.0,
                     ];
-                    var initialrotatedboxcoords = useYRotToGetRotatedVectors(other.matrix, otherboxcoords);
+                    var initialrotatedboxcoords = useYRotToGetRotatedVectors(other.matrix, otherboxcoords, other.collider.invmat);
                     var quadrantsRanges = [];
                     var positiveDiffAngle = (Math.atan2(diffz, diffx) + (Math.PI * 2.0)) % (Math.PI * 2.0);
                     var mindex = 0;
@@ -315,7 +315,7 @@ const FrameLogic = (function () {
                     ];
                     //var basisx = [boxcoords[0] - boxcoords[6], 0.0, boxcoords[2] - boxcoords[8]];
                     //var basisz = [boxcoords[0] - boxcoords[9], 0.0, boxcoords[2] - boxcoords[11]];
-                    var initialrotatedboxcoords = useYRotToGetRotatedVectors(object.matrix, objectboxcoords);
+                    var initialrotatedboxcoords = useYRotToGetRotatedVectors(object.matrix, objectboxcoords, object.collider.invmat);
                     var objectCoordsBeforeMove = new Array(initialrotatedboxcoords.length);
                     //objectCoordsBeforeMove.push(object.matrix[x] - ox);
                     //objectCoordsBeforeMove.push(object.matrix[y] - oy);
@@ -334,8 +334,8 @@ const FrameLogic = (function () {
                         initialrotatedboxcoords[irc2 * 3 + 1] -= oy;
                         initialrotatedboxcoords[irc2 * 3 + 2] -= oz;
                     }
-                    var rotatedboxcoords = useYRotToGetInverseRotatedVectors(other.matrix, initialrotatedboxcoords);
-                    var rotatedPreMoveboxcoords = useYRotToGetInverseRotatedVectors(other.matrix, objectCoordsBeforeMove);
+                    var rotatedboxcoords = useYRotToGetInverseRotatedVectors(other.matrix, initialrotatedboxcoords, other.collider.invmat);
+                    var rotatedPreMoveboxcoords = useYRotToGetInverseRotatedVectors(other.matrix, objectCoordsBeforeMove, other.collider.invmat);
                     var blocked = false;
                     //console.log(rotatedboxcoords + ' $$ ' + framenum)
                     //console.log(rotatedboxcoords[3 + 0] + ', ' + rotatedboxcoords[3 + 1] + ', ' + rotatedboxcoords[3 + 2] + ' ---- ' + rotatedPreMoveboxcoords[3 + 0] + ', '
@@ -417,7 +417,7 @@ const FrameLogic = (function () {
 
 
                     //do other way around
-                    var otherinitialrotatedboxcoords = useYRotToGetRotatedVectors(other.matrix, otherboxcoords);
+                    var otherinitialrotatedboxcoords = useYRotToGetRotatedVectors(other.matrix, otherboxcoords, other.collider.invmat);
                     var otherCoordsBeforeMove = new Array(initialrotatedboxcoords.length);
                     for (var irc = 0; irc < (otherinitialrotatedboxcoords.length / 3); irc++) {
                         otherCoordsBeforeMove[irc * 3 + 0] = otherinitialrotatedboxcoords[irc * 3 + 0] - object.matrix[x] + ox;
@@ -433,8 +433,8 @@ const FrameLogic = (function () {
                         otherinitialrotatedboxcoords[irc2 * 3 + 1] -= proby;
                         otherinitialrotatedboxcoords[irc2 * 3 + 2] -= probz;
                     }
-                    var orotatedboxcoords = useYRotToGetInverseRotatedVectors(object.matrix, otherinitialrotatedboxcoords);
-                    var orotatedPreMoveboxcoords = useYRotToGetInverseRotatedVectors(object.matrix, otherCoordsBeforeMove);
+                    var orotatedboxcoords = useYRotToGetInverseRotatedVectors(object.matrix, otherinitialrotatedboxcoords, object.collider.invmat);
+                    var orotatedPreMoveboxcoords = useYRotToGetInverseRotatedVectors(object.matrix, otherCoordsBeforeMove, object.collider.invmat);
                     for (var c = 0; c < orotatedboxcoords.length / 3; c++) {
                         if (orotatedboxcoords[c * 3 + 0] >= objectboxcoords[3] && orotatedboxcoords[c * 3 + 0] <= objectboxcoords[0]) {
                             if (orotatedboxcoords[c * 3 + 2] >= objectboxcoords[8] && orotatedboxcoords[c * 3 + 2] <= objectboxcoords[2]) {
@@ -633,7 +633,7 @@ const FrameLogic = (function () {
                         }
                     } 
 
-                    var newveccoords = useYRotToGetRotatedVectors(other.matrix, rotatedboxcoords);
+                    var newveccoords = useYRotToGetRotatedVectors(other.matrix, rotatedboxcoords, other.collider.invmat);
                     for (var cl = 0; cl < (newveccoords.length / 3); cl++) {
                         newveccoords[cl * 3 + 0] += ox;
                         newveccoords[cl * 3 + 1] += oy;
@@ -641,7 +641,7 @@ const FrameLogic = (function () {
                     }
 
 
-                    var newveccoords2 = useYRotToGetRotatedVectors(object.matrix, orotatedboxcoords);
+                    var newveccoords2 = useYRotToGetRotatedVectors(object.matrix, orotatedboxcoords, object.collider.invmat);
                     for (var cl = 0; cl < (newveccoords.length / 3); cl++) {
                         newveccoords2[cl * 3 + 0] -= ox;
                         newveccoords2[cl * 3 + 1] -= oy;
@@ -706,7 +706,7 @@ const FrameLogic = (function () {
         const y = 13;
         const z = 14;
 
-        vec = useYRotToGetRotatedVectors(object.matrix, vec);
+        vec = useYRotToGetRotatedVectors(object.matrix, vec, object.collider.invmat);
         var probx = object.matrix[x] + vec[0];
         var proby = object.matrix[y] + vec[1];
         var probz = object.matrix[z] + vec[2];
@@ -792,7 +792,7 @@ const FrameLogic = (function () {
                     -object.collider.hdepth, 0.0, -object.collider.hwidth,
                     ];
 
-                    var initialrotatedboxcoords = useYRotToGetRotatedVectors(object.matrix, objectboxcoords);
+                    var initialrotatedboxcoords = useYRotToGetRotatedVectors(object.matrix, objectboxcoords, object.collider.invmat);
                     var objectCoordsBeforeMove = new Array(initialrotatedboxcoords.length);
 
                     for (var irc = 0; irc < (initialrotatedboxcoords.length / 3); irc++) {
@@ -809,8 +809,8 @@ const FrameLogic = (function () {
                         initialrotatedboxcoords[irc2 * 3 + 1] -= oy;
                         initialrotatedboxcoords[irc2 * 3 + 2] -= oz;
                     }
-                    var rotatedboxcoords = useYRotToGetInverseRotatedVectors(other.matrix, initialrotatedboxcoords);
-                    var rotatedPreMoveboxcoords = useYRotToGetInverseRotatedVectors(other.matrix, objectCoordsBeforeMove);
+                    var rotatedboxcoords = useYRotToGetInverseRotatedVectors(other.matrix, initialrotatedboxcoords, other.collider.invmat);
+                    var rotatedPreMoveboxcoords = useYRotToGetInverseRotatedVectors(other.matrix, objectCoordsBeforeMove, other.collider.invmat);
                     //console.log(rotatedboxcoords + ' $$ ' + framenum)
                     //console.log(rotatedboxcoords[3 + 0] + ', ' + rotatedboxcoords[3 + 1] + ', ' + rotatedboxcoords[3 + 2] + ' ---- ' + rotatedPreMoveboxcoords[3 + 0] + ', '
                     //    + rotatedPreMoveboxcoords[3 + 1] + ', ' + rotatedPreMoveboxcoords[3 + 2] + ';;' + framenum);
@@ -870,7 +870,7 @@ const FrameLogic = (function () {
 
 
                     //do other way around
-                    var otherinitialrotatedboxcoords = useYRotToGetRotatedVectors(other.matrix, otherboxcoords);
+                    var otherinitialrotatedboxcoords = useYRotToGetRotatedVectors(other.matrix, otherboxcoords, other.collider.invmat);
                     var otherCoordsBeforeMove = new Array(initialrotatedboxcoords.length);
                     for (var irc = 0; irc < (otherinitialrotatedboxcoords.length / 3); irc++) {
                         otherCoordsBeforeMove[irc * 3 + 0] = otherinitialrotatedboxcoords[irc * 3 + 0] - object.matrix[x] + ox;
@@ -886,8 +886,8 @@ const FrameLogic = (function () {
                         otherinitialrotatedboxcoords[irc2 * 3 + 1] -= proby;
                         otherinitialrotatedboxcoords[irc2 * 3 + 2] -= probz;
                     }
-                    var orotatedboxcoords = useYRotToGetInverseRotatedVectors(object.matrix, otherinitialrotatedboxcoords);
-                    var orotatedPreMoveboxcoords = useYRotToGetInverseRotatedVectors(object.matrix, otherCoordsBeforeMove);
+                    var orotatedboxcoords = useYRotToGetInverseRotatedVectors(object.matrix, otherinitialrotatedboxcoords, object.collider.invmat);
+                    var orotatedPreMoveboxcoords = useYRotToGetInverseRotatedVectors(object.matrix, otherCoordsBeforeMove, object.collider.invmat);
                     for (var c = 0; c < orotatedboxcoords.length / 3; c++) {
                         if (orotatedboxcoords[c * 3 + 0] >= objectboxcoords[3] && orotatedboxcoords[c * 3 + 0] <= objectboxcoords[0]) {
                             if (orotatedboxcoords[c * 3 + 2] >= objectboxcoords[8] && orotatedboxcoords[c * 3 + 2] <= objectboxcoords[2]) {
@@ -946,7 +946,7 @@ const FrameLogic = (function () {
                     }
 
 
-                    var newveccoords = useYRotToGetRotatedVectors(other.matrix, rotatedboxcoords);
+                    var newveccoords = useYRotToGetRotatedVectors(other.matrix, rotatedboxcoords, other.collider.invmat);
                     for (var cl = 0; cl < (newveccoords.length / 3); cl++) {
                         newveccoords[cl * 3 + 0] += ox;
                         newveccoords[cl * 3 + 1] += oy;
@@ -954,7 +954,7 @@ const FrameLogic = (function () {
                     }
 
 
-                    var newveccoords2 = useYRotToGetRotatedVectors(object.matrix, orotatedboxcoords);
+                    var newveccoords2 = useYRotToGetRotatedVectors(object.matrix, orotatedboxcoords, object.collider.invmat);
                     for (var cl = 0; cl < (newveccoords.length / 3); cl++) {
                         newveccoords2[cl * 3 + 0] -= ox;
                         newveccoords2[cl * 3 + 1] -= oy;
@@ -1041,8 +1041,8 @@ const FrameLogic = (function () {
                         [0, 1, 0]);
 
                     //var initialrotatedboxcoords = useYRotToGetRotatedVectors(object.matrix, objectboxcoords);
-                    var objectCoordsPostRotation = useYRotToGetRotatedVectors(rotatedMatrix, objectboxcoords);
-                    var objectCoordsBeforeRotation = useYRotToGetRotatedVectors(object.matrix, objectboxcoords);//new Array(initialrotatedboxcoords.length);
+                    var objectCoordsPostRotation = useYRotToGetRotatedVectors(rotatedMatrix, objectboxcoords, object.collider.invmat);
+                    var objectCoordsBeforeRotation = useYRotToGetRotatedVectors(object.matrix, objectboxcoords, object.collider.invmat);//new Array(initialrotatedboxcoords.length);
 
                     for (var irc = 0; irc < (objectCoordsPostRotation.length / 3); irc++) {
                         objectCoordsBeforeRotation[irc * 3 + 0] += object.matrix[x] - ox;
@@ -1054,8 +1054,8 @@ const FrameLogic = (function () {
                         objectCoordsPostRotation[irc * 3 + 2] += object.matrix[z] - oz;
                     }
 
-                    var rotatedboxcoords = useYRotToGetInverseRotatedVectors(other.matrix, objectCoordsPostRotation);
-                    var rotatedPreMoveboxcoords = useYRotToGetInverseRotatedVectors(other.matrix, objectCoordsBeforeRotation);
+                    var rotatedboxcoords = useYRotToGetInverseRotatedVectors(other.matrix, objectCoordsPostRotation, other.collider.invmat);
+                    var rotatedPreMoveboxcoords = useYRotToGetInverseRotatedVectors(other.matrix, objectCoordsBeforeRotation, other.collider.invmat);
                     //console.log(rotatedboxcoords + ' $$ ' + framenum)
                     //console.log(rotatedboxcoords[3 + 0] + ', ' + rotatedboxcoords[3 + 1] + ', ' + rotatedboxcoords[3 + 2] + ' ---- ' + rotatedPreMoveboxcoords[3 + 0] + ', '
                     //    + rotatedPreMoveboxcoords[3 + 1] + ', ' + rotatedPreMoveboxcoords[3 + 2] + ';;' + framenum);
@@ -1077,8 +1077,8 @@ const FrameLogic = (function () {
 
 
                     //do other way around
-                    var otherCoordsPostRotation = useYRotToGetRotatedVectors(other.matrix, otherboxcoords);
-                    var otherCoordsBeforeRotation = useYRotToGetRotatedVectors(other.matrix, otherboxcoords);//new Array(initialrotatedboxcoords.length);
+                    var otherCoordsPostRotation = useYRotToGetRotatedVectors(other.matrix, otherboxcoords, other.collider.invmat);
+                    var otherCoordsBeforeRotation = useYRotToGetRotatedVectors(other.matrix, otherboxcoords, other.collider.invmat);//new Array(initialrotatedboxcoords.length);
 
                     for (var irc = 0; irc < (otherCoordsPostRotation.length / 3); irc++) {
                         otherCoordsBeforeRotation[irc * 3 + 0] += -object.matrix[x] + ox;
@@ -1090,8 +1090,8 @@ const FrameLogic = (function () {
                         otherCoordsPostRotation[irc * 3 + 2] += -object.matrix[z] + oz;
                     }
                     //console.log(ox + ', ' + object.matrix[x] + ', ' + oz + '== ' + otherCoordsPostRotation);
-                    var orotatedboxcoords = useYRotToGetInverseRotatedVectors(rotatedMatrix, otherCoordsPostRotation);
-                    var orotatedPreMoveboxcoords = useYRotToGetInverseRotatedVectors(object.matrix, otherCoordsBeforeRotation);
+                    var orotatedboxcoords = useYRotToGetInverseRotatedVectors(rotatedMatrix, otherCoordsPostRotation, object.collider.invmat);
+                    var orotatedPreMoveboxcoords = useYRotToGetInverseRotatedVectors(object.matrix, otherCoordsBeforeRotation, object.collider.invmat);
                     //console.log(objectboxcoords);
                     for (var c = 0; c < orotatedboxcoords.length / 3; c++) {
                         if (orotatedboxcoords[c * 3 + 0] >= objectboxcoords[3] && orotatedboxcoords[c * 3 + 0] <= objectboxcoords[0]) {
@@ -1449,14 +1449,18 @@ const FrameLogic = (function () {
 
 
     //credit to https://developer.mozilla.org/en-US/docs/Web/API/WebGL_API/Matrix_math_for_the_web
-    var useYRotToGetRotatedVectors = function (mat, vec3sarray) {
+    var useYRotToGetRotatedVectors = function (mat, vec3sarray, c2invBase) {
         var psize = vec3sarray.length / 3;
         var transformedArray = new Array(vec3sarray.length);
 
         var smat = mat4.create();
-        var scal = glMatrix.vec3.create();
-        mat4.getScaling(scal, mat); scal[0] = 1.0 / scal[0]; scal[1] = 1.0 / scal[1]; scal[2] = 1.0 / scal[2];
-        mat4.scale(smat, mat, scal);
+        if (c2invBase != null) {
+            mat4.multiply(smat, c2invBase, mat);// = c2invBase;
+        } else {
+            var scal = glMatrix.vec3.create();
+            mat4.getScaling(scal, mat); scal[0] = 1.0 / scal[0]; scal[1] = 1.0 / scal[1]; scal[2] = 1.0 / scal[2];
+            mat4.scale(smat, mat, scal);
+        }
 
         for (var i = 0; i < psize; i++) {
             var vstart = i * 3;
@@ -1474,14 +1478,18 @@ const FrameLogic = (function () {
     }
 
     //credit to https://developer.mozilla.org/en-US/docs/Web/API/WebGL_API/Matrix_math_for_the_web
-    var useYRotToGetInverseRotatedVectors = function (mat, vec3sarray) {
+    var useYRotToGetInverseRotatedVectors = function (mat, vec3sarray, c2invBase) {
         var psize = vec3sarray.length / 3;
         var transformedArray = new Array(vec3sarray.length);
 
         var smat = mat4.create();
-        var scal = glMatrix.vec3.create();
-        mat4.getScaling(scal, mat); scal[0] = 1.0 / scal[0]; scal[1] = 1.0 / scal[1]; scal[2] = 1.0 / scal[2];
-        mat4.scale(smat, mat, scal);
+        if (c2invBase != null) {
+            mat4.multiply(smat, c2invBase, mat);// = c2invBase;
+        } else {
+            var scal = glMatrix.vec3.create();
+            mat4.getScaling(scal, mat); scal[0] = 1.0 / scal[0]; scal[1] = 1.0 / scal[1]; scal[2] = 1.0 / scal[2];
+            mat4.scale(smat, mat, scal);
+        }
 
         for (var i = 0; i < psize; i++) {
             var vstart = i * 3;
