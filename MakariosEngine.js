@@ -531,6 +531,7 @@ function drawScene(gl, programInfo, buffers) {  //deltaTime
     }
 
     // tell webgl how to pull out the texture coordinates from buffer
+    if (!Entera.buffers.isBuffered)
     {
         const num = 3; // every coordinate composed of 2 values
         const type = gl.FLOAT; // the data in the buffer is 32 bit float
@@ -543,7 +544,7 @@ function drawScene(gl, programInfo, buffers) {  //deltaTime
     }
 
     // tell webgl how to pull out the answer to whether to use parent matrix from buffer
-    if (StageData.vticks < 200)
+    if (!Entera.buffers.isBuffered)
     {
         const num = 1; // every coordinate composed of 1 values
         const type = gl.FLOAT; // the data in the buffer is 32 bit float
@@ -553,11 +554,15 @@ function drawScene(gl, programInfo, buffers) {  //deltaTime
         gl.bindBuffer(gl.ARRAY_BUFFER, buffers.useParentMatrix);
         gl.vertexAttribPointer(programInfo.attribLocations.useParentMatrix, num, type, normalize, stride, offset);
         gl.enableVertexAttribArray(programInfo.attribLocations.useParentMatrix);
+
+        console.log('rebuffee');
     }
 
     // Tell WebGL which indices to use to index the vertices
-    if(StageData.vticks < 200)
-    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, buffers.indices);
+    if (!Entera.buffers.isBuffered) {
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, buffers.indices);
+        Entera.buffers.isBuffered = true;
+    }
 
 
 
@@ -723,15 +728,15 @@ function RenderObjects(gl, programInfo, objects, parentmatrix, depth, dataHolder
         //gl.uniform1f(programInfo.uniformLocations.matrixLevel, depth);
         if (objects[oj].indices.length > 0)
         {
-            if (!parentDataSet) {
-                parentDataSet = true;
-                gl.uniformMatrix4fv(
-                    programInfo.uniformLocations.parentMatrix,
-                    false,
-                    parentmatrix);
-                //console.log(objects[oj].children[0]);
-                gl.uniform1f(programInfo.uniformLocations.matrixLevel, depth);
-            }
+            //if (!parentDataSet) {
+            //    parentDataSet = true;
+            //    gl.uniformMatrix4fv(
+            //        programInfo.uniformLocations.parentMatrix,
+            //        false,
+            //        parentmatrix);
+            //    //console.log(objects[oj].children[0]);
+            //    gl.uniform1f(programInfo.uniformLocations.matrixLevel, depth);
+            //}
 
             gl.uniformMatrix4fv(
                 programInfo.uniformLocations.modelViewMatrix,
@@ -1110,7 +1115,7 @@ function main() {
             resetSkeletalAnimationsComplete(StageData.objects[k]);
         }
 
-    }, 5);
+    }, 14);
 
 }
 
@@ -1717,43 +1722,51 @@ function linTransformRangeWithOffsetsForSkeletonMat3(dest, source, sourceStart, 
     var mat = mat4.create();
     var startTri = sourceStart / 3;
     var dStartDiff = destStart - sourceStart;
-    var currentSkellMat = mat4.create();
-    var currentWeight = 0;
+    //var currentSkellMat = mat4.create();
+    //var currentWeight = 0;
 
     for (var i = startTri; i < psize; i++) {
         var dStart = dStartDiff + i * 3;
         var rez = [0.0, 0.0, 0.0, 0.0]
         var baseweightIndex = (i - startTri) * 4;
-        for (var w = 0; w < 4; w++) {
-            var weightjointdex = baseweightIndex + w;
-            //console.log(weightjointdex);
-            //console.log(weights[weightjointdex]);
-            if (weights[weightjointdex] != 0.0) {
-                if (skeletonkey.skellynodes[joints[weightjointdex]].nodeobj.skellmatrix != currentSkellMat || currentWeight != weights[weightjointdex]) {
-                currentSkellMat = skeletonkey.skellynodes[joints[weightjointdex]].nodeobj.skellmatrix;
-                currentWeight = weights[weightjointdex];
+        ////for (var w = 0; w < 4; w++) {
+        var weightjointdex = baseweightIndex;// + w;
 
-                mat4.multiplyScalar(mat, skeletonkey.skellynodes[joints[weightjointdex]].nodeobj.skellmatrix, weights[weightjointdex]);
+        if (weights[weightjointdex] != 0.0) {
+            ////if (skeletonkey.skellynodes[joints[weightjointdex]].nodeobj.skellmatrix != currentSkellMat || currentWeight != weights[weightjointdex]) {
+                ////currentSkellMat = skeletonkey.skellynodes[joints[weightjointdex]].nodeobj.skellmatrix;
+                ////currentWeight = weights[weightjointdex];
+
+            mat4.multiplyScalar(mat, skeletonkey.skellynodes[joints[weightjointdex]].nodeobj.skellmatrix, weights[weightjointdex]);
+            if (weights[++weightjointdex] != 0.0) {
+                mat4.multiplyScalarAndAdd(mat, mat, skeletonkey.skellynodes[joints[weightjointdex]].nodeobj.skellmatrix, weights[weightjointdex]);//multiplyScalarAndAdd(out, a, b, scale)
+                if (weights[++weightjointdex] != 0.0) {
+                    mat4.multiplyScalarAndAdd(mat, mat, skeletonkey.skellynodes[joints[weightjointdex]].nodeobj.skellmatrix, weights[weightjointdex]);
+                    if (weights[++weightjointdex] != 0.0) {
+                        mat4.multiplyScalarAndAdd(mat, mat, skeletonkey.skellynodes[joints[weightjointdex]].nodeobj.skellmatrix, weights[weightjointdex]);
+                    }
                 }
-                //console.log(weightjointdex);
-                //console.log(joints[weightjointdex]);
-                //console.log(weights[weightjointdex]);
-                //mat4.multiplyScalar(mat, skeletonkey.skellynodes[joints[weightjointdex]].nodeobj.skellmatrix, weights[weightjointdex]);
-                //console.log(mat);
+            }
+            ////}
+            //console.log(weightjointdex);
+            //console.log(joints[weightjointdex]);
+            //console.log(weights[weightjointdex]);
+            //mat4.multiplyScalar(mat, skeletonkey.skellynodes[joints[weightjointdex]].nodeobj.skellmatrix, weights[weightjointdex]);
+            //console.log(mat);
 
-                var vstart = i * 3;
-                rez = [rez[0] + source[vstart] * mat[0] + source[vstart + 1] * mat[4] + source[vstart + 2] * mat[8] + 1.0 * mat[12],
-                rez[1] + source[vstart] * mat[1] + source[vstart + 1] * mat[5] + source[vstart + 2] * mat[9] + 1.0 * mat[13],
-                rez[2] + source[vstart] * mat[2] + source[vstart + 1] * mat[6] + source[vstart + 2] * mat[10] + 1.0 * mat[14],
-                rez[3] + source[vstart] * mat[3] + source[vstart + 1] * mat[7] + source[vstart + 2] * mat[11] + 1.0 * mat[15]];
+            var vstart = i * 3;
+            rez = [rez[0] + source[vstart] * mat[0] + source[vstart + 1] * mat[4] + source[vstart + 2] * mat[8] + 1.0 * mat[12],
+            rez[1] + source[vstart] * mat[1] + source[vstart + 1] * mat[5] + source[vstart + 2] * mat[9] + 1.0 * mat[13],
+            rez[2] + source[vstart] * mat[2] + source[vstart + 1] * mat[6] + source[vstart + 2] * mat[10] + 1.0 * mat[14],
+            rez[3] + source[vstart] * mat[3] + source[vstart + 1] * mat[7] + source[vstart + 2] * mat[11] + 1.0 * mat[15]];
 
 
 
-                //rez = [rez[0] + source[vstart] * mat[0] + source[vstart + 1] * mat[4] + source[vstart + 2] * mat[8],
-                //rez[1] + source[vstart] * mat[1] + source[vstart + 1] * mat[5] + source[vstart + 2] * mat[9],
-                //rez[2] + source[vstart] * mat[2] + source[vstart + 1] * mat[6] + source[vstart + 2] * mat[10]];
-            } else { break; }
-        }
+            //rez = [rez[0] + source[vstart] * mat[0] + source[vstart + 1] * mat[4] + source[vstart + 2] * mat[8],
+            //rez[1] + source[vstart] * mat[1] + source[vstart + 1] * mat[5] + source[vstart + 2] * mat[9],
+            //rez[2] + source[vstart] * mat[2] + source[vstart + 1] * mat[6] + source[vstart + 2] * mat[10]];
+        }// else { break; }
+        ////}
         dest[dStart] = (rez[0]);
         dest[dStart + 1] = (rez[1]);
         dest[dStart + 2] = (rez[2]);

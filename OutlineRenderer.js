@@ -230,12 +230,12 @@ const OutlineRenderer = (function () {
         const offset = obj.indexOffset || 0;//obj.bufferOffset || 0;
         if (vertexCount > 0) {
 
-            wgl.uniformMatrix4fv(
-                uniform_parentMatrix,
-                false,
-                parentmatrix);
-            //console.log(objects[oj].children[0]);
-            wgl.uniform1f(uniform_matrixLevel, depth);
+            //wgl.uniformMatrix4fv(
+            //    uniform_parentMatrix,
+            //    false,
+            //    parentmatrix);
+            ////console.log(objects[oj].children[0]);
+            //wgl.uniform1f(uniform_matrixLevel, depth);
 
             wgl.uniformMatrix4fv(
                 uniform_modelViewMatrix,

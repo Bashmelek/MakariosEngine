@@ -19,11 +19,11 @@ const FrameLogic = (function () {
             theobj.isRunning = false;
 
             if (keystates[87] && !keystates[83]) {//w key
-                tryMoveObject(theobj, [Math.sin(theobj.yrot) * theobj.baseSpeed, 0.0, Math.cos(theobj.yrot) * theobj.baseSpeed]);
+                tryMoveObject(theobj, [Math.sin(theobj.yrot) * theobj.baseSpeed * StageData.timeDelta * 0.18, 0.0, Math.cos(theobj.yrot) * theobj.baseSpeed * StageData.timeDelta * 0.18]);
                 theobj.isRunning = true;
             }
             if (keystates[83] && !keystates[87]) {//s key
-                tryMoveObject(theobj, [Math.sin(theobj.yrot) * -theobj.baseSpeed, 0.0, Math.cos(theobj.yrot) * -theobj.baseSpeed]);
+                tryMoveObject(theobj, [Math.sin(theobj.yrot) * -theobj.baseSpeed * StageData.timeDelta * 0.18, 0.0, Math.cos(theobj.yrot) * -theobj.baseSpeed * StageData.timeDelta * 0.18]);
                 theobj.isRunning = true;
             }
 
@@ -40,10 +40,10 @@ const FrameLogic = (function () {
             //    tryMoveObject(StageData.objects[0], [0.0, 0.0, 0.07]);
             //}
             if (keystates[65] && !keystates[68]) {
-                tryRotateObject(theobj, theobj.baseRotSpeed);
+                tryRotateObject(theobj, theobj.baseRotSpeed * StageData.timeDelta * 0.18);
             }
             if (keystates[68] && !keystates[65]) {
-                tryRotateObject(theobj, -theobj.baseRotSpeed);
+                tryRotateObject(theobj, -theobj.baseRotSpeed * StageData.timeDelta * 0.18);
             }
             if (keystates[32]) {
                 if (!spaceWasDown.value) {
@@ -1336,7 +1336,7 @@ const FrameLogic = (function () {
                         object.isGrounded = true;
                         object.velocity.y = 0; //console.log('sayw ' + object.matrix[x] + ', ' + object.matrix[y] + ', '  + object.matrix[z]);
                     } else {
-                        object.velocity.y -= 0.004;
+                        object.velocity.y -= 0.004 * StageData.timeDelta * 0.18;
                         object.confirmGrounded = false;
                     }
 
@@ -1349,12 +1349,12 @@ const FrameLogic = (function () {
                         console.log(floorheight);
                         console.log(object.matrix[y]);
                     } else {
-                        object.velocity.y -= 0.004;
+                        object.velocity.y -= 0.004 * StageData.timeDelta * 0.18;
                     }
                     object.confirmGrounded = false;
                 }
             } else if (!object.isGrounded) {
-                object.velocity.y -= 0.004;
+                object.velocity.y -= 0.004 * StageData.timeDelta * 0.18;
             }
             //console.log('sayw ' + object.matrix[y]);
         }
@@ -1363,7 +1363,7 @@ const FrameLogic = (function () {
     var tryJump = function (object) {
         if (object.isGrounded) {
             object.isGrounded = false;
-            object.velocity.y += 0.24;
+            object.velocity.y += object.baseJump || 0.24;
         }
     }
 

@@ -686,6 +686,6 @@ const Entera = (function () {
         'handleNewObj': handleNewObj,
         'handleRemovingObj': handleRemovingObj,
         'getEntDebugMessage': getEntDebugMessage,
-        'buffers': buffers
+        'buffers': buffers,
     };
 })();

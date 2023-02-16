@@ -490,11 +490,11 @@ const StateOfMakarios23 = (function () {
         //initVelocity(c2);
         //c2.collider = {
         //    type: 'yrotbox',
-        //    hwidth: 1.0,
-        //    hdepth: 1.0,
-        //    hheight: 1.0,
+        //    hwidth: 1.2,
+        //    hdepth: 1.2,
+        //    hheight: 1.2,
         //    bot: 0.0,
-        //    invmat: c2invBase,
+        //    //invmat: c2invBase,
         //};
 
         var c3 = Makarios.instantiate(Primitives.shapes["caesar"], Primitives.shapes["caesar"].textureUrl, null, {});//'plainsky.jpg'  Primitives.shapes["testbox"].textureUrl
@@ -522,6 +522,36 @@ const StateOfMakarios23 = (function () {
         mat4.rotate(c6.matrix, c6.matrix, -Math.PI / 2.0, [c6.matrix[0], c6.matrix[4], c6.matrix[8]]);
         mat4.scale(c6.matrix, c6.matrix, [10.0, 10.0, 10.0]);
 
+        var c7 = Makarios.instantiate(Primitives.shapes["caesar"], Primitives.shapes["caesar"].textureUrl, null, {});//'plainsky.jpg'  Primitives.shapes["testbox"].textureUrl
+        Makarios.SetAnimation(c7, "0");//"0"    Survey  Run
+        mat4.translate(c7.matrix, c7.matrix, [-26.0, 0.0, -28.4]);
+        mat4.rotate(c7.matrix, c7.matrix, -Math.PI / 2.0, [c7.matrix[0], c7.matrix[4], c7.matrix[8]]);
+        mat4.scale(c7.matrix, c7.matrix, [10.0, 10.0, 10.0]);
+
+        var c8 = Makarios.instantiate(Primitives.shapes["caesar"], Primitives.shapes["caesar"].textureUrl, null, {});//'plainsky.jpg'  Primitives.shapes["testbox"].textureUrl
+        Makarios.SetAnimation(c8, "0");//"0"    Survey  Run
+        mat4.translate(c8.matrix, c8.matrix, [46.0, 0.0, -58.4]);
+        mat4.rotate(c8.matrix, c8.matrix, -Math.PI / 2.0, [c8.matrix[0], c8.matrix[4], c8.matrix[8]]);
+        mat4.scale(c8.matrix, c8.matrix, [10.0, 10.0, 10.0]);
+
+        var c9 = Makarios.instantiate(Primitives.shapes["caesar"], Primitives.shapes["caesar"].textureUrl, null, {});//'plainsky.jpg'  Primitives.shapes["testbox"].textureUrl
+        Makarios.SetAnimation(c9, "0");//"0"    Survey  Run
+        mat4.translate(c9.matrix, c9.matrix, [-46.0, 0.0, -58.4]);
+        mat4.rotate(c9.matrix, c9.matrix, -Math.PI / 2.0, [c9.matrix[0], c9.matrix[4], c9.matrix[8]]);
+        mat4.scale(c9.matrix, c9.matrix, [10.0, 10.0, 10.0]);
+
+        var c10 = Makarios.instantiate(Primitives.shapes["caesar"], Primitives.shapes["caesar"].textureUrl, null, {});//'plainsky.jpg'  Primitives.shapes["testbox"].textureUrl
+        Makarios.SetAnimation(c10, "0");//"0"    Survey  Run
+        mat4.translate(c10.matrix, c10.matrix, [-26.0, 0.0, -38.4]);
+        mat4.rotate(c10.matrix, c10.matrix, -Math.PI / 2.0, [c10.matrix[0], c10.matrix[4], c10.matrix[8]]);
+        mat4.scale(c10.matrix, c10.matrix, [10.0, 10.0, 10.0]);
+
+        var c11 = Makarios.instantiate(Primitives.shapes["caesar"], Primitives.shapes["caesar"].textureUrl, null, {});//'plainsky.jpg'  Primitives.shapes["testbox"].textureUrl
+        Makarios.SetAnimation(c11, "0");//"0"    Survey  Run
+        mat4.translate(c11.matrix, c11.matrix, [-56.0, 0.0, 58.4]);
+        mat4.rotate(c11.matrix, c11.matrix, -Math.PI / 2.0, [c11.matrix[0], c11.matrix[4], c11.matrix[8]]);
+        mat4.scale(c11.matrix, c11.matrix, [10.0, 10.0, 10.0]);
+
 
         Makarios.setCamDist(40.0);
 
@@ -544,6 +574,7 @@ const StateOfMakarios23 = (function () {
         mainChar.objBaseMat = mat4.clone(obFox.matrix);
         mainChar.yrot = 0.0;
         mainChar.baseSpeed = 0.24;
+        mainChar.baseJump = 0.36;
         mainChar.baseRotSpeed = 0.02;//0.05
         mainChar.isRunning = false;
 
