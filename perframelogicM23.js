@@ -315,7 +315,7 @@ const FrameLogic = (function () {
                     ];
                     //var basisx = [boxcoords[0] - boxcoords[6], 0.0, boxcoords[2] - boxcoords[8]];
                     //var basisz = [boxcoords[0] - boxcoords[9], 0.0, boxcoords[2] - boxcoords[11]];
-                    var initialrotatedboxcoords = useYRotToGetRotatedVectors(object.matrix, objectboxcoords, object.collider.invmat);
+                    var initialrotatedboxcoords = useYRotToGetRotatedVectors(object.matrix, objectboxcoords, object.collider.invmat, 1);
                     var objectCoordsBeforeMove = new Array(initialrotatedboxcoords.length);
                     //objectCoordsBeforeMove.push(object.matrix[x] - ox);
                     //objectCoordsBeforeMove.push(object.matrix[y] - oy);
@@ -344,9 +344,9 @@ const FrameLogic = (function () {
                         //console.log(rotatedboxcoords + ' $$ ' + framenum)
                         if (rotatedboxcoords[c * 3 + 0] >= (otherboxcoords[3] - .00001) && rotatedboxcoords[c * 3 + 0] <= (otherboxcoords[0] + .00001)) {
                             if (rotatedboxcoords[c * 3 + 2] >= (otherboxcoords[8] - .00001) && rotatedboxcoords[c * 3 + 2] <= (otherboxcoords[2] + .00001)) {
-                                console.log('aclang clang ' + framenum);
+                                ////console.log('aclang clang ' + framenum);
                                 blocked = false;
-                                console.log(rotatedPreMoveboxcoords[c * 3 + 0] + ', ' + rotatedPreMoveboxcoords[c * 3 + 1] + ', ' + rotatedPreMoveboxcoords[c * 3 + 2]);
+                                ////console.log(rotatedPreMoveboxcoords[c * 3 + 0] + ', ' + rotatedPreMoveboxcoords[c * 3 + 1] + ', ' + rotatedPreMoveboxcoords[c * 3 + 2]);
 
                                 if (Math.abs(oy + other.collider.hheight + obotOffset - (object.matrix[y] + object.collider.hheight + botOffset)) > (other.collider.hheight + object.collider.hheight - 0.0001)) {
                                 //if ((object.matrix[y] + botOffset) > (other.collider.hheight + obotOffset + oy - 0.0001)) {
@@ -370,7 +370,7 @@ const FrameLogic = (function () {
                                     if (rotatedPreMoveboxcoords[c * 3 + 0] < (otherboxcoords[3] + .00001)) {
                                         var xincursion = rotatedboxcoords[c * 3 + 0] - otherboxcoords[3];
                                         //vec = [0, 0, 0];
-                                        console.log('case 1 ' + c + ' ' + xincursion);
+                                        ////console.log('case 1 ' + c + ' ' + xincursion);
                                         for (var incur = 0; incur < (rotatedboxcoords.length / 3); incur++) {
                                             rotatedboxcoords[incur * 3 + 0] -= xincursion + .01;
                                         }
@@ -380,19 +380,19 @@ const FrameLogic = (function () {
                                         var usereverse = false;//rotatedboxcoords[c * 3 + 0] == rotatedPreMoveboxcoords[c * 3 + 0];
                                         var xincursion = otherboxcoords[0] - rotatedboxcoords[c * 3 + 0];
                                         var xincursion2 = otherboxcoords[0] - rotatedboxcoords[c * 3 + 2];
-                                        console.log(rotatedPreMoveboxcoords[c * 3 + 0] + '  and  ' + rotatedboxcoords[c * 3 + 0] + ' eeyanda ' + rotatedboxcoords[c * 3 + 2] + ' mit ' + rotatedPreMoveboxcoords[c * 3 + 2]);
-                                        console.log('case 2 --' + c + ' ' + xincursion); //vec = [0, 0, 0];
+                                        ////console.log(rotatedPreMoveboxcoords[c * 3 + 0] + '  and  ' + rotatedboxcoords[c * 3 + 0] + ' eeyanda ' + rotatedboxcoords[c * 3 + 2] + ' mit ' + rotatedPreMoveboxcoords[c * 3 + 2]);
+                                        ////console.log('case 2 --' + c + ' ' + xincursion); //vec = [0, 0, 0];
                                         for (var incur2 = 0; incur2 < (rotatedboxcoords.length / 3); incur2++) {
                                             rotatedboxcoords[incur2 * 3 + 0] += (xincursion + .01);
                                             //rotatedboxcoords[incur2 * 3 + 2] -= xincursion2;
                                         }
-                                        console.log(rotatedboxcoords[c * 3 + 0] + ', ' + rotatedboxcoords[c * 3 + 1] + ', ' + rotatedboxcoords[c * 3 + 2]);
+                                        ////console.log(rotatedboxcoords[c * 3 + 0] + ', ' + rotatedboxcoords[c * 3 + 1] + ', ' + rotatedboxcoords[c * 3 + 2]);
                                         blocked = true;
                                     }
                                     if (rotatedPreMoveboxcoords[c * 3 + 2] < (otherboxcoords[8] + .00001)) {
                                         var zincursion = rotatedboxcoords[c * 3 + 2] - otherboxcoords[8];
                                         //vec = [0, 0, 0];
-                                        console.log('case 3');
+                                        ////console.log('case 3');
                                         for (var incur3 = 0; incur3 < (rotatedboxcoords.length / 3); incur3++) {
                                             rotatedboxcoords[incur3 * 3 + 2] -= zincursion + .01;
                                         }
@@ -401,7 +401,7 @@ const FrameLogic = (function () {
                                     if (rotatedPreMoveboxcoords[c * 3 + 2] > (otherboxcoords[2] - .00001)) {
                                         var zincursion = otherboxcoords[2] - rotatedboxcoords[c * 3 + 2];
                                         //vec = [0, 0, 0];
-                                        console.log('case 4');
+                                        ////console.log('case 4');
                                         for (var incur4 = 0; incur4 < (rotatedboxcoords.length / 3); incur4++) {
                                             rotatedboxcoords[incur4 * 3 + 2] += zincursion + .01
                                         }
@@ -438,7 +438,7 @@ const FrameLogic = (function () {
                     for (var c = 0; c < orotatedboxcoords.length / 3; c++) {
                         if (orotatedboxcoords[c * 3 + 0] >= objectboxcoords[3] && orotatedboxcoords[c * 3 + 0] <= objectboxcoords[0]) {
                             if (orotatedboxcoords[c * 3 + 2] >= objectboxcoords[8] && orotatedboxcoords[c * 3 + 2] <= objectboxcoords[2]) {
-                                console.log('kling kling2'); //vec = [0, 0, 0];
+                                ////console.log('kling kling2'); //vec = [0, 0, 0];
 
 
 
@@ -532,7 +532,7 @@ const FrameLogic = (function () {
                                         var xincursion = orotatedboxcoords[c * 3 + 0] - objectboxcoords[3];
                                         //var xincursion2 = objectboxcoords[3] - orotatedboxcoords[c * 3 + 2];
                                         //vec = [0, 0, 0];
-                                        console.log('case 1 ' + c + ' ' + xincursion);
+                                        ////console.log('case 1 ' + c + ' ' + xincursion);
                                         //console.log(orotatedPreMoveboxcoords);
                                         //console.log(objectboxcoords);
                                         //console.log(orotatedboxcoords);
@@ -558,22 +558,22 @@ const FrameLogic = (function () {
                                         var usereverse = false;//rotatedboxcoords[c * 3 + 0] == rotatedPreMoveboxcoords[c * 3 + 0];
                                         var xincursion = objectboxcoords[0] - orotatedboxcoords[c * 3 + 0];
                                         var xincursion2 = objectboxcoords[0] - orotatedboxcoords[c * 3 + 2];
-                                        console.log(orotatedPreMoveboxcoords[c * 3 + 0] + '  and  ' + orotatedboxcoords[c * 3 + 0] + ' eeyanda ' + orotatedboxcoords[c * 3 + 2] + ' mit ' + orotatedPreMoveboxcoords[c * 3 + 2]);
-                                        console.log('case 2 --' + c + ' ' + xincursion); //vec = [0, 0, 0];
-                                        console.log(xincursion2);
+                                        ////console.log(orotatedPreMoveboxcoords[c * 3 + 0] + '  and  ' + orotatedboxcoords[c * 3 + 0] + ' eeyanda ' + orotatedboxcoords[c * 3 + 2] + ' mit ' + orotatedPreMoveboxcoords[c * 3 + 2]);
+                                        ////console.log('case 2 --' + c + ' ' + xincursion); //vec = [0, 0, 0];
+                                        ////console.log(xincursion2);
                                         for (var incur2 = 0; incur2 < (orotatedboxcoords.length / 3); incur2++) {
                                             orotatedboxcoords[incur2 * 3 + 0] += (xincursion + .01);
                                             //if (xincursion2 <= .07) {
                                             //    orotatedboxcoords[incur * 3 + 2] += xincursion2 + .01;//yes it is a hack
                                             //}
                                         }
-                                        console.log(orotatedboxcoords[c * 3 + 0] + ', ' + orotatedboxcoords[c * 3 + 1] + ', ' + orotatedboxcoords[c * 3 + 2]);
+                                        ////console.log(orotatedboxcoords[c * 3 + 0] + ', ' + orotatedboxcoords[c * 3 + 1] + ', ' + orotatedboxcoords[c * 3 + 2]);
                                         blocked = true;
                                     }
                                     if (orotatedPreMoveboxcoords[c * 3 + 2] < (objectboxcoords[8] + .00001)) {
                                         var zincursion = orotatedboxcoords[c * 3 + 2] - objectboxcoords[8];
                                         //vec = [0, 0, 0];
-                                        console.log('case 3');
+                                        ////console.log('case 3');
                                         for (var incur3 = 0; incur3 < (orotatedboxcoords.length / 3); incur3++) {
                                             orotatedboxcoords[incur3 * 3 + 2] -= zincursion + .01;
                                         }
@@ -582,7 +582,7 @@ const FrameLogic = (function () {
                                     if (orotatedPreMoveboxcoords[c * 3 + 2] > (objectboxcoords[2] - .00001)) {
                                         var zincursion = objectboxcoords[2] - orotatedboxcoords[c * 3 + 2];
                                         //vec = [0, 0, 0];
-                                        console.log('case 4');
+                                        ////console.log('case 4');
                                         for (var incur4 = 0; incur4 < (orotatedboxcoords.length / 3); incur4++) {
                                             orotatedboxcoords[incur4 * 3 + 2] += zincursion + .01
                                         }
@@ -652,14 +652,14 @@ const FrameLogic = (function () {
                     //console.log(vec[2] + ' -> ' + (vec[2] - Math.sign(vec[2]) * Math.abs((initialrotatedboxcoords[2] + oz) - newveccoords[2])));
                     ////console.log(vec);
                     if (blocked) {
-                        console.log(vec[0] + ', ' + vec[1] + ', ' + vec[2]);
+                        ////console.log(vec[0] + ', ' + vec[1] + ', ' + vec[2]);
                         //console.log(ox + ', ' + oy + ', ' + oz);
                         //console.log(initialrotatedboxcoords[0] + ', ' + initialrotatedboxcoords[1] + ', ' + initialrotatedboxcoords[2]);
                         //console.log(newveccoords[0] + ', ' + newveccoords[1] + ', ' + newveccoords[2]);
                         //console.log(newveccoords2[0] + ', ' + newveccoords2[1] + ', ' + newveccoords2[2]);
-                        console.log(otherinitialrotatedboxcoords[0] +  '    ' + newveccoords2[0]);
-                        console.log(vec[0] - ((initialrotatedboxcoords[0] + ox) - newveccoords[0]) + ((otherinitialrotatedboxcoords[0] - ox) - newveccoords2[0]));
-                        console.log(vec[0] - (1.0 || 1.0) * ((initialrotatedboxcoords[0] + ox) - newveccoords[0]) + (1.0 || 1.0) * ((otherinitialrotatedboxcoords[0] - ox) - newveccoords2[0]) );
+                        ////console.log(otherinitialrotatedboxcoords[0] +  '    ' + newveccoords2[0]);
+                        ////console.log(vec[0] - ((initialrotatedboxcoords[0] + ox) - newveccoords[0]) + ((otherinitialrotatedboxcoords[0] - ox) - newveccoords2[0]));
+                        ////console.log(vec[0] - (1.0 || 1.0) * ((initialrotatedboxcoords[0] + ox) - newveccoords[0]) + (1.0 || 1.0) * ((otherinitialrotatedboxcoords[0] - ox) - newveccoords2[0]) );
 
                     }
                     //console.log(initialrotatedboxcoords[0] + ',' + initialrotatedboxcoords[1] + ','  + initialrotatedboxcoords[2]);
@@ -677,8 +677,8 @@ const FrameLogic = (function () {
                     vec[2] = vec[2] + (1.0 || 1.0) * ((otherinitialrotatedboxcoords[2] - oz) - newveccoords2[2]);
                     //console.log(vec[0] + ',' + vec[1] + ',' + vec[2]);
                     if (blocked) {
-                        console.log(newveccoords2);
-                        console.log(vec[0] + ', ' + vec[1] + ', ' + vec[2]);
+                        ////console.log(newveccoords2);
+                        ////console.log(vec[0] + ', ' + vec[1] + ', ' + vec[2]);
 
                     }
                 }
@@ -1140,8 +1140,8 @@ const FrameLogic = (function () {
             var object = StageData.objects[c];
 
             if (object.matrix && object.velocity) {
-                //object.matrix[y] += object.velocity.y;
-                tryMoveObject(object, [0.0, object.velocity.y, 0.0]);
+                //console.log(object.velocity.y * StageData.timeDelta * 0.12);
+                tryMoveObject(object, [0.0, object.velocity.y * StageData.timeDelta * 0.18, 0.0]);
             }
         }
     }
@@ -1158,7 +1158,7 @@ const FrameLogic = (function () {
             var hasHit = false;
 
             var object = StageData.objects[i];
-            var velyOrig = object.velocity.y;
+            var velyOrig = object.velocity.y * StageData.timeDelta * 0.18;
 
 
             var obx = object.matrix[x];
@@ -1449,7 +1449,7 @@ const FrameLogic = (function () {
 
 
     //credit to https://developer.mozilla.org/en-US/docs/Web/API/WebGL_API/Matrix_math_for_the_web
-    var useYRotToGetRotatedVectors = function (mat, vec3sarray, c2invBase) {
+    var useYRotToGetRotatedVectors = function (mat, vec3sarray, c2invBase, doLog) {
         var psize = vec3sarray.length / 3;
         var transformedArray = new Array(vec3sarray.length);
 
@@ -1470,9 +1470,10 @@ const FrameLogic = (function () {
             vec3sarray[vstart] * 0.0 + vec3sarray[vstart + 1] * 0.0 + vec3sarray[vstart + 2] * 0.0 + 1.0];
             //console.log( (320 + 320 * rez[0]) + ' ,' + (240 + 240 * rez[1]));
             transformedArray[i * 3] = (rez[0]);
-            transformedArray[i * 3 + 1] = (rez[1]);
-            transformedArray[i * 3 + 2] = (rez[2]);// + rect.top;//why is the +top even there?
+            transformedArray[i * 3 + 1] = (rez[1]) / (rez[3]);
+            transformedArray[i * 3 + 2] = (rez[2]) / (rez[3]);// + rect.top;//why is the +top even there?
         }
+        //if (c2invBase != null && doLog)
         //console.log('eet: ' + transformedArray);
         return transformedArray;
     }
@@ -1499,9 +1500,10 @@ const FrameLogic = (function () {
             vec3sarray[vstart] * 0.0 + vec3sarray[vstart + 1] * 0.0 + vec3sarray[vstart + 2] * 0.0 + 1.0];
             //console.log( (320 + 320 * rez[0]) + ' ,' + (240 + 240 * rez[1]));
             transformedArray[i * 3] = (rez[0]);
-            transformedArray[i * 3 + 1] = (rez[1]);
-            transformedArray[i * 3 + 2] = (rez[2]);// + rect.top;//why is the +top even there?
+            transformedArray[i * 3 + 1] = (rez[1]) / (rez[3]);
+            transformedArray[i * 3 + 2] = (rez[2]) / (rez[3]);// + rect.top;//why is the +top even there?
         }
+        //if (c2invBase != null)
         //console.log('eet: ' + transformedArray);
         return transformedArray;
     }
