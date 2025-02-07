@@ -153,8 +153,16 @@ const GltfConverter = (function () {
                                     //context.drawImage(image, 0, 0, canvas.width, canvas.height);
                                     //resolve(context.getImageData(0, 0, canvas.width, canvas.height));
                                 }, false);
-                                image.src = fullobject.images[imageIndex].uri;
-                                prim.textureUrl = fullobject.images[imageIndex].uri;
+                                if (!fullobject.images[imageIndex].uri) {
+                                    console.log('not image uri, must user otherbuffer');
+                                     
+                                    image.src = 'plainsky.jpg';//fullobject.images[imageIndex].uri;
+                                    prim.textureUrl = 'plainsky.jpg';//fullobject.images[imageIndex].uri;
+                                } else {
+                                    image.src = fullobject.images[imageIndex].uri;
+                                    prim.textureUrl = fullobject.images[imageIndex].uri;
+                                }
+                                
 
                                 //fullobj.binaryBuffers[bv.buffer] = _base64ToArrayBuffer(fullobj.buffers[bv.buffer].uri.substring(buffStart));
                                 //binary = fullobj.binaryBuffers[bv.buffer];
@@ -481,6 +489,14 @@ const GltfConverter = (function () {
                     (acc.type == "VEC2" ? 2 :
                         (acc.type == "MAT4" ? 16 :
                     (acc.type == "SCALAR" ? 1 : 1)))));
+        } else if (acc.componentType == 5121) { //FLOAT, 4 bytes
+            //var floatView = new Float32Array(buffer);
+            typedArray = Uint8Array;
+            unitSize = 1 * (acc.type == "VEC3" ? 3 :
+                (acc.type == "VEC4" ? 4 :
+                    (acc.type == "VEC2" ? 2 :
+                        (acc.type == "MAT4" ? 16 :
+                            (acc.type == "SCALAR" ? 1 : 1)))));
         }
         var bufferEndSize = Math.min(bv.byteLength, acc.count * unitSize);
         var inc = bv.byteStride ? bv.byteStride : unitSize;

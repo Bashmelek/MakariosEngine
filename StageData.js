@@ -174,8 +174,8 @@ const StageData = (function () {
         }
 
         newInst.matscale = prim.primmatscale ? mat4.create() : null;
-        newInst.matrot = prim.primmatrot ? mat4.create() : null;
-        newInst.mattran = prim.primmattran ? mat4.create() : null;
+        newInst.matrot = prim.primmatrot || prim.primmattran ? mat4.create() : null;
+        newInst.mattran = prim.primmattran || prim.primmatrot ? mat4.create() : null;
         newInst.applyanimscale = 0;
         newInst.applyanimrot = 0;
         newInst.applyanimtran = 0;

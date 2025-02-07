@@ -20,7 +20,7 @@
 
 var fsOverride;
 var vsOverride;
-const StateOfMakarios23 = (function () {
+const YeuThuong = (function () {
     const mat4 = glMatrix.mat4;
     const vec3 = glMatrix.vec3;
     const quat = glMatrix.quat;
@@ -353,17 +353,19 @@ const StateOfMakarios23 = (function () {
             }
         });
 
+        var timmyloc = 'gmodels/firstCat12_emb.gltf';
+        Makarios.preloadGltfPrimitiveFromJsResource(timmyloc, "timmy");
 
-        var defmat1 = mat4.create();
-        mat4.fromScaling(defmat1, [0.1, 0.1, 0.1]);
-        var foxloc = 'SampleModels/Fox/glTF-Embedded/Fox.gltf';//'gmodels/firstCat12_emb.gltf';//'SampleModels/Fox/glTF-Embedded/Fox.gltf';
-        Makarios.preloadGltfPrimitiveFromJsResource(foxloc, "testbox");
+        //var defmat1 = mat4.create();
+        //mat4.fromScaling(defmat1, [0.1, 0.1, 0.1]);
+        //var foxloc = 'SampleModels/Fox/glTF-Embedded/Fox.gltf';
+        //Makarios.preloadGltfPrimitiveFromJsResource(foxloc, "testbox");
 
-        var milktruckloc = 'SampleModels/CesiumMilkTruck/glTF-Embedded/CesiumMilkTruck.gltf';
-        Makarios.preloadGltfPrimitiveFromJsResource(milktruckloc, "milktruck");
+        //var milktruckloc = 'SampleModels/CesiumMilkTruck/glTF-Embedded/CesiumMilkTruck.gltf';
+        //Makarios.preloadGltfPrimitiveFromJsResource(milktruckloc, "milktruck");
 
-        var caesarloc = 'SampleModels/CesiumMan/glTF-Embedded/CesiumMan.gltf';
-        Makarios.preloadGltfPrimitiveFromJsResource(caesarloc, "caesar");
+        //var caesarloc = 'SampleModels/CesiumMan/glTF-Embedded/CesiumMan.gltf';
+        //Makarios.preloadGltfPrimitiveFromJsResource(caesarloc, "caesar");
 
         isLoading = false;
 
@@ -391,6 +393,15 @@ const StateOfMakarios23 = (function () {
         //mat4.rotate(vmat, vmat, Math.PI, [vmat[1], vmat[5], vmat[9]]);//.6
         //mat4.rotate(gmod, vmat, Math.PI / 12.0, [vmat[0], vmat[4], vmat[8]]);//0.65
 
+
+        var obFox = Makarios.instantiate(Primitives.shapes["timmy"], Primitives.shapes["timmy"].textureUrl, null, {});//'plainsky.jpg'  Primitives.shapes["testbox"].textureUrl
+        Makarios.SetAnimation(obFox, "IdleStand0");//"0"    Survey  Run
+        //mat4.fromScaling(obFox.matrix, [0.1, 0.1, 0.1]);
+        mat4.translate(obFox.matrix, obFox.matrix, [0.0, 2.0, 0.0]);
+        initVelocity(obFox);
+
+        /*
+
         var obFox = Makarios.instantiate(Primitives.shapes["testbox"], Primitives.shapes["testbox"].textureUrl, null, {});//'plainsky.jpg'  Primitives.shapes["testbox"].textureUrl
         Makarios.SetAnimation(obFox, "Survey");//"0"    Survey  Run
         mat4.fromScaling(obFox.matrix, [0.1, 0.1, 0.1]);
@@ -409,6 +420,13 @@ const StateOfMakarios23 = (function () {
         mat4.rotate(ob7.matrix, ob7.matrix, -Math.PI / 2.0, [ob7.matrix[0], ob7.matrix[4], ob7.matrix[8]]);
         mat4.scale(ob7.matrix, ob7.matrix, [12.0, 12.0, 12.0]);
 
+
+        */
+        var block1 = Makarios.instantiate(Primitives.shapes["cube"], 'plainsky.jpg', null, {});
+        initVelocity(block1);
+        var block2 = Makarios.instantiate(Primitives.shapes["cube"], 'plainsky.jpg', null, {});
+        initVelocity(block2);
+
         var obplane = Makarios.instantiate(Primitives.shapes["plane"], 'plainsky.jpg', null, {});//Primitives.shapes["plane"]  pplane
         obplane.matrix = mat4.create();
         mat4.translate(obplane.matrix,     // destination matrix
@@ -426,204 +444,7 @@ const StateOfMakarios23 = (function () {
         //    194.0, 0.0, 194.0,
         //    194.0, 0.0, -194.0,
         //]
-
-
-        var oblightdummy = Makarios.instantiate(Primitives.shapes["tetrahedron"], 'plainsky.jpg', null, {});
-        mat4.translate(oblightdummy.matrix, oblightdummy.matrix, [8.0, 1.4, 8.0]);
-
-        var block1 = Makarios.instantiate(Primitives.shapes["cube"], 'plainsky.jpg', null, {});//bprim
-        glMatrix.mat4.translate(block1.matrix,     // destination matrix
-            block1.matrix,     // matrix to translate
-            [88.5, 8.0, 36.0]);
-        mat4.scale(block1.matrix, block1.matrix, [4.0, 2.0, 4.0]);
-        initVelocity(block1);
-        block1.collider = {
-            type: 'yrotbox',
-            hwidth: 4,
-            hdepth: 4,
-            hheight: 2.0,
-            bot: -2.0
-            //type: 'rotationlesscylinder',
-            //radius: 1.0,
-            //hheight: 1.0
-        };
-
-        var block2 = Makarios.instantiate(Primitives.shapes["cube"], 'plainsky.jpg', null, {});//bprim
-        glMatrix.mat4.translate(block2.matrix,     // destination matrix
-            block2.matrix,     // matrix to translate
-            [92.5, 8.0, 44.0]);
-        initVelocity(block2);
-        block2.collider = {
-            type: 'yrotbox',
-            hwidth: 1.0,
-            hdepth: 1.0,
-            hheight: 1.0,
-            bot: -1.0
-        };
-
-        var block3 = Makarios.instantiate(Primitives.shapes["cube"], 'plainsky.jpg', null, {});//bprim
-        glMatrix.mat4.translate(block3.matrix,     // destination matrix
-            block3.matrix,     // matrix to translate
-            [0, 8.0, 164.0]);
-        mat4.scale(block3.matrix, block3.matrix, [4.0, 3.0, 74.0])
-        initVelocity(block3);
-        block3.collider = {
-            type: 'yrotbox',
-            hwidth: 74.0,
-            hdepth: 4.0,
-            hheight: 3.0,
-            bot: -3.0
-        };
-
-
-
-        var c2 = Makarios.instantiate(Primitives.shapes["caesar"], Primitives.shapes["caesar"].textureUrl, null, {});//'plainsky.jpg'  Primitives.shapes["testbox"].textureUrl
-        //console.log(Primitives.shapes["caesar"].animations);
-        Makarios.SetAnimation(c2, "0");//"0"    Survey  Run
-        mat4.translate(c2.matrix, c2.matrix, [-26.0, 0.0, -12.4]);
-        mat4.rotate(c2.matrix, c2.matrix, -Math.PI / 2.0, [c2.matrix[0], c2.matrix[4], c2.matrix[8]]);
-        mat4.scale(c2.matrix, c2.matrix, [12.0, 12.0, 12.0]);
-        var c2invBase = mat4.create();
-        mat4.rotate(c2invBase, c2invBase, -Math.PI / 2.0, [c2invBase[0], c2invBase[4], c2invBase[8]]);
-        mat4.scale(c2invBase, c2invBase, [12.0, 12.0, 12.0]);
-        mat4.invert(c2invBase, c2invBase);
-
-        //c2invBase = mat4.create();
-        //mat4.fromScaling(c2invBase, [0.1, 0.1, 0.1]);
-        //mat4.invert(c2invBase, c2invBase);
-
-
-        initVelocity(c2);
-        //
-        //1,0,6.123234262925839e-17,-1,0,6.123234262925839e-17,1,0,-6.123234262925839e-17,-1,0,-6.123234262925839e-17
-        c2.collider = {
-            type: 'yrotbox',
-            hwidth: 3.0,
-            hdepth: 3.0,
-            hheight: 12.0,
-            bot: 0.0,
-           invmat: c2invBase,
-        };
-        var testcollider = {
-            type: 'yrotbox',
-            hwidth: 1.0,
-            hdepth: 1.0,
-            hheight: 1.0,
-            bot: 0.0,
-           //invmat: c2invBase,
-        };
-        var vec3sarray = [testcollider.hdepth, 0.0, testcollider.hwidth,
-            0.0, 0.0, testcollider.hwidth,
-        -testcollider.hdepth, 0.0, testcollider.hwidth,
-        -testcollider.hdepth, 0.0, 0.0,
-        -testcollider.hdepth, 0.0, -testcollider.hwidth,
-            0.0, 0.0, -testcollider.hwidth,
-        testcollider.hdepth, 0.0, -testcollider.hwidth,
-        testcollider.hdepth, 0.0, 0.0,
-        ];
-
-        var psize = vec3sarray.length / 3;
-        var transformedArray = new Array(vec3sarray.length);
-
-        var smat = mat4.create();
-        if (c2invBase != null) {
-            mat4.multiply(smat, c2.matrix, c2invBase);// = c2invBase;   obFox    c2
-        } else {
-            var scal = glMatrix.vec3.create();
-            mat4.getScaling(scal, c2.matrix); scal[0] = 1.0 / scal[0]; scal[1] = 1.0 / scal[1]; scal[2] = 1.0 / scal[2];
-            mat4.scale(smat, c2.matrix, scal);
-        }
-
-        for (var i = 0; i < psize; i++) {
-            var vstart = i * 3;
-            var rez = [vec3sarray[vstart] * smat[0] + vec3sarray[vstart + 1] * 0.0 + (-1.0 * vec3sarray[vstart + 2]) * smat[8] + 0.0,
-            vec3sarray[vstart] * 0.0 + vec3sarray[vstart + 1] * 1.0 + vec3sarray[vstart + 2] * 0.0 + 0.0,
-            (-1.0 * vec3sarray[vstart]) * smat[2] + vec3sarray[vstart + 1] * 0.0 + vec3sarray[vstart + 2] * smat[10] + 0.0,
-            vec3sarray[vstart] * 0.0 + vec3sarray[vstart + 1] * 0.0 + vec3sarray[vstart + 2] * 0.0 + 1.0];
-            //console.log( (320 + 320 * rez[0]) + ' ,' + (240 + 240 * rez[1]));
-            transformedArray[i * 3] = (rez[0]);
-            transformedArray[i * 3 + 1] = (rez[1]) / (rez[3]);
-            transformedArray[i * 3 + 2] = (rez[2]) / (rez[3]);
-        }
-        console.log('eet EEET  EEeeEEeeeEEEET: ' + transformedArray);
-        //120,0,0,    0,0,0,    -120,0,0,     -120,0,0,     -120,0,0,     0,0,0,   120,0,0,     120,0,0
-        //1,0,1,     0,0,1,     -1,0,1,     -1,0,0,     -1,0,-1,     0,0,-1,     1,0,-1,     1,0,0
-
-
-
-
-        var c3 = Makarios.instantiate(Primitives.shapes["caesar"], Primitives.shapes["caesar"].textureUrl, null, {});//'plainsky.jpg'  Primitives.shapes["testbox"].textureUrl
-        Makarios.SetAnimation(c3, "0");//"0"    Survey  Run
-        mat4.translate(c3.matrix, c3.matrix, [-26.0, 0.0, 12.4]);
-        mat4.rotate(c3.matrix, c3.matrix, -Math.PI / 2.0, [c3.matrix[0], c3.matrix[4], c3.matrix[8]]);
-        mat4.scale(c3.matrix, c3.matrix, [10.0, 10.0, 10.0]);
-
-
-        var c4 = Makarios.instantiate(Primitives.shapes["caesar"], Primitives.shapes["caesar"].textureUrl, null, {});//'plainsky.jpg'  Primitives.shapes["testbox"].textureUrl
-        Makarios.SetAnimation(c4, "0");//"0"    Survey  Run
-        mat4.translate(c4.matrix, c4.matrix, [-26.0, 0.0, 32.4]);
-        mat4.rotate(c4.matrix, c4.matrix, -Math.PI / 2.0, [c4.matrix[0], c4.matrix[4], c4.matrix[8]]);
-        mat4.scale(c4.matrix, c4.matrix, [10.0, 10.0, 10.0]);
-
-        var c5 = Makarios.instantiate(Primitives.shapes["caesar"], Primitives.shapes["caesar"].textureUrl, null, {});//'plainsky.jpg'  Primitives.shapes["testbox"].textureUrl
-        Makarios.SetAnimation(c5, "0");//"0"    Survey  Run
-        mat4.translate(c5.matrix, c5.matrix, [26.0, 0.0, 12.4]);
-        mat4.rotate(c5.matrix, c5.matrix, -Math.PI / 2.0, [c5.matrix[0], c5.matrix[4], c5.matrix[8]]);
-        mat4.scale(c5.matrix, c5.matrix, [10.0, 10.0, 10.0]);
-
-        var c6 = Makarios.instantiate(Primitives.shapes["caesar"], Primitives.shapes["caesar"].textureUrl, null, {});//'plainsky.jpg'  Primitives.shapes["testbox"].textureUrl
-        Makarios.SetAnimation(c6, "0");//"0"    Survey  Run
-        mat4.translate(c6.matrix, c6.matrix, [26.0, 0.0, -19.4]);
-        mat4.rotate(c6.matrix, c6.matrix, -Math.PI / 2.0, [c6.matrix[0], c6.matrix[4], c6.matrix[8]]);
-        mat4.scale(c6.matrix, c6.matrix, [10.0, 10.0, 10.0]);
-
-        var c7 = Makarios.instantiate(Primitives.shapes["caesar"], Primitives.shapes["caesar"].textureUrl, null, {});//'plainsky.jpg'  Primitives.shapes["testbox"].textureUrl
-        Makarios.SetAnimation(c7, "0");//"0"    Survey  Run
-        mat4.translate(c7.matrix, c7.matrix, [-26.0, 0.0, -28.4]);
-        mat4.rotate(c7.matrix, c7.matrix, -Math.PI / 2.0, [c7.matrix[0], c7.matrix[4], c7.matrix[8]]);
-        mat4.scale(c7.matrix, c7.matrix, [10.0, 10.0, 10.0]);
-
-        var c8 = Makarios.instantiate(Primitives.shapes["caesar"], Primitives.shapes["caesar"].textureUrl, null, {});//'plainsky.jpg'  Primitives.shapes["testbox"].textureUrl
-        Makarios.SetAnimation(c8, "0");//"0"    Survey  Run
-        mat4.translate(c8.matrix, c8.matrix, [46.0, 0.0, -58.4]);
-        mat4.rotate(c8.matrix, c8.matrix, -Math.PI / 2.0, [c8.matrix[0], c8.matrix[4], c8.matrix[8]]);
-        mat4.scale(c8.matrix, c8.matrix, [10.0, 10.0, 10.0]);
-
-        var c9 = Makarios.instantiate(Primitives.shapes["caesar"], Primitives.shapes["caesar"].textureUrl, null, {});//'plainsky.jpg'  Primitives.shapes["testbox"].textureUrl
-        Makarios.SetAnimation(c9, "0");//"0"    Survey  Run
-        mat4.translate(c9.matrix, c9.matrix, [-46.0, 0.0, -58.4]);
-        mat4.rotate(c9.matrix, c9.matrix, -Math.PI / 2.0, [c9.matrix[0], c9.matrix[4], c9.matrix[8]]);
-        mat4.scale(c9.matrix, c9.matrix, [10.0, 10.0, 10.0]);
-
-        var c10 = Makarios.instantiate(Primitives.shapes["caesar"], Primitives.shapes["caesar"].textureUrl, null, {});//'plainsky.jpg'  Primitives.shapes["testbox"].textureUrl
-        Makarios.SetAnimation(c10, "0");//"0"    Survey  Run
-        mat4.translate(c10.matrix, c10.matrix, [-26.0, 0.0, -38.4]);
-        mat4.rotate(c10.matrix, c10.matrix, -Math.PI / 2.0, [c10.matrix[0], c10.matrix[4], c10.matrix[8]]);
-        mat4.scale(c10.matrix, c10.matrix, [10.0, 10.0, 10.0]);
-
-        var c11 = Makarios.instantiate(Primitives.shapes["caesar"], Primitives.shapes["caesar"].textureUrl, null, {});//'plainsky.jpg'  Primitives.shapes["testbox"].textureUrl
-        Makarios.SetAnimation(c11, "0");//"0"    Survey  Run
-        mat4.translate(c11.matrix, c11.matrix, [-56.0, 0.0, 58.4]);
-        mat4.rotate(c11.matrix, c11.matrix, -Math.PI / 2.0, [c11.matrix[0], c11.matrix[4], c11.matrix[8]]);
-        mat4.scale(c11.matrix, c11.matrix, [10.0, 10.0, 10.0]);
-
-        var c12 = Makarios.instantiate(Primitives.shapes["caesar"], Primitives.shapes["caesar"].textureUrl, null, {});//'plainsky.jpg'  Primitives.shapes["testbox"].textureUrl
-        Makarios.SetAnimation(c12, "0");//"0"    Survey  Run
-        mat4.translate(c12.matrix, c12.matrix, [2.0, 0.0, -69.4]);
-        mat4.rotate(c12.matrix, c12.matrix, -Math.PI / 2.0, [c12.matrix[0], c12.matrix[4], c12.matrix[8]]);
-        mat4.scale(c12.matrix, c12.matrix, [14.0, 14.0, 14.0]);
-
-        //var c13 = Makarios.instantiate(Primitives.shapes["caesar"], Primitives.shapes["caesar"].textureUrl, null, {});//'plainsky.jpg'  Primitives.shapes["testbox"].textureUrl
-        //Makarios.SetAnimation(c13, "0");//"0"    Survey  Run
-        //mat4.translate(c13.matrix, c13.matrix, [-56.0, 0.0, 58.4]);
-        //mat4.rotate(c13.matrix, c13.matrix, -Math.PI / 2.0, [c13.matrix[0], c13.matrix[4], c13.matrix[8]]);
-        //mat4.scale(c13.matrix, c13.matrix, [10.0, 10.0, 10.0]);
-
-        //var c14 = Makarios.instantiate(Primitives.shapes["caesar"], Primitives.shapes["caesar"].textureUrl, null, {});//'plainsky.jpg'  Primitives.shapes["testbox"].textureUrl
-        //Makarios.SetAnimation(c14, "0");//"0"    Survey  Run
-        //mat4.translate(c14.matrix, c14.matrix, [-56.0, 0.0, 58.4]);
-        //mat4.rotate(c14.matrix, c14.matrix, -Math.PI / 2.0, [c14.matrix[0], c14.matrix[4], c14.matrix[8]]);
-        //mat4.scale(c14.matrix, c14.matrix, [10.0, 10.0, 10.0]);
+         
 
 
         Makarios.setCamDist(40.0);
@@ -636,7 +457,7 @@ const StateOfMakarios23 = (function () {
             hwidth: 1.0,
             hdepth: 1.0,
             hheight: 1.0,
-            bot: 0.0, //-1.0
+            bot: -2.0, //-1.0
             invmat: foxinvBase,
             //type: 'rotationlesscylinder',
             //radius: 1.0,
@@ -704,9 +525,9 @@ const StateOfMakarios23 = (function () {
             [-mainChar.matrix[12], -mainChar.matrix[13], -mainChar.matrix[14]]);
 
         if (mainChar.isRunning == true) {
-            Makarios.SetAnimation(mainChar, "Walk");
+            Makarios.SetAnimation(mainChar, "walkCasual");
         } else {
-            Makarios.SetAnimation(mainChar, "Survey");
+            Makarios.SetAnimation(mainChar, "IdleStand0");
         }
 
 

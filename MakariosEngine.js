@@ -1188,6 +1188,8 @@ function setupSkeletalAnimationMatrix(rootobj, obj, thekey, invmat, poschain) {/
         mat4.multiply(newcomp, newcomp, obj.prim.primmattran);
     }
     if (obj.applyanimrot) {
+        //console.log(obj.skellmatrix);
+        //console.log(obj.matrot);
         //console.log(obj.currentAnimation);
         mat4.multiply(obj.skellmatrix, obj.skellmatrix, obj.matrot);
         mat4.multiply(newcomp, newcomp, obj.matrot);
@@ -1911,7 +1913,7 @@ function UpdateObjAnimation(obj) {
 
     if (obj && obj.currentAnimation != null) {
         //console.log(obj);
-        //console.log('todo');
+        console.log(obj.currentAnimation);
         var anim = obj.prim.animations[obj.currentAnimation];
         //console.log(obj.currentAnimation);
         if (anim != null) {
