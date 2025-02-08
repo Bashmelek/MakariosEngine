@@ -447,7 +447,7 @@ const YeuThuong = (function () {
          
 
 
-        Makarios.setCamDist(40.0);
+        Makarios.setCamDist(24.0);//40.0
 
         var foxinvBase = mat4.create();
         mat4.fromScaling(foxinvBase, [0.1, 0.1, 0.1]);

@@ -154,10 +154,22 @@ const GltfConverter = (function () {
                                     //resolve(context.getImageData(0, 0, canvas.width, canvas.height));
                                 }, false);
                                 if (!fullobject.images[imageIndex].uri) {
-                                    console.log('not image uri, must user otherbuffer');
-                                     
-                                    image.src = 'plainsky.jpg';//fullobject.images[imageIndex].uri;
-                                    prim.textureUrl = 'plainsky.jpg';//fullobject.images[imageIndex].uri;
+                                    console.log('not image uri, must user otherbuffer');  
+                                    //var embimg = getBufferStringFromBufferview(fullobject, fullobj.bufferViews[fullobject.images[imageIndex].bufferView]);//getBufferFromAccessor(fullobject, pseudoAcc);
+                                    var pseudoAcc = {};
+                                    pseudoAcc.bufferView = fullobject.images[imageIndex].bufferView;
+                                    pseudoAcc.componentType = 5121;
+                                    pseudoAcc.type = "SCALAR";
+                                    pseudoAcc.count = 999999999;
+                                    console.log('size ' + fullobject.bufferViews[pseudoAcc.bufferView].byteLength + ' with view: ' + pseudoAcc.bufferView);
+                                    //thankyou GOT 0 https://stackoverflow.com/questions/9267899/how-can-i-convert-an-arraybuffer-to-a-base64-encoded-string
+                                    var asBufferArray = getBufferFromAccessor(fullobject, pseudoAcc);
+                                    //console.log(asBufferArray);
+                                    fullobject.images[imageIndex].uri = "data:image/png;base64," + btoa(String.fromCharCode.apply(null, asBufferArray));
+                                    //console.log(pnguri);
+                                    image.src = fullobject.images[imageIndex].uri;// 'plainsky.jpg';//fullobject.images[imageIndex].uri;
+                                    prim.textureUrl = fullobject.images[imageIndex].uri;// 'plainsky.jpg';//fullobject.images[imageIndex].uri;
+                                    console.log('loaded otherbuffer');  
                                 } else {
                                     image.src = fullobject.images[imageIndex].uri;
                                     prim.textureUrl = fullobject.images[imageIndex].uri;
@@ -442,6 +454,34 @@ const GltfConverter = (function () {
 
         return anims;
     };
+
+    //var getBufferStringFromBufferview = function(fullobj, bv) {
+
+    //    var binary;
+    //    if (fullobj.binaryBuffers[bv.buffer]) {
+    //        //console.log('casey 0' + bv.buffer);
+    //        //console.log(fullobj.binaryBuffers[bv.buffer]);
+    //        binary = fullobj.binaryBuffers[bv.buffer];
+    //    } else {
+    //        var buffStart = 0;//("data:application/octet-stream;base64,").length;// 0;
+    //        if (fullobj.buffers[bv.buffer].uri.startsWith("data:application/octet-stream;base64,")) {
+    //            buffStart = ("data:application/octet-stream;base64,").length;
+    //        } else if (fullobj.buffers[bv.buffer].uri.startsWith("data:image/png;base64,")) {
+    //            buffStart = ("data:image/png;base64,").length;
+    //        } else {
+    //            buffStart = ("data:application/gltf-buffer;base64,").length;
+    //        }
+
+    //        //console.log(fullobj.buffers[bv.buffer].uri.substring(buffStart));
+    //        fullobj.binaryBuffers[bv.buffer] = _base64ToArrayBuffer(fullobj.buffers[bv.buffer].uri.substring(buffStart));
+    //        bufferstring = fullobj.binaryBuffers[bv.buffer];
+    //    }
+
+    //    var start = (bv.byteOffset || 0);
+    //    var bufferSize = bv.byteLength;
+
+    //    return binary.substring(start, bufferSize);
+    //}
 
     var getBufferFromAccessor = function (fullobj, acc) {
 
