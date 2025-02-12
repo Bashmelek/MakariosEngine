@@ -544,6 +544,10 @@ const GltfConverter = (function () {
         //console.log(binary);
         var givenMax = null;
         var givenMin = null;
+        var dodirect = acc.type == "SCALAR" && inc == unitSize && unitSize == 1;// bufferEndSize == 69874 ? true : false;
+        if (dodirect) { array = new Array(bufferEndSize); }
+        //array = new Array(bufferEndSize);
+        var totalNumAdded = 0;
         for (var c = start; addedBytes < bufferEndSize; c += inc) {
             var valsToAdd = new typedArray(binary.slice(c, c + unitSize)).slice(0);
             var valsToAddTrue = [];
@@ -566,9 +570,25 @@ const GltfConverter = (function () {
                 }
             }
 
-            array = array.concat(valsToAddTrue);
+            //array = array.concat(valsToAddTrue);
+            if (dodirect) {
+                for (var a = 0; a < valsToAddTrue.length; a++) {
+
+                array[totalNumAdded + a] = valsToAddTrue[a];
+                }
+            }
+            else { array = array.concat(valsToAddTrue); }
+            //for (var a = 0; a < valsToAddTrue.length; a++) {
+
+            //    array[totalNumAdded + a] = valsToAddTrue[a];
+            //}
+            totalNumAdded += valsToAddTrue.length;
             addedBytes += unitSize;
         }
+        if (dodirect && bufferEndSize != totalNumAdded) {
+            console.log('total predicted:' + bufferEndSize + ' and tota bytes:' + totalNumAdded);
+        }
+        //console.log('total predicted:' + bufferEndSize + ' and tota bytes:' + totalNumAdded);
         if (acc.type == "SCALAR" && acc.max != null && acc.max[0] != null && givenMax != null && acc.componentType == 5123) {
             var divisor = givenMax / acc.max[0];
             //console.log('EEEEEHHH');

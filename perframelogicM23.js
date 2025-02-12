@@ -56,6 +56,7 @@ const FrameLogic = (function () {
 
         applyVeleocity();
         applyGravityAndGround();
+        checkAxisAlignedCollideTriggers(StageData.objects[0]);
     }
 
     var tryMoveObject = function (object, vec) {
@@ -67,15 +68,15 @@ const FrameLogic = (function () {
         var probx = object.matrix[x] + vec[0];
         var proby = object.matrix[y] + vec[1];
         var probz = object.matrix[z] + vec[2];
-
+        
         var botOffset = (object.collider ? object.collider.bot || 0.0 : 0.0);
         //console.log(probx + ', ' + proby + ', ' + probz);
 
 
         for (var oo = 0; oo < StageData.objects.length; oo++) {
-            if (StageData.objects[oo] != object && oo != 3) {
+            if (StageData.objects[oo] && StageData.objects[oo] != object && oo != 3) {
                 var other = StageData.objects[oo];
-                if (!other || !other.collider || !object || !object.collider) { continue; }
+                if (!other || !other.collider || !object || !object.collider || other.isAABoxTrigger || object.isAABoxTrigger) { continue; }
                 if (object.collider && object.collider.type == 'rotationlesscylinder' && other.collider && other.collider.type == 'rotationlesscylinder') {
                     var movsquared = vec[0] * vec[0] + vec[2] * vec[2];
                     var movemag = Math.sqrt(movsquared);
@@ -667,14 +668,18 @@ const FrameLogic = (function () {
                     //console.log('---2---');
                     //console.log(otherinitialrotatedboxcoords[0] + ',' + otherinitialrotatedboxcoords[1] + ',' + otherinitialrotatedboxcoords[2]);
                     //console.log(newveccoords2[0] + ',' + newveccoords2[1] + ',' + newveccoords2[2]);
+                    //console.log(ox);
                     //console.log(vec[0] + ',' + vec[1] + ','  + vec[2]);
                     vec[0] = vec[0] - (1.0 || 1.0) * ((initialrotatedboxcoords[0] + ox) - newveccoords[0]);
                     vec[1] = vec[1] - (1.0 || 1.0) * ((initialrotatedboxcoords[1] + oy) - newveccoords[1]);
                     vec[2] = vec[2] - (1.0 || 1.0) * ((initialrotatedboxcoords[2] + oz) - newveccoords[2]);
+                    //console.log(other.id);
+                    //console.log(vec[0]);
 
                     vec[0] = vec[0] + (1.0 || 1.0) * ((otherinitialrotatedboxcoords[0] - ox) - newveccoords2[0]);
                     vec[1] = vec[1] + (1.0 || 1.0) * ((otherinitialrotatedboxcoords[1] - oy) - newveccoords2[1]);
                     vec[2] = vec[2] + (1.0 || 1.0) * ((otherinitialrotatedboxcoords[2] - oz) - newveccoords2[2]);
+                    console.log(vec[0]);
                     //console.log(vec[0] + ',' + vec[1] + ',' + vec[2]);
                     if (blocked) {
                         ////console.log(newveccoords2);
@@ -693,6 +698,10 @@ const FrameLogic = (function () {
         //mat4.translate(object.matrix,     // destination matrix
         //    object.matrix,     // matrix to translate
         //    [vec[0], vec[1], vec[2]]);
+        //console.log(object.id)
+        //console.log(vec[0])
+        //console.log(vec[1])
+        //console.log(vec[2])
         object.matrix[x] += vec[0];
         object.matrix[y] += vec[1];
         object.matrix[z] += vec[2];
@@ -715,9 +724,11 @@ const FrameLogic = (function () {
 
 
         for (var oo = 0; oo < StageData.objects.length; oo++) {
-            if (StageData.objects[oo] != object && oo != 3) {
+            if (StageData.objects[oo] && StageData.objects[oo] != object && oo != 3) {
                 var other = StageData.objects[oo];
-                if (other.collider.type == 'rotationlesscylinder') {
+                if (other.isAABoxTrigger) {
+
+                } else if (other.collider.type == 'rotationlesscylinder') {
                     var ox = other.matrix[x];
                     var oy = other.matrix[y];
                     var oz = other.matrix[z];
@@ -1003,9 +1014,11 @@ const FrameLogic = (function () {
 
 
         for (var oo = 0; oo < StageData.objects.length; oo++) {
-            if (StageData.objects[oo] != object && oo != 3) {
+            if (StageData.objects[oo] && StageData.objects[oo] != object && oo != 3) {
                 var other = StageData.objects[oo];
-                if (other.collider && other.collider.type == 'rotationlesscylinder') {
+                if (other.isAABoxTrigger) {
+
+                } else if (other.collider && other.collider.type == 'rotationlesscylinder') {
 
                 } else if (other.collider && other.collider.type == 'yrotbox') {
                     //matrix of a y rotation
@@ -1138,9 +1151,12 @@ const FrameLogic = (function () {
         const z = 14;
         for (var c = 0; c < StageData.objects.length; c++) {
             var object = StageData.objects[c];
+            if (!object) { continue; }
 
             if (object.matrix && object.velocity) {
                 //console.log(object.velocity.y * StageData.timeDelta * 0.12);
+                //if (object.isAABoxTrigger) { console.log(object.velocity.y * StageData.timeDelta * 0.18); continue; }
+                //console.log(object.velocity.y * StageData.timeDelta * 0.18)
                 tryMoveObject(object, [0.0, object.velocity.y * StageData.timeDelta * 0.18, 0.0]);
             }
         }
@@ -1158,6 +1174,8 @@ const FrameLogic = (function () {
             var hasHit = false;
 
             var object = StageData.objects[i];
+            if (!object) { continue; }
+            //if (object.isAABoxTrigger) { continue; }
             var velyOrig = object.velocity.y * StageData.timeDelta * 0.18;
 
 
@@ -1447,6 +1465,43 @@ const FrameLogic = (function () {
 
     }
 
+    var checkAxisAlignedCollideTriggers = function (object) {
+        const x = 12;
+        const y = 13;
+        const z = 14;
+
+        var checkx = object.matrix[x];
+        var checky = object.matrix[y];
+        var checkz = object.matrix[z];
+        var botOffset = (object.collider ? object.collider.bot || 0.0 : 0.0);
+        var checkhheight = object.collider.hheight;
+        var checkhwidth = Math.min(object.collider.hwidth, object.collider.hdepth);
+
+        for (var t = 0; t < StageData.objects.length; t++) {
+            var other = StageData.objects[t];
+            if (!other) { continue; }
+            if (!other.isAABoxTrigger || t == 0 || !other.OnTriggerCollide) { continue; }
+
+            var ox = other.matrix[x];
+            var oy = other.matrix[y];
+            var oz = other.matrix[z]; 
+
+            var oBotOffset = (other.collider ? other.collider.bot || 0.0 : 0.0);
+            var oCheckhheight = other.collider.hheight;
+            var oCheckhwidth = Math.min(other.collider.hwidth, other.collider.hdepth);
+            //console.log(Math.abs(checkx - ox) < Math.abs(checkhwidth + oCheckhwidth));
+            //console.log(Math.abs(checkz - oz) < Math.abs(checkhwidth + oCheckhwidth));
+            //console.log(Math.abs((checky + botOffset) - (oy + oBotOffset))  );
+
+            if (Math.abs(checkx - ox) < Math.abs(checkhwidth + oCheckhwidth) &&
+                Math.abs(checkz - oz) < Math.abs(checkhwidth + oCheckhwidth) &&
+                Math.abs((checky + botOffset) - (oy + oBotOffset)) < Math.abs(checkhheight + oCheckhheight)) {
+                //console.log('do hit');
+                other.OnTriggerCollide(other);
+            }
+        }
+    }
+
 
     //credit to https://developer.mozilla.org/en-US/docs/Web/API/WebGL_API/Matrix_math_for_the_web
     var useYRotToGetRotatedVectors = function (mat, vec3sarray, c2invBase, doLog) {
@@ -1460,6 +1515,7 @@ const FrameLogic = (function () {
             var scal = glMatrix.vec3.create();
             mat4.getScaling(scal, mat); scal[0] = 1.0 / scal[0]; scal[1] = 1.0 / scal[1]; scal[2] = 1.0 / scal[2];
             mat4.scale(smat, mat, scal);
+            //console.log(scal[2]);
         }
 
         for (var i = 0; i < psize; i++) {
@@ -1488,8 +1544,9 @@ const FrameLogic = (function () {
             mat4.multiply(smat, c2invBase, mat);// = c2invBase;
         } else {
             var scal = glMatrix.vec3.create();
-            mat4.getScaling(scal, mat); scal[0] = 1.0 / scal[0]; scal[1] = 1.0 / scal[1]; scal[2] = 1.0 / scal[2];
+            mat4.getScaling(scal, mat); scal[0] = 1.0 / scal[0]; scal[1] = 1.0 / scal[1]; scal[2] = 1.0 / scal[2]; 
             mat4.scale(smat, mat, scal);
+            //console.log(scal[2]);
         }
 
         for (var i = 0; i < psize; i++) {
@@ -1504,7 +1561,7 @@ const FrameLogic = (function () {
             transformedArray[i * 3 + 2] = (rez[2]) / (rez[3]);// + rect.top;//why is the +top even there?
         }
         //if (c2invBase != null)
-        //console.log('eet: ' + transformedArray);
+         //console.log('eet: ' + transformedArray);
         return transformedArray;
     }
 

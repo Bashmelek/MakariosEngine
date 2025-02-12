@@ -356,6 +356,9 @@ const YeuThuong = (function () {
         var timmyloc = 'gmodels/firstCat12_emb.gltf';
         Makarios.preloadGltfPrimitiveFromJsResource(timmyloc, "timmy");
 
+
+        var diamondloc = 'gmodels/diamond0.gltf';
+        Makarios.preloadGltfPrimitiveFromJsResource(diamondloc, "diamond");
         //var defmat1 = mat4.create();
         //mat4.fromScaling(defmat1, [0.1, 0.1, 0.1]);
         //var foxloc = 'SampleModels/Fox/glTF-Embedded/Fox.gltf';
@@ -377,6 +380,20 @@ const YeuThuong = (function () {
             obj.velocity = {
                 y: 0.0
             };
+    };
+
+    var GemOnPickup = function (geminst) {
+
+        console.log('picked up gem +1');
+        Makarios.destroy(geminst);
+    };
+
+    var GemSpin = function (geminst) {
+
+        var gemmat = geminst.matrix;
+
+        mat4.rotate(gemmat, gemmat, .02, [0.0, 1.0, 0.0]);//.6
+        //mat4.rotate(gemmat, gemmat, pitch, [vmat[0], vmat[4], vmat[8]]);
     };
     
     var isLoading = true;
@@ -433,6 +450,30 @@ const YeuThuong = (function () {
             obplane.matrix,     // matrix to translate
             [0, -1.0, 0.0]);
         mat4.scale(obplane.matrix, obplane.matrix, [194.0, 194.0, 104.0]);// [14.0, 4.0, 14.0]);
+
+
+
+
+
+        var d0 = Makarios.instantiate(Primitives.shapes["diamond"], 'plainsky.jpg', GemSpin, {});//Primitives.shapes["plane"]  pplane
+        //d0.matrix = mat4.create();
+        glMatrix.mat4.translate(d0.matrix,     // destination matrix
+            d0.matrix,     // matrix to translate
+            [14.0, 2.0, 16.0]);
+        d0.isAABoxTrigger = true;
+        initVelocity(d0);
+        d0.collider = {
+            type: 'yrotbox',
+            hwidth: 1.0,
+            hdepth: 1.0,
+            hheight: 2.0,
+            bot: -1.5
+            //type: 'rotationlesscylinder',
+            //radius: 1.0,
+            //hheight: 1.0
+        };
+        d0.OnTriggerCollide = GemOnPickup;
+
         //obplane.isGrounded = null,
         //obplane.confirmGrounded = null,
         //obplane.velocity = null;
@@ -450,7 +491,7 @@ const YeuThuong = (function () {
         Makarios.setCamDist(24.0);//40.0
 
         var foxinvBase = mat4.create();
-        mat4.fromScaling(foxinvBase, [0.1, 0.1, 0.1]);
+        mat4.fromScaling(foxinvBase, [1.0, 1.0, 1.0]);
         mat4.invert(foxinvBase, foxinvBase);
         obFox.collider = {
             type: 'yrotbox',
@@ -553,6 +594,8 @@ const YeuThuong = (function () {
             StageData.objects[hitstuff.objects[hitdex]].outlineColor = [1.0, 1.0, 0.1];
         }
 
+        var posinfo = {};
+        Makarios.writeToUI('Find the gems!', posinfo);
 
     };
 

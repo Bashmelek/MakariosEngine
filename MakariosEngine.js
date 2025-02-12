@@ -1913,7 +1913,7 @@ function UpdateObjAnimation(obj) {
 
     if (obj && obj.currentAnimation != null) {
         //console.log(obj);
-        console.log(obj.currentAnimation);
+        //console.log(obj.currentAnimation);
         var anim = obj.prim.animations[obj.currentAnimation];
         //console.log(obj.currentAnimation);
         if (anim != null) {
@@ -2318,9 +2318,16 @@ const Makarios = (function () {
         console.log(newfontsize);
         gui.font = 'bold small-caps ' + newfontsize + 'px serif';
         gui.textBaseline = 'hanging';
-        gui.textAlign = 'center';
-        //gui.fillText('Welcome to Makarios Labs', ui.width / 4.2, ui.height / 2.1);
-        gui.fillText(text, ui.width / 2.0, ui.height / 2.1);
+        if (!pos) {
+            gui.textAlign = 'center';
+            //gui.fillText('Welcome to Makarios Labs', ui.width / 4.2, ui.height / 2.1);
+            gui.fillText(text, ui.width / 2.0, ui.height / 2.1);
+        } else {
+            gui.textAlign = 'left';
+            //gui.fillText('Welcome to Makarios Labs', ui.width / 4.2, ui.height / 2.1);
+            gui.fillText(text, 20, 20);
+
+        }
         uiState.hasany = true;
     }
 
