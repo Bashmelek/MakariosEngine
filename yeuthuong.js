@@ -374,6 +374,11 @@ const YeuThuong = (function () {
 
     };
 
+
+    var totalGems = 0;
+    var collectedGems = 0;
+
+
     function initVelocity(obj) {
         obj.isGrounded = true,
             obj.confirmGrounded = true,
@@ -385,6 +390,9 @@ const YeuThuong = (function () {
     var GemOnPickup = function (geminst) {
 
         console.log('picked up gem +1');
+        collectedGems++;
+        //MakUI.writeObjToUI('prompt', 'picked up gem +1', null);
+        MakUI.writeObjToUI('status', 'Gems: ' + collectedGems + '/' + totalGems, null);
         Makarios.destroy(geminst);
     };
 
@@ -392,9 +400,34 @@ const YeuThuong = (function () {
 
         var gemmat = geminst.matrix;
 
-        mat4.rotate(gemmat, gemmat, .02, [0.0, 1.0, 0.0]);//.6
+        if (gemmat[5] != 1.0) {
+            mat4.rotate(gemmat, gemmat, geminst.gem.spin2 || .02, [0.0, 1.0, 0.0]);
+           // mat4.rotate(gemmat, gemmat, geminst.gem.spin1 || .02, [gemmat[1], gemmat[5], gemmat[9]]);
+        }
+        mat4.rotate(gemmat, gemmat, geminst.gem.spin1 || .02, [gemmat[1], gemmat[5], gemmat[9]]);
         //mat4.rotate(gemmat, gemmat, pitch, [vmat[0], vmat[4], vmat[8]]);
     };
+
+    var MakeGemInst = function (textureOverride) {
+        var gemInst = Makarios.instantiate(Primitives.shapes["diamond"], textureOverride || 'plainsky.jpg', GemSpin, {});//Primitives.shapes["plane"]  pplane
+        gemInst.matrix = mat4.create();
+        gemInst.isAABoxTrigger = true;
+        initVelocity(gemInst);
+        gemInst.collider = {
+            type: 'yrotbox',
+            hwidth: 1.0,
+            hdepth: 1.0,
+            hheight: 2.0,
+            bot: -1.5
+        };
+        gemInst.OnTriggerCollide = GemOnPickup;
+        gemInst.gem = {};
+        gemInst.gem.spin1 = .02;
+        gemInst.gem.spin2 = .02;
+        totalGems++;
+
+        return gemInst;
+    }
     
     var isLoading = true;
     var ProcInLoading = function () {
@@ -455,38 +488,17 @@ const YeuThuong = (function () {
 
 
 
-        var d0 = Makarios.instantiate(Primitives.shapes["diamond"], 'plainsky.jpg', GemSpin, {});//Primitives.shapes["plane"]  pplane
-        //d0.matrix = mat4.create();
+        var d0 = MakeGemInst();
         glMatrix.mat4.translate(d0.matrix,     // destination matrix
             d0.matrix,     // matrix to translate
             [14.0, 2.0, 16.0]);
-        d0.isAABoxTrigger = true;
-        initVelocity(d0);
-        d0.collider = {
-            type: 'yrotbox',
-            hwidth: 1.0,
-            hdepth: 1.0,
-            hheight: 2.0,
-            bot: -1.5
-            //type: 'rotationlesscylinder',
-            //radius: 1.0,
-            //hheight: 1.0
-        };
-        d0.OnTriggerCollide = GemOnPickup;
 
-        //obplane.isGrounded = null,
-        //obplane.confirmGrounded = null,
-        //obplane.velocity = null;
-        //mat4.fromScaling(obplane.matrix, [194.0, 194.0, 194.0]);//[14.0, 4.0, 14.0]);
-        //obplane.positions = [
-        //    // Top face
-        //    -194.0, 0.0, -194.0,
-        //    -194.0, 0.0, 194.0,
-        //    194.0, 0.0, 194.0,
-        //    194.0, 0.0, -194.0,
-        //]
-         
-
+        var d1 = MakeGemInst();
+        glMatrix.mat4.translate(d1.matrix,     // destination matrix
+            d1.matrix,     // matrix to translate
+            [-14.0, 2.0, 26.0]);
+        mat4.rotate(d1.matrix, d1.matrix, .92, [1.0, 0.0, 0.0]);//.6
+        d1.gem.spin2 = 0.01;
 
         Makarios.setCamDist(24.0);//40.0
 
@@ -513,6 +525,21 @@ const YeuThuong = (function () {
         mainChar.baseJump = 0.24;
         mainChar.baseRotSpeed = 0.02;//0.05
         mainChar.isRunning = false;
+        
+        var promptdata = {
+            zone: MakUI.Zones.topLeft,
+            nx: 2,
+            ny: 2,
+
+        };
+        MakUI.writeObjToUI('prompt', 'Find the gems!', promptdata);
+        var statusdata = {
+            zone: MakUI.Zones.topRight,
+            nx: 2,
+            ny: 2,
+
+        };
+        MakUI.writeObjToUI('status', 'Gems: ' + collectedGems + '/' + totalGems, statusdata);
 
         document.querySelector('#uiCanvas').onmousemove = function (e) {
             e = e || window.event;
@@ -593,9 +620,6 @@ const YeuThuong = (function () {
             //console.log(hitstuff.objects[hitdex]);
             StageData.objects[hitstuff.objects[hitdex]].outlineColor = [1.0, 1.0, 0.1];
         }
-
-        var posinfo = {};
-        Makarios.writeToUI('Find the gems!', posinfo);
 
     };
 
