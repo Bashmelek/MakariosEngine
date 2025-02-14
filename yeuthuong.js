@@ -1,4 +1,4 @@
-// JavaScript source code
+﻿// JavaScript source code
 
 /*
     ------Required to return in theGame------------
@@ -382,6 +382,9 @@ const YeuThuong = (function () {
 
     var totalGems = 0;
     var collectedGems = 0;
+    var currentGemMessage = "";
+    var isGemMessageShowing = false;
+    var gemMessageCountdown = 0;
 
 
     function initVelocity(obj) {
@@ -392,13 +395,39 @@ const YeuThuong = (function () {
             };
     };
 
+    var HomePlateOnEnter = function (geminst) {
+        if (collectedGems == totalGems) {
+            const ui = document.querySelector('#uiCanvas');
+            const gui = ui.getContext('2d');
+            MakUI.writeObjToUI('lovemessage', "", null);
+            MakUI.writeObjToUI('prompt', 'I love you REDACTED! Thank you for playing', null);
+            var loveimage = new Image();
+            loveimage.src = 'Exclude_PersonalFiles/IMG_2006_smol.jpg'; // can also be a remote URL e.g. http://
+            loveimage.onload = function () {
+                gui.drawImage(loveimage, 120, 120);
+            };
+            //with a little thanks to https://stackoverflow.com/questions/8977369/drawing-png-to-a-canvas-element-not-showing-transparency thank you!
+        }
+    };
+
     var GemOnPickup = function (geminst) {
+
+        currentGemMessage = geminst.gem.lovemessage || "You are my Sunshine";
 
         console.log('picked up gem +1');
         collectedGems++;
         //MakUI.writeObjToUI('prompt', 'picked up gem +1', null);
         MakUI.writeObjToUI('status', 'Gems: ' + collectedGems + '/' + totalGems, null);
         Makarios.destroy(geminst);
+
+        var yeuMessageData = {
+            zone: MakUI.Zones.lowCenter,
+            nx: 2,
+            ny: 2,
+        };
+        MakUI.writeObjToUI('lovemessage', currentGemMessage, yeuMessageData);
+        isGemMessageShowing = true;
+        gemMessageCountdown = 180;
     };
 
     var GemSpin = function (geminst) {
@@ -452,7 +481,7 @@ const YeuThuong = (function () {
         var obFox = Makarios.instantiate(Primitives.shapes["kat"], Primitives.shapes["kat"].textureUrl, null, {});//'plainsky.jpg'  Primitives.shapes["testbox"].textureUrl "timmy"
         Makarios.SetAnimation(obFox, "IdleStand0");//"0"    Survey  Run
         //mat4.fromScaling(obFox.matrix, [0.1, 0.1, 0.1]);
-        mat4.translate(obFox.matrix, obFox.matrix, [0.0, 2.0, 0.0]);
+        mat4.translate(obFox.matrix, obFox.matrix, [0.0, 6.4, 0.0]);
         initVelocity(obFox);
 
         /*
@@ -477,10 +506,10 @@ const YeuThuong = (function () {
 
 
         */
-        var block1 = Makarios.instantiate(Primitives.shapes["cube"], 'plainsky.jpg', null, {});//bprim
+        var block1 = Makarios.instantiate(Primitives.shapes["cube"], 'gmodels/gentlegraydark.jpg', null, {});//bprim
         glMatrix.mat4.translate(block1.matrix,     // destination matrix
             block1.matrix,     // matrix to translate
-            [-16.0, 28.0, 164.0]);
+            [-24.0, 28.0, 164.0]);
         mat4.scale(block1.matrix, block1.matrix, [8.0, 18.0, 28.0])
         initVelocity(block1);
         block1.collider = {
@@ -491,10 +520,10 @@ const YeuThuong = (function () {
             bot: -18.0
         };
 
-        var block2 = Makarios.instantiate(Primitives.shapes["cube"], 'plainsky.jpg', null, {});
+        var block2 = Makarios.instantiate(Primitives.shapes["cube"], 'gmodels/gentlegraydark.jpg', null, {});
         glMatrix.mat4.translate(block2.matrix,     // destination matrix
             block2.matrix,     // matrix to translate
-            [16.0, 28.0, 164.0]);
+            [24.0, 28.0, 164.0]);
         mat4.scale(block2.matrix, block2.matrix, [8.0, 18.0, 28.0])
         initVelocity(block2);
         block2.collider = {
@@ -512,11 +541,11 @@ const YeuThuong = (function () {
             obplane.matrix,     // matrix to translate
             [0, -1.0, 0.0]);
         //mat4.scale(obplane.matrix, obplane.matrix, [1.0, 1.0, 1.0]);// [14.0, 4.0, 14.0]);
-        mat4.scale(obplane.matrix, obplane.matrix, [1940.0, 194.0, 1040.0]);
+        mat4.scale(obplane.matrix, obplane.matrix, [140.0, 194.0, 260.0]);
 
 
 
-        var block3 = Makarios.instantiate(Primitives.shapes["cube"], 'plainsky.jpg', null, {});
+        var block3 = Makarios.instantiate(Primitives.shapes["cube"], 'gmodels/gentlegraydark.jpg', null, {});
         glMatrix.mat4.translate(block3.matrix,     // destination matrix
             block3.matrix,     // matrix to translate
             [0.0, 64.0, 164.0]);
@@ -531,11 +560,107 @@ const YeuThuong = (function () {
         };
 
 
+        var step1 = Makarios.instantiate(Primitives.shapes["cube"], 'gmodels/gentlegraydark.jpg', null, {});
+        glMatrix.mat4.translate(step1.matrix,     // destination matrix
+            step1.matrix,     // matrix to translate
+            [40.0, 4.0, -120.0]);
+        mat4.scale(step1.matrix, step1.matrix, [24.0, 2.0, 24.0])
+        initVelocity(step1);
+        step1.collider = {
+            type: 'yrotbox',
+            hdepth: 24.0,
+            hheight: 2.0,
+            bot: -2.0,
+            hwidth: 24.0
+        };
+        var step2 = Makarios.instantiate(Primitives.shapes["cube"], 'plainsky.jpg', null, {});
+        glMatrix.mat4.translate(step2.matrix,     // destination matrix
+            step2.matrix,     // matrix to translate
+            [40.0, 12.0, -132.0]);
+        mat4.scale(step2.matrix, step2.matrix, [12.0, 2.0, 12.0])
+        initVelocity(step2);
+        step2.collider = {
+            type: 'yrotbox',
+            hdepth: 12.0,
+            hheight: 2.0,
+            bot: -2.0,
+            hwidth: 12.0
+        };
+        var step3 = Makarios.instantiate(Primitives.shapes["cube"], 'gmodels/gentlegraydark.jpg', null, {});
+        glMatrix.mat4.translate(step3.matrix,     // destination matrix
+            step3.matrix,     // matrix to translate
+            [40.0, 20.0, -136.0]);
+        mat4.scale(step3.matrix, step3.matrix, [8.0, 2.0, 8.0])
+        initVelocity(step3);
+        step3.collider = {
+            type: 'yrotbox',
+            hdepth: 8.0,
+            hheight: 2.0,
+            bot: -2.0,
+            hwidth: 8.0
+        };
+        var step4 = Makarios.instantiate(Primitives.shapes["cube"], 'gmodels/gentlesteel.jpg', null, {});
+        glMatrix.mat4.translate(step4.matrix,     // destination matrix
+            step4.matrix,     // matrix to translate
+            [40.0, 30.0, -172.0]);
+        mat4.scale(step4.matrix, step4.matrix, [4.0, 2.0, 32.0])
+        initVelocity(step4);
+        step4.collider = {
+            type: 'yrotbox',
+            hdepth: 4.0,
+            hheight: 2.0,
+            bot: -2.0,
+            hwidth: 32.0
+        };
+        var col1 = Makarios.instantiate(Primitives.shapes["cube"], 'plainsky.jpg', null, {});
+        glMatrix.mat4.translate(col1.matrix,     // destination matrix
+            col1.matrix,     // matrix to translate
+            [40.0, 16.0, -200.0]);
+        mat4.scale(col1.matrix, col1.matrix, [6.0, 6.0, 6.0])
+        initVelocity(col1);
+        col1.collider = {
+            type: 'yrotbox',
+            hdepth: 6.0,
+            hheight: 6.0,
+            bot: -6.0,
+            hwidth: 6.0
+        };
+        var startplat = Makarios.instantiate(Primitives.shapes["cube"], 'plainsky.jpg', null, {});
+        glMatrix.mat4.translate(startplat.matrix,     // destination matrix
+            startplat.matrix,     // matrix to translate
+            [0.0, 1.2, 0.0]);
+        mat4.scale(startplat.matrix, startplat.matrix, [6.0, 1.0, 6.0])
+        initVelocity(startplat);
+        startplat.collider = {
+            type: 'yrotbox',
+            hdepth: 6.0,
+            hheight: 1.0,
+            bot: -1.0,
+            hwidth: 6.0
+        };
+        var hometrig = Makarios.instantiate(Primitives.shapes["cube"], 'gmodels/plainsapphire.jpg', null, {});
+        glMatrix.mat4.translate(hometrig.matrix,     // destination matrix
+            hometrig.matrix,     // matrix to translate
+            [0.0, 4.6, 0.0]);
+        mat4.scale(hometrig.matrix, hometrig.matrix, [6.1, 0.1, 6.1])
+        initVelocity(hometrig);
+        hometrig.collider = {
+            type: 'yrotbox',
+            hdepth: 6.1,
+            hheight: 0.1,
+            bot: -0.1,
+            hwidth: 6.1
+        }; 
+        hometrig.isAABoxTrigger = true; 
+        hometrig.OnTriggerCollide = HomePlateOnEnter;
 
-        var d0 = MakeGemInst();
+
+
+        var d0 = MakeGemInst('gmodels/plainrosepink.jpg');
         glMatrix.mat4.translate(d0.matrix,     // destination matrix
             d0.matrix,     // matrix to translate
             [14.0, 2.0, 16.0]);
+        d0.gem.lovemessage = "Đẹp quá!";
 
         var d1 = MakeGemInst('gmodels/plainrubyred.jpg');
         glMatrix.mat4.translate(d1.matrix,     // destination matrix
@@ -543,6 +668,7 @@ const YeuThuong = (function () {
             [-14.0, 2.0, 26.0]);
         mat4.rotate(d1.matrix, d1.matrix, .92, [1.0, 0.0, 0.0]);//.6
         d1.gem.spin2 = 0.01;
+        d1.gem.lovemessage = "Anh yêu em";
 
         var d2 = MakeGemInst('gmodels/plainsapphire.jpg');
         glMatrix.mat4.translate(d2.matrix,     // destination matrix
@@ -550,6 +676,47 @@ const YeuThuong = (function () {
             [-24.0, 2.0, -26.0]);
         mat4.rotate(d2.matrix, d2.matrix, .42, [1.0, 0.0, 0.0]);//.6
         d2.gem.spin2 = 0.028;
+        d2.gem.lovemessage = "You are my Sunshine";
+
+        var d3 = MakeGemInst('gmodels/plaintopaz.jpg');
+        glMatrix.mat4.translate(d3.matrix,     // destination matrix
+            d3.matrix,     // matrix to translate
+            [40.0, 8.0, -188.0]);
+        mat4.rotate(d3.matrix, d3.matrix, .42, [1.0, 0.0, 0.0]);//.6
+        d3.gem.spin2 = 0.028;
+        d3.gem.lovemessage = "My life partner <3";
+
+        var d4 = MakeGemInst('gmodels/plainrubyred.jpg');
+        glMatrix.mat4.translate(d4.matrix,     // destination matrix
+            d4.matrix,     // matrix to translate
+            [40.0, 2.0, -218.0]);
+        mat4.rotate(d4.matrix, d4.matrix, .42, [1.0, 0.0, 0.0]);//.6
+        d4.gem.spin2 = 0.028;
+        d4.gem.lovemessage = "Hello beautiful!";
+
+        var d5 = MakeGemInst('gmodels/plainrosepink.jpg');
+        glMatrix.mat4.translate(d5.matrix,     // destination matrix
+            d5.matrix,     // matrix to translate
+            [40.0, 128.0, -188.0]);
+        mat4.rotate(d5.matrix, d5.matrix, .42, [1.0, 0.0, 0.0]);//.6
+        d5.gem.spin2 = 0.028;
+        d5.gem.lovemessage = "Em yêu";
+
+        var d6 = MakeGemInst('gmodels/plainsapphire.jpg');
+        glMatrix.mat4.translate(d6.matrix,     // destination matrix
+            d6.matrix,     // matrix to translate
+            [24.0, 24.0, 200.0]);
+        mat4.rotate(d6.matrix, d6.matrix, .42, [1.0, 0.0, 0.0]);//.6
+        d6.gem.spin2 = 0.028;
+        d6.gem.lovemessage = "Anh Nhớ Em";
+
+        var d7 = MakeGemInst('gmodels/plaintopaz.jpg');
+        glMatrix.mat4.translate(d7.matrix,     // destination matrix
+            d7.matrix,     // matrix to translate
+            [-24.0, 24.0, 200.0]);
+        mat4.rotate(d7.matrix, d7.matrix, .42, [1.0, 0.0, 0.0]);//.6
+        d7.gem.spin2 = 0.028;
+        d7.gem.lovemessage = "I love you";
 
 
 
@@ -651,7 +818,24 @@ const YeuThuong = (function () {
             Makarios.SetAnimation(mainChar, "IdleStand0");
         }
 
+        if (isGemMessageShowing && gemMessageCountdown <= 0) {
+            currentGemMessage = "";
+            MakUI.writeObjToUI('lovemessage', currentGemMessage, null);
+            isGemMessageShowing = false;
+            if (collectedGems == totalGems) {
+                MakUI.writeObjToUI('lovemessage', "Return to the starting place", null);
+            }
+        }
+        gemMessageCountdown--;
 
+        //if mainchar is fallen, pick them back up
+        if (StageData.objects[0] && StageData.objects[0].matrix[13] < -200.0) {
+            console.log('fallen');
+            var playerchar = StageData.objects[0];
+            playerchar.matrix = mat4.create();
+            mat4.translate(playerchar.matrix, playerchar.matrix, [0.0, 6.4, -16.0]);
+            mainChar.yrot = 0.0;
+        }
 
         var basematrix = mat4.create();
         mat4.multiply(basematrix, gproj, gmod);

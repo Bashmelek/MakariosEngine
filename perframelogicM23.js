@@ -76,7 +76,7 @@ const FrameLogic = (function () {
         for (var oo = 0; oo < StageData.objects.length; oo++) {
             if (StageData.objects[oo] && StageData.objects[oo] != object && oo != 3) {
                 var other = StageData.objects[oo];
-                if (!other || !other.collider || !object || !object.collider || other.isAABoxTrigger || object.isAABoxTrigger) { continue; }
+                if (!other || !other.collider || !object || !object.collider || other.isAABoxTrigger || (object.isAABoxTrigger && other.id == 0)) { continue; }
                 if (object.collider && object.collider.type == 'rotationlesscylinder' && other.collider && other.collider.type == 'rotationlesscylinder') {
                     var movsquared = vec[0] * vec[0] + vec[2] * vec[2];
                     var movemag = Math.sqrt(movsquared);
@@ -434,8 +434,8 @@ const FrameLogic = (function () {
                         otherinitialrotatedboxcoords[irc2 * 3 + 1] -= proby;
                         otherinitialrotatedboxcoords[irc2 * 3 + 2] -= probz;
                     }
-                    var orotatedboxcoords = useYRotToGetInverseRotatedVectors(object.matrix, otherinitialrotatedboxcoords, object.collider.invmat);
-                    var orotatedPreMoveboxcoords = useYRotToGetInverseRotatedVectors(object.matrix, otherCoordsBeforeMove, object.collider.invmat);
+                    var orotatedboxcoords = useYRotToGetInverseRotatedVectors(object.isAABoxTrigger ? getScaleMat(object.matrix) : object.matrix, otherinitialrotatedboxcoords, object.collider.invmat);
+                    var orotatedPreMoveboxcoords = useYRotToGetInverseRotatedVectors(object.isAABoxTrigger ? getScaleMat(object.matrix) : object.matrix, otherCoordsBeforeMove, object.collider.invmat);
                     for (var c = 0; c < orotatedboxcoords.length / 3; c++) {
                         if (orotatedboxcoords[c * 3 + 0] >= objectboxcoords[3] && orotatedboxcoords[c * 3 + 0] <= objectboxcoords[0]) {
                             if (orotatedboxcoords[c * 3 + 2] >= objectboxcoords[8] && orotatedboxcoords[c * 3 + 2] <= objectboxcoords[2]) {
@@ -642,7 +642,7 @@ const FrameLogic = (function () {
                     }
 
 
-                    var newveccoords2 = useYRotToGetRotatedVectors(object.matrix, orotatedboxcoords, object.collider.invmat);
+                    var newveccoords2 = useYRotToGetRotatedVectors(object.isAABoxTrigger ? getScaleMat(object.matrix) : object.matrix, orotatedboxcoords, object.collider.invmat);
                     for (var cl = 0; cl < (newveccoords.length / 3); cl++) {
                         newveccoords2[cl * 3 + 0] -= ox;
                         newveccoords2[cl * 3 + 1] -= oy;
@@ -1077,7 +1077,8 @@ const FrameLogic = (function () {
                         if (rotatedboxcoords[c * 3 + 0] >= (otherboxcoords[3] - .00001) && rotatedboxcoords[c * 3 + 0] <= (otherboxcoords[0] + .00001)) {
                             if (rotatedboxcoords[c * 3 + 2] >= (otherboxcoords[8] - .00001) && rotatedboxcoords[c * 3 + 2] <= (otherboxcoords[2] + .00001)) {
                                 if (Math.abs(oy + obotOffset - (object.matrix[y] + botOffset)) <= (other.collider.hheight + object.collider.hheight - 0.0001)) {
-                                    console.log('cclang clang ' + framenum);
+                                    console.log('cclang clang ' + framenum + '  ' + object.id + ' ' + other.id);
+                                    console.log('fu' + other.isAABoxTrigger)
                                     var blocked = false;
 
                                     if (!blocked) {
@@ -1571,6 +1572,14 @@ const FrameLogic = (function () {
         //if (c2invBase != null)
          //console.log('eet: ' + transformedArray);
         return transformedArray;
+    }
+
+    var getScaleMat = function (sourceMat) {
+        var smat = mat4.create();
+        var scal = glMatrix.vec3.create();
+        mat4.getScaling(scal, sourceMat);
+        mat4.scale(smat, smat, scal);
+        return smat;
     }
 
     var IsPointInTriangleIncludeZ = function (point, tri)/*(px, py, ax, ay, bx, by, cx, cy)*/ {

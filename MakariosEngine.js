@@ -1080,8 +1080,8 @@ function main() {
         var oldTime = lastFrameTime;
         lastFrameTime = Date.now();
         StageData.timeDelta = lastFrameTime - oldTime;
-        if (StageData.timeDelta > 500) {
-            StageData.timeDelta = 500;
+        if (StageData.timeDelta > 60) {
+            StageData.timeDelta = 60;
         }
         StageData.vticks += StageData.timeDelta;
 

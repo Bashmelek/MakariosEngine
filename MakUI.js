@@ -19,7 +19,12 @@ const MakUI = (function () {
         central: { id: 4, },
         bottomLeft: { id: 5, },
         bottomMid: { id: 6, },
-        bottomRight: { id: 7, }
+        bottomRight: { id: 7, },
+        lowCenter: {
+            id: 8,
+            rect: { nx: 0.4, ny: .6, nwidth: 0.6, nheight: 0.3 },
+            textAlign: 'left'
+        },
     };
 
     self.uiState = {};
