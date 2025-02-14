@@ -356,9 +356,14 @@ const YeuThuong = (function () {
         var timmyloc = 'gmodels/firstCat12_emb.gltf';
         Makarios.preloadGltfPrimitiveFromJsResource(timmyloc, "timmy");
 
+        var katloc = 'gmodels/firstCat13_emb.gltf';
+        Makarios.preloadGltfPrimitiveFromJsResource(katloc, "kat");
 
         var diamondloc = 'gmodels/diamond0.gltf';
         Makarios.preloadGltfPrimitiveFromJsResource(diamondloc, "diamond");
+
+        var ground01loc = 'gmodels/sampleGround01.gltf';
+        Makarios.preloadGltfPrimitiveFromJsResource(ground01loc, "groundsample");
         //var defmat1 = mat4.create();
         //mat4.fromScaling(defmat1, [0.1, 0.1, 0.1]);
         //var foxloc = 'SampleModels/Fox/glTF-Embedded/Fox.gltf';
@@ -444,7 +449,7 @@ const YeuThuong = (function () {
         //mat4.rotate(gmod, vmat, Math.PI / 12.0, [vmat[0], vmat[4], vmat[8]]);//0.65
 
 
-        var obFox = Makarios.instantiate(Primitives.shapes["timmy"], Primitives.shapes["timmy"].textureUrl, null, {});//'plainsky.jpg'  Primitives.shapes["testbox"].textureUrl
+        var obFox = Makarios.instantiate(Primitives.shapes["kat"], Primitives.shapes["kat"].textureUrl, null, {});//'plainsky.jpg'  Primitives.shapes["testbox"].textureUrl "timmy"
         Makarios.SetAnimation(obFox, "IdleStand0");//"0"    Survey  Run
         //mat4.fromScaling(obFox.matrix, [0.1, 0.1, 0.1]);
         mat4.translate(obFox.matrix, obFox.matrix, [0.0, 2.0, 0.0]);
@@ -472,19 +477,58 @@ const YeuThuong = (function () {
 
 
         */
-        var block1 = Makarios.instantiate(Primitives.shapes["cube"], 'plainsky.jpg', null, {});
+        var block1 = Makarios.instantiate(Primitives.shapes["cube"], 'plainsky.jpg', null, {});//bprim
+        glMatrix.mat4.translate(block1.matrix,     // destination matrix
+            block1.matrix,     // matrix to translate
+            [-16.0, 28.0, 164.0]);
+        mat4.scale(block1.matrix, block1.matrix, [8.0, 18.0, 28.0])
         initVelocity(block1);
-        var block2 = Makarios.instantiate(Primitives.shapes["cube"], 'plainsky.jpg', null, {});
-        initVelocity(block2);
+        block1.collider = {
+            type: 'yrotbox',
+            hwidth: 28.0,
+            hdepth: 8.0,
+            hheight: 18.0,
+            bot: -18.0
+        };
 
+        var block2 = Makarios.instantiate(Primitives.shapes["cube"], 'plainsky.jpg', null, {});
+        glMatrix.mat4.translate(block2.matrix,     // destination matrix
+            block2.matrix,     // matrix to translate
+            [16.0, 28.0, 164.0]);
+        mat4.scale(block2.matrix, block2.matrix, [8.0, 18.0, 28.0])
+        initVelocity(block2);
+        block2.collider = {
+            type: 'yrotbox',
+            hwidth: 28.0,
+            hdepth: 8.0,
+            hheight: 18.0,
+            bot: -18.0
+        };
+
+        //var obplane = Makarios.instantiate(Primitives.shapes["plane"], 'plainsky.jpg', null, {});//Primitives.shapes["plane"]  pplane
         var obplane = Makarios.instantiate(Primitives.shapes["plane"], 'plainsky.jpg', null, {});//Primitives.shapes["plane"]  pplane
         obplane.matrix = mat4.create();
         mat4.translate(obplane.matrix,     // destination matrix
             obplane.matrix,     // matrix to translate
             [0, -1.0, 0.0]);
-        mat4.scale(obplane.matrix, obplane.matrix, [194.0, 194.0, 104.0]);// [14.0, 4.0, 14.0]);
+        //mat4.scale(obplane.matrix, obplane.matrix, [1.0, 1.0, 1.0]);// [14.0, 4.0, 14.0]);
+        mat4.scale(obplane.matrix, obplane.matrix, [1940.0, 194.0, 1040.0]);
 
 
+
+        var block3 = Makarios.instantiate(Primitives.shapes["cube"], 'plainsky.jpg', null, {});
+        glMatrix.mat4.translate(block3.matrix,     // destination matrix
+            block3.matrix,     // matrix to translate
+            [0.0, 64.0, 164.0]);
+        mat4.scale(block3.matrix, block3.matrix, [36.0, 8.0, 28.0])
+        initVelocity(block3);
+        block3.collider = {
+            type: 'yrotbox',
+            hdepth: 36.0,
+            hheight: 8.0,
+            bot: -8.0,
+            hwidth: 28.0
+        };
 
 
 
@@ -493,12 +537,21 @@ const YeuThuong = (function () {
             d0.matrix,     // matrix to translate
             [14.0, 2.0, 16.0]);
 
-        var d1 = MakeGemInst();
+        var d1 = MakeGemInst('gmodels/plainrubyred.jpg');
         glMatrix.mat4.translate(d1.matrix,     // destination matrix
             d1.matrix,     // matrix to translate
             [-14.0, 2.0, 26.0]);
         mat4.rotate(d1.matrix, d1.matrix, .92, [1.0, 0.0, 0.0]);//.6
         d1.gem.spin2 = 0.01;
+
+        var d2 = MakeGemInst('gmodels/plainsapphire.jpg');
+        glMatrix.mat4.translate(d2.matrix,     // destination matrix
+            d2.matrix,     // matrix to translate
+            [-24.0, 2.0, -26.0]);
+        mat4.rotate(d2.matrix, d2.matrix, .42, [1.0, 0.0, 0.0]);//.6
+        d2.gem.spin2 = 0.028;
+
+
 
         Makarios.setCamDist(24.0);//40.0
 

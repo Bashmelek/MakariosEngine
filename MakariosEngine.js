@@ -900,7 +900,8 @@ function resizeCanvas() {
         ui.width = weightedWidth;//width;
         ui.height = weightedHeight;//height;
         if (uiState.hasany) {
-            Makarios.rewriteToUI();
+            //Makarios.rewriteToUI();
+            MakUI.refreshUI();
         }
     }
 

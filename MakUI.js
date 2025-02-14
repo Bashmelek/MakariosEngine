@@ -46,6 +46,8 @@ const MakUI = (function () {
 
         uiItem.text = text;
         uiItem.textColor = data && data.textColor ? data.textColor : '#DDBB00';
+        console.log(data);
+        console.log(uiItem.zone);
         uiItem.zone = data.zone;
         uiItem.nx = data.nx || uiItem.zone.nx;
         uiItem.ny = data.ny || uiItem.zone.ny;
@@ -77,22 +79,29 @@ const MakUI = (function () {
         uiState.hasany = true;
     };
 
-    self.rewriteToUI = function () {
-        const ui = document.querySelector('#uiCanvas');
-        const gui = ui.getContext('2d');
-        gui.clearRect(0, 0, ui.width, ui.height);
-        gui.fillStyle = '#DDBB00';//;'yellow';
-        //gui.fillRect(10, 10, 100, 100);// + 400 - now * 10000);
+    self.refreshUI = function () {
 
-        //base was 28 for height 480 (at 4:3) so 120 - 7
-        var newfontsize = (Math.floor(ui.height * 7.0 / 120.0) * 1).toString();
-        console.log(newfontsize);
-        gui.font = 'bold small-caps ' + newfontsize + 'px serif';
-        gui.textBaseline = 'hanging';
-        gui.textAlign = 'center';
-        //gui.fillText('Welcome to Makarios Labs', ui.width / 4.2, ui.height / 2.1);
-        gui.fillText(self.uiState.text, ui.width / 2.0, ui.height / 2.1);
-        uiState.hasany = true;
+        for (let id in self.uiState) {
+            //console.log('fresher');
+            //console.log(self.uiState);
+            if (!self.uiState[id].data) { continue; }
+            self.writeObjToUI(id, self.uiState[id].text, null);
+        }
+        //const ui = document.querySelector('#uiCanvas');
+        //const gui = ui.getContext('2d');
+        //gui.clearRect(0, 0, ui.width, ui.height);
+        //gui.fillStyle = '#DDBB00';//;'yellow';
+        ////gui.fillRect(10, 10, 100, 100);// + 400 - now * 10000);
+
+        ////base was 28 for height 480 (at 4:3) so 120 - 7
+        //var newfontsize = (Math.floor(ui.height * 7.0 / 120.0) * 1).toString();
+        //console.log(newfontsize);
+        //gui.font = 'bold small-caps ' + newfontsize + 'px serif';
+        //gui.textBaseline = 'hanging';
+        //gui.textAlign = 'center';
+        ////gui.fillText('Welcome to Makarios Labs', ui.width / 4.2, ui.height / 2.1);
+        //gui.fillText(self.uiState.text, ui.width / 2.0, ui.height / 2.1);
+        //uiState.hasany = true;
     }
 
 

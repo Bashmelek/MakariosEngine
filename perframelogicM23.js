@@ -351,7 +351,7 @@ const FrameLogic = (function () {
 
                                 if (Math.abs(oy + other.collider.hheight + obotOffset - (object.matrix[y] + object.collider.hheight + botOffset)) > (other.collider.hheight + object.collider.hheight - 0.0001)) {
                                 //if ((object.matrix[y] + botOffset) > (other.collider.hheight + obotOffset + oy - 0.0001)) {
-                                    console.log('GROUNDED');
+                                    ////console.log('GROUNDED');
                                     if (Math.abs(oy + other.collider.hheight + obotOffset - (proby + object.collider.hheight + botOffset)) < (other.collider.hheight + object.collider.hheight + 0.0001)) {
                                         if (oy + other.collider.hheight + obotOffset < object.matrix[y] + botOffset) {
                                             vec[1] = -((object.matrix[y] + botOffset) - (oy + obotOffset) - (other.collider.hheight + other.collider.hheight + 0.0001));
@@ -679,7 +679,7 @@ const FrameLogic = (function () {
                     vec[0] = vec[0] + (1.0 || 1.0) * ((otherinitialrotatedboxcoords[0] - ox) - newveccoords2[0]);
                     vec[1] = vec[1] + (1.0 || 1.0) * ((otherinitialrotatedboxcoords[1] - oy) - newveccoords2[1]);
                     vec[2] = vec[2] + (1.0 || 1.0) * ((otherinitialrotatedboxcoords[2] - oz) - newveccoords2[2]);
-                    console.log(vec[0]);
+                    ////console.log(vec[0]);
                     //console.log(vec[0] + ',' + vec[1] + ',' + vec[2]);
                     if (blocked) {
                         ////console.log(newveccoords2);
@@ -1182,8 +1182,9 @@ const FrameLogic = (function () {
             var obx = object.matrix[x];
             var oby = object.matrix[y];
             var obz = object.matrix[z];
-            var obotOffset = (object.collider ? object.collider.bot || 0.0 : 0.0);
+            var obotOffset = (object.collider ? object.collider.bot || 0.0 : 0.0) + 0.1;
             var objectFoot = { x: obx, y: oby + obotOffset, z: obz };
+            //var psuedoFoot = { x: obx, y: oby + obotOffset + 0.1, z: obz };
             var floorheight = 1000.0;
 
             var groundPos = new Array(ground.positions.length);
@@ -1226,7 +1227,10 @@ const FrameLogic = (function () {
 
                     floorheight = result.hity;
                     hasHit = true;
-                    //console.log(floorheight);
+                    //if (object.id == 0) {
+                    //    console.log('hit ground');
+                    //    console.log(floorheight);
+                    //}
                 }
             }
 
@@ -1346,9 +1350,11 @@ const FrameLogic = (function () {
                 }
             }
             if (!object.confirmGrounded) { object.confirmGrounded = true; object.isGrounded = false; }
+            //if(object.id == 0)console.log(Math.abs(floorheight - objectFoot.y));
             if (Math.abs(floorheight - objectFoot.y) > 0.0001) {
-                if (objectFoot.y <= floorheight + 0.0001 && objectFoot.y > (floorheight - Math.abs(velyOrig) - 0.01)) { // + 0.0001 and
-                    //console.log('o dear itsa ' + floorheight);
+                var fallLeeway = 0.01;
+                if (objectFoot.y <= floorheight + 0.0001 && objectFoot.y > (floorheight - Math.abs(velyOrig) - fallLeeway)) { // + 0.0001 and
+                    ////console.log('o dear itsa ' + floorheight);
                     if (floorheight < 1000) {
                         object.matrix[y] = floorheight - obotOffset;
                         object.isGrounded = true;
@@ -1360,13 +1366,15 @@ const FrameLogic = (function () {
 
                 } else if (object.isGrounded && Math.abs(floorheight - objectFoot.y) < 0.1) {
                     object.matrix[y] = floorheight - obotOffset;
-                    //console.log('your grunded at ' + floorheight);
+                    ////console.log('your grunded at ' + floorheight);
                 } else {
                     if (i == 80) {
                         console.log(object.isGrounded);
                         console.log(floorheight);
                         console.log(object.matrix[y]);
                     } else {
+                        ////console.log('meh at ' + floorheight);
+                        ////if (object.id == 0) console.log(Math.abs(floorheight - objectFoot.y));
                         object.velocity.y -= 0.004 * StageData.timeDelta * 0.18;
                     }
                     object.confirmGrounded = false;
