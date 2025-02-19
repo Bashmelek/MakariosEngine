@@ -1429,30 +1429,36 @@ function recursiveCheckAllObjectsIfScreenPointHits(object, parent, itsfullmatrix
 
         //var lowest
         if (lowestztri.z != 9999.0 && object.indices[lowestztri.triid * 3] >= (parentcoords.length / 3.0)) {
-            if (inheritedTextCoordsList.length > 0) {
-                var indexToUse = (object.indices[lowestztri.triid * 3 + 0]) * 2;
-                var coordsCount = 0;
-                for (var it = 0; it < inheritedTextCoordsList.length; it++) {
-                    if ((indexToUse - coordsCount) % 3 == 2) { continue; }//added for vec3 textcoords with alpha
-                    if (coordsCount + inheritedTextCoordsList[it].length <= indexToUse) {
-                        coordsCount += inheritedTextCoordsList[it].length;
-                    } else {
-                        inheritedTextCoordsList[it][indexToUse - coordsCount] = inheritedTextCoordsList[it][indexToUse - coordsCount] == 1.0 ? 0.0 : 1.0;
-                        it = inheritedTextCoordsList.length - 1;
+            if (enableClickTestFlip) {
+                if (inheritedTextCoordsList.length > 0) {
+                    var indexToUse = (object.indices[lowestztri.triid * 3 + 0]) * 2;
+                    var coordsCount = 0;
+                    for (var it = 0; it < inheritedTextCoordsList.length; it++) {
+                        if ((indexToUse - coordsCount) % 3 == 2) { continue; }//added for vec3 textcoords with alpha
+                        if (coordsCount + inheritedTextCoordsList[it].length <= indexToUse) {
+                            coordsCount += inheritedTextCoordsList[it].length;
+                        } else {
+                            inheritedTextCoordsList[it][indexToUse - coordsCount] = inheritedTextCoordsList[it][indexToUse - coordsCount] == 1.0 ? 0.0 : 1.0;
+                            it = inheritedTextCoordsList.length - 1;
+                        }
                     }
+                } else {
+                    object.textureCoordinates[(object.indices[lowestztri.triid * 3 + 0]) * 2] = object.textureCoordinates[(object.indices[lowestztri.triid * 3 + 0]) * 2] == 1.0 ? 0.0 : 1.0;
                 }
-            } else {
-                object.textureCoordinates[(object.indices[lowestztri.triid * 3 + 0]) * 2] = object.textureCoordinates[(object.indices[lowestztri.triid * 3 + 0]) * 2] == 1.0 ? 0.0 : 1.0;
             }
 
+
+            if (object.OnObjectClick) {
+                object.OnObjectClick(object);
+            }
             //don't need to rebind anymore, because we do this all the time yeah?
             ////console.log('flippeditfor ' + lowestztri.triid + 'z: ' + lowestztri.z);
             ////console.log('moreinfo: ' + (lowestztri.triid * 3 + 0) + 'z: ' + ((object.indices[lowestztri.triid * 3 + 0]) * 2));
             ////console.log(object.vertexNormals[(object.indices[lowestztri.triid * 3 + 0]) * 3 + 0] + ", " + object.vertexNormals[(object.indices[lowestztri.triid * 3 + 0]) * 3 + 1] + ", " + object.vertexNormals[(object.indices[lowestztri.triid * 3 + 0]) * 3 + 2]);
-            var lpoint = [0.0, 0.0, 0.0];
-            var lightLocMat = mat4.create();
-            mat4.invert(lightLocMat, StageData.StageLights[0].lightmat);
-            linTransformRange(lpoint, lpoint, lightLocMat, 0, 3, null);
+            //var lpoint = [0.0, 0.0, 0.0];
+            //var lightLocMat = mat4.create();
+            //mat4.invert(lightLocMat, StageData.StageLights[0].lightmat);
+            //linTransformRange(lpoint, lpoint, lightLocMat, 0, 3, null);
             ////console.log(lpoint);
         }
     }
@@ -1545,6 +1551,53 @@ function onTouchDrag(e) {
             mat4.rotate(gmod, vmat, pitch, [vmat[0], vmat[4], vmat[8]]);
         }
     }
+}
+
+var enableClickTestFlip = false;
+var clickEnabled = false;
+function EnableClickActions() {
+    if (clickEnabled) { return; }
+    clickEnabled = true;
+
+    //onmousemove = onDrag;
+    //document.querySelector('#uiCanvas').addEventListener("touchmove", onTouchDrag, false);
+
+
+    //preemptive thanks to https://stackoverflow.com/questions/43714880/do-dom-events-work-with-pointer-lock
+    //for the firefox workaround and the rightclick issue
+    //will have to implement
+    //also thanks https://stackoverflow.com/questions/43928704/mouse-down-event-not-working-on-canvas-control-in-my-wpf-application for the hint
+    //regarding which elemet to add the listener
+    //document.querySelector('#uiCanvas').addEventListener("mousedown", onJustMouseDown);
+    //window.addEventListener("mouseup", onJustMouseUp);
+    ////thank you https://developer.mozilla.org/en-US/docs/Web/API/Touch_events for showing me this
+    //document.querySelector('#uiCanvas').addEventListener("touchstart", onJustTouchDown, false);
+    //document.querySelector('#uiCanvas').addEventListener("touchend", onJustTouchUp, false);
+    //document.querySelector('#uiCanvas').addEventListener("touchcancel", onJustTouchUp, false); 
+
+
+    window.addEventListener("click", function (e) {
+
+        var matrices = [];
+        var basematrix = mat4.create();
+        mat4.multiply(basematrix, gproj, gmod);
+        matrices.push(basematrix);
+
+        var hittris = [];
+        var hitstuff = {};
+        hitstuff.tris = [];
+        hitstuff.objects = [];
+        var objcount = StageData.objects.length;
+
+        for (var objindex = 0; objindex < objcount; objindex++) {
+            if (!StageData.objects[objindex]) { continue; }
+            var objmatrix = mat4.create();
+            mat4.multiply(objmatrix, basematrix, StageData.objects[objindex].matrix);
+
+            recursiveCheckAllObjectsIfScreenPointHits(StageData.objects[objindex], null, objmatrix, [], hitstuff, { x: e.clientX, y: e.clientY }, [], objindex);
+        }
+    });
+    //}
 }
 
 var defaultInputsInitiated = false;

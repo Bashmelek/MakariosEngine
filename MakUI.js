@@ -79,7 +79,7 @@ const MakUI = (function () {
         gui.textBaseline = 'hanging';
 
         console.log(uiItem.text);
-        gui.fillText(uiItem.text, uiItem.x, uiItem.y);
+        gui.fillText(uiItem.text, uiItem.x, uiItem.y + 2);
 
         uiState.hasany = true;
     };
