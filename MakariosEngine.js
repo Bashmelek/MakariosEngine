@@ -159,6 +159,8 @@ var performanceStats = {
     consecutiveSlowObjDraws : 0
 }
 
+var EnableLowPerfDraw = false;
+var customPerObjectUniforms = [];
 
 function initBuffers(gl) {
     ggl = gl;
@@ -629,7 +631,7 @@ function drawScene(gl, programInfo, buffers) {  //deltaTime
 
     ////singleCallRenderScene(gl, programInfo, StageData.objects, buffers) 
     //gl.uniform1f(programInfo.uniformLocations.urandomSeed1, Math.floor(Math.random() * 1000.0));
-    if (!Makarios.IsGPUTrash()) {
+    if (!EnableLowPerfDraw || !Makarios.IsGPUTrash()) {
         var perfStart = performance.now();
         RenderObjects(gl, programInfo, StageData.objects, modelViewMatrix /*mat4.create()*/ /*modelViewMatrix*/, 0.0, { offsetval: 0, alpha: 1.0 }, mat4.create());
         var performanceResult = performance.now() - perfStart;
@@ -746,6 +748,10 @@ function RenderObjects(gl, programInfo, objects, parentmatrix, depth, dataHolder
                 programInfo.uniformLocations.normalMatrix,
                 false,
                 nMat);
+
+            for (var u = 0; u < customPerObjectUniforms.length; u++) {
+                customPerObjectUniforms[u].perojbset(customPerObjectUniforms[u], gl, objects[oj]);
+            }
 
             //console.log(ext);
             const vertexCount = objects[oj].indices.length;//36;
@@ -2395,6 +2401,9 @@ const Makarios = (function () {
     self.gpuLevel = 1;
     self.SetGPULevel = function (val) {
         gpuLevel = val;
+        if (gpuLevel == 0) {
+            console.log('TRAAAAAAAAASH');
+        }
     };
     self.IsGPUTrash = function () {
         return gpuLevel == 0;

@@ -158,7 +158,8 @@ const Suleiman = (function () {
 
             //point light
             //courtesy of thank you webglfundamentals https://webglfundamentals.org/webgl/lessons/webgl-3d-lighting-point.html  tyref: webglfundamentals3dpointlighting
-            uniform vec3 uAmbientLight;
+            //uniform vec3 uAmbientLight;
+            uniform vec4 uObjectBrightness;
             varying highp vec3 vPosToLight;
             varying highp vec3 vNormWorld;
             varying highp vec3 vPosToCam;
@@ -184,7 +185,7 @@ const Suleiman = (function () {
                 vTextureCoord = aTextureCoord;
 
                 // Apply lighting effect
-                highp vec3 ambientLight = uAmbientLight;// vec3(0.16, 0.16, 0.16);//vec3(0.2, 0.2, 0.2);
+                highp vec3 ambientLight = vec3(0.01, 0.01, 0.01);//vec3(0.16, 0.16, 0.16);//vec3(0.2, 0.2, 0.2);  uAmbientLight;//
 
                 highp vec3 origin = vec3(0.0, 0.0, 0.0);
                 highp vec3 directionalLightColor = vec3(distance(origin, vec3(worldSpaceMat[0][0], worldSpaceMat[0][1], worldSpaceMat[0][2])), distance(origin, vec3(worldSpaceMat[1][0], worldSpaceMat[1][1], worldSpaceMat[1][2])), distance(origin, vec3(worldSpaceMat[2][0], worldSpaceMat[2][1], worldSpaceMat[2][2])));
@@ -196,6 +197,11 @@ const Suleiman = (function () {
                 // tyref: webglfundamentals3dpointlighting
                 // compute the world position of the surface
                 pointWorldPos = (worldSpaceMat * aVertexPosition).xyz;
+                
+                if(uObjectBrightness.w > 0.0) {
+
+                    vLighting = vLighting + uObjectBrightness.xyz;
+                }
  
                 // compute the vector of the surface to the light
                 // and pass it to the fragment shader
@@ -220,13 +226,14 @@ const Suleiman = (function () {
     baseGmod = null;
     var mousePos = { x: 0.0, y: 0.0 };
 
-    var uAmbientLight = {};
+    var uObjectBrightness = {};
+    var currentObjectBrightness = [0.0, 0.0, 0.0, 0.0];
 
     var Init = function () {
         StageData.ticks = 0;
         SkyboxRenderer.useSkybox('skybox');
         ShadowShader.setup(null, [1.0, 0.6, 1.0]);
-        OutlineRenderer.setup(null, [1.0, 0.6, 1.0]);
+        //OutlineRenderer.setup(null, [1.0, 0.6, 1.0]);
         ////Makarios.setStepsForCelShading(4.0);
         Makarios.SetUseAlphaInTextureBuffer(true);
         console.log(camDist);
@@ -253,16 +260,29 @@ const Suleiman = (function () {
 
         var canvas = document.getElementById("glCanvas");
         wgl = canvas.getContext("webgl");
-        uAmbientLight = {
-            name: 'uAmbientLight',
-            loc: wgl.getUniformLocation(globalMainProgramInfo.program, 'uAmbientLight'),
+        uObjectBrightness = {
+            name: 'uObjectBrightness',
+            loc: wgl.getUniformLocation(globalMainProgramInfo.program, 'uObjectBrightness'),
             frameset: function (attr, gl) {
 
-                var light = [0.01, 0.01, 0.01];
-                gl.uniform3fv(attr.loc, light);//[0.000 * StageData.ticks + 0.5, 0.002 * StageData.ticks, 0.0]
+                //var light = [0.5, 0.5, 0.5, 1.0];//[-4.51, -2.51, 0.01, 1.0];
+                //gl.uniform4fv(attr.loc, light);//[0.000 * StageData.ticks + 0.5, 0.002 * StageData.ticks, 0.0]
+            },
+            perojbset: function (attr, gl, obj) {
+
+                var val = [0.0, 0.0, 0.0, 0.0];
+                if (obj.id == SuleimanState.selectedObjectID ) {
+                    val = [0.3, 0.3, 0.3, 1.0];
+                }
+                if (currentObjectBrightness[0] != val[0] || currentObjectBrightness[0] != val[1] ||
+                    currentObjectBrightness[0] != val[2] || currentObjectBrightness[0] != val[3]) { 
+
+                    gl.uniform4fv(attr.loc, val);//[0.000 * StageData.ticks + 0.5, 0.002 * StageData.ticks, 0.0]
+                    currentObjectBrightness = val;
+                }
             }
         }
-        customUniforms.push(uAmbientLight);
+        customUniforms.push(uObjectBrightness);
         customUniforms.push({
             name: 'uOverTextureMatrix',
             loc: wgl.getUniformLocation(globalMainProgramInfo.program, 'uOverTextureMatrix'),
@@ -353,6 +373,13 @@ const Suleiman = (function () {
             }
         });
 
+        customPerObjectUniforms = [];
+        for (var cu = 0; cu < customUniforms.length; cu++) {
+            if (customUniforms[cu].perojbset) {
+                customPerObjectUniforms.push(customUniforms[cu]);
+            }
+        }
+
         var timmyloc = 'gmodels/firstCat12_emb.gltf';
         Makarios.preloadGltfPrimitiveFromJsResource(timmyloc, "timmy");
 
@@ -386,8 +413,48 @@ const Suleiman = (function () {
     var sulButtons = [];
 
     var SuleimanState = {
-        isGameOne: false,
+        isGameOn: false,
+        currentObjBrightness: 0.0,
+        selectedObjectID: null,
+        countdownTimer: 0,
+        lightTimer: 0,
+        isPrompting: false,
+        isListening: false,
+        sequence: [],
+        currentScore: 0,
+        SeqCounter: 0,
     };
+
+    var StartButtonClicked = function (startbuttonInst) {
+        if (!SuleimanState.isGameOn) {
+            SuleimanState.sequence = [];
+            SuleimanState.selectedObjectID = null;
+            SuleimanState.isPrompting = true;
+            SuleimanState.isListening = false;
+            SuleimanState.currentScore = 0;
+            SuleimanState.SeqCounter = 0;
+            SuleimanState.lightTimer = 0;
+            SuleimanState.countdownTimer = 120;
+        }
+    };
+
+    var SulButtonClicked = function (sulbuttoninst) {
+        console.log(sulbuttoninst.sul.id);
+        console.log(SuleimanState.sequence[SuleimanState.SeqCounter]);
+        var sulid = sulbuttoninst.sul.id;
+        if (SuleimanState.isListening) {
+            if (SuleimanState.SeqCounter >= SuleimanState.sequence.length) {
+                console.log("TOO MANNYY");
+                SuleimanState.isGameOn = false;
+            } else if (sulid == sulButtons[SuleimanState.sequence[SuleimanState.SeqCounter]].sul.id) {
+                SuleimanState.SeqCounter++;
+            } else {
+                console.log("FAAAIILED");
+                SuleimanState.isGameOn = false;
+            }
+            SuleimanState.countdownTimer = 280;
+        }
+    }
 
     var MakeSulBottonInst = function (textureOverride) {
         var sulbuttonInst = Makarios.instantiate(Primitives.shapes["cube"], textureOverride || 'gmodels/plainsapphire.jpg', null, {});
@@ -396,7 +463,7 @@ const Suleiman = (function () {
         sulbuttonInst.sul = {
             id: sulButtons.length,
         };
-        sulbuttonInst.OnObjectClick = function (objinst) { console.log(objinst.sul.id); };
+        sulbuttonInst.OnObjectClick = SulButtonClicked;//function (objinst) { console.log(objinst.sul.id); };
         sulButtons.push(sulbuttonInst);
 
         return sulbuttonInst;
@@ -418,25 +485,28 @@ const Suleiman = (function () {
 
 
         var obStartButton = Makarios.instantiate(Primitives.shapes["cube"], 'gmodels/gentlegraydark.jpg', null, {});
+        obStartButton.OnObjectClick = StartButtonClicked;//function (objinst) { console.log(objinst.sul.id); };
 
 
         var obButton0 = MakeSulBottonInst('gmodels/plainsapphire.jpg');//Makarios.instantiate(Primitives.shapes["cube"], 'gmodels/plainsapphire.jpg', null, {});
-        mat4.translate(obButton0.matrix, obButton0.matrix, [-3.0, 3.0, 0.0]);
+        mat4.translate(obButton0.matrix, obButton0.matrix, [-6.0, 6.0, 0.0]);
         //obButton0.sul = {
         //    id:0,
         //};
         //obButton0.OnObjectClick = function (objinst) { console.log(objinst.sul.id); };
         //sulButtons.push(obButton0);
 
-        var obButton1 = MakeSulBottonInst('smile1.jpg');
+        var obButton1 = MakeSulBottonInst('gmodels/plainsapphire.jpg');
         mat4.translate(obButton1.matrix, obButton1.matrix, [-3.0, -3.0, 0.0]);
 
-        var obButton2 = MakeSulBottonInst('smile1.jpg');
+        var obButton2 = MakeSulBottonInst('gmodels/plainsapphire.jpg');
         mat4.translate(obButton2.matrix, obButton2.matrix, [3.0, 3.0, 0.0]);
-        var obButton3 = MakeSulBottonInst('smile1.jpg');
+        var obButton3 = MakeSulBottonInst('gmodels/plainsapphire.jpg');
         mat4.translate(obButton3.matrix, obButton3.matrix, [3.0, -3.0, 0.0]);
 
 
+
+        SuleimanState.selectedObjectID = 0;
 
         //obButton1.sul = {
         //    id: 1,
@@ -476,16 +546,12 @@ const Suleiman = (function () {
         console.log(StageData.objects);
         EnableClickActions();
 
-        WanderProc = MainProc;
+        SuleimanProc = MainProc;
     };
 
     var MainProc = function () {
 
-        //FrameLogic.onFrame();
-
-
-        //StageData.SetMainDirLight([0.5, 0.001 * StageData.ticks, 0.0], [0.0, 0.0, 18.0], [1.0, 1.0, 1.0]);
-        //StageData.SetMainDirLight([0.000 * StageData.ticks + 0.5, 0.0002 * StageData.ticks, 0.0], [0.0, 0.0, 144.0], [1.0, 1.0, 1.0]);//176
+        //FrameLogic.onFrame(); 
         StageData.SetMainDirLight([0.000 * 40.0 + 0.5, 0.0002 * 40.0, 0.0], [0.0, 0.0, 144.0], [1.0, 1.0, 1.0]);
 
         var lpoint = [0.0, 0.0, 0.0];
@@ -499,60 +565,75 @@ const Suleiman = (function () {
         vec3.normalize(lpointvec, lpointvec);
         wgl.uniform3fv(
             globalMainProgramInfo.uniformLocations.lightDirection,
-            lpoint);////[0.000 * StageData.ticks + 0.5, 0.002 * StageData.ticks, 0.0]);
-        //console.log(gmod);
+            lpoint); 
 
         if (gmod && !baseGmod) {
             baseGmod = mat4.create();
             baseGmod = mat4.clone(gmod);
         }
-        //var qcharRot = quat.create();
-        //mat4.getRotation(qcharRot, mainChar.matrix);
 
-        //var charRotMat = mat4.create();
-        //fromQuat(charRotMat, qcharRot);
-        //console.log((QuatToEulers(qcharRot)[1] + 360.0) % 360.0);
 
-        //var vmat = mat4.create();
-        //mat4.translate(vmat,     // destination matrix
-        //    baseGmod,     // matrix to translate
-        //    [-0.0, 0.0, 0.0]);
-        //yaw = Math.PI - mainChar.yrot;
-        //mat4.rotate(vmat, vmat, yaw, [vmat[1], vmat[5], vmat[9]]);//.6
-        //mat4.rotate(vmat, vmat, pitch, [vmat[0], vmat[4], vmat[8]]);
-        //mat4.translate(gmod,     // destination matrix
-        //    vmat,     // matrix to translate
-        //    [-mainChar.matrix[12], -mainChar.matrix[13], -mainChar.matrix[14]]);
+        SuleimanState.countdownTimer--;
 
+        if (SuleimanState.countdownTimer <= 0) {
+            if (SuleimanState.isPrompting) {
+
+                if (SuleimanState.SeqCounter < SuleimanState.currentScore) {
+                    var currentPrompt = SuleimanState.sequence[SuleimanState.SeqCounter]; 
+
+                    SuleimanState.selectedObjectID = sulButtons[currentPrompt].id;
+                    console.log(SuleimanState.selectedObjectID);
+                    SuleimanState.SeqCounter++;
+                    SuleimanState.countdownTimer = 100;
+                } else if (SuleimanState.SeqCounter == SuleimanState.currentScore) {
+                    var min = 0;
+                    var max = sulButtons.length - 1;
+                    var rander = Math.floor(Math.random() * (max - min + 1)) + min;
+
+                    SuleimanState.sequence.push(rander);
+                    SuleimanState.selectedObjectID = sulButtons[rander].id;
+                    console.log(SuleimanState.selectedObjectID);
+                    SuleimanState.SeqCounter++;
+                    SuleimanState.countdownTimer = 100;
+                } else {
+                    console.log("now you go");
+                    SuleimanState.selectedObjectID = null;
+                    SuleimanState.SeqCounter = 0;
+                    SuleimanState.isPrompting = false;
+                    SuleimanState.isListening = true;
+                    SuleimanState.countdownTimer = 500;
+                }
+            } else if (SuleimanState.isListening) {
+                if (SuleimanState.SeqCounter == SuleimanState.sequence.length) {
+
+                    console.log("their move");
+                    console.log(SuleimanState.sequence);
+                    SuleimanState.currentScore++;
+                    SuleimanState.SeqCounter = 0;
+                    SuleimanState.isPrompting = true;
+                    SuleimanState.isListening = false;
+                    SuleimanState.countdownTimer = 300;
+                } else {
+                    console.log("TIMEZ UP!!");
+                    SuleimanState.isGameOn = false;
+                    SuleimanState.isPrompting = false;
+                    SuleimanState.isListening = false;
+                    SuleimanState.selectedObjectID = 0;
+                }
+
+            }
+        }
 
 
         var basematrix = mat4.create();
-        mat4.multiply(basematrix, gproj, gmod);
-
-        var hitstuff = {};
-        hitstuff.tris = [];
-        hitstuff.objects = [];
-        var objcount = StageData.objects.length;
-
-        for (var objindex = 0; objindex < objcount; objindex++) {
-            if (!StageData.objects[objindex]) { continue; }
-            StageData.objects[objindex].outlineColor = [1.0, 0.6, 1.0];
-            var objmatrix = mat4.create();
-            mat4.multiply(objmatrix, basematrix, StageData.objects[objindex].matrix);
-
-            //recursiveCheckAllObjectsIfScreenPointHits(StageData.objects[objindex], null, objmatrix, [], hitstuff, { x: mousePos.x, y: mousePos.y }, [], objindex);
-        }
-        for (var hitdex = 0; hitdex < hitstuff.objects.length; hitdex++) {
-            //console.log(hitstuff.objects[hitdex]);
-            StageData.objects[hitstuff.objects[hitdex]].outlineColor = [1.0, 1.0, 0.1];
-        }
+        mat4.multiply(basematrix, gproj, gmod); 
     };
 
-    var WanderProc = ProcInLoading;
+    var SuleimanProc = ProcInLoading;
 
     var OnFrame = function () {
         //FrameLogic.onFrame();
-        WanderProc();
+        SuleimanProc();
     };
 
     return {
