@@ -271,8 +271,10 @@ const Suleiman = (function () {
             perojbset: function (attr, gl, obj) {
 
                 var val = [0.0, 0.0, 0.0, 0.0];
-                if (obj.id == SuleimanState.selectedObjectID ) {
+                if (obj.id == SuleimanState.selectedObjectID) {
                     val = [0.3, 0.3, 0.3, 1.0];
+                } else if (obj.id == 1 && SuleimanState.isListening) {
+                    val = [0.4, 0.4, 0.4, 1.0];
                 }
                 if (currentObjectBrightness[0] != val[0] || currentObjectBrightness[0] != val[1] ||
                     currentObjectBrightness[0] != val[2] || currentObjectBrightness[0] != val[3]) { 
@@ -423,14 +425,32 @@ const Suleiman = (function () {
         sequence: [],
         currentScore: 0,
         SeqCounter: 0,
+        isCoolingDown: false,
+        isFailing: false
+    };
+
+
+    var BeginGameOver = function () {
+
+        SuleimanState.selectedObjectID = null;
+
+        SuleimanState.isFailing = true;
+        SuleimanState.isListening = false;
+        SuleimanState.isCoolingDown = false;
+        SuleimanState.isPrompting = false;
+        SuleimanState.isGameOn = false;
+
+        SuleimanState.countdownTimer = 100;
     };
 
     var StartButtonClicked = function (startbuttonInst) {
-        if (!SuleimanState.isGameOn) {
+        if (!SuleimanState.isGameOn && !SuleimanState.isFailing) {
             SuleimanState.sequence = [];
             SuleimanState.selectedObjectID = null;
             SuleimanState.isPrompting = true;
             SuleimanState.isListening = false;
+            SuleimanState.isCoolingDown = false;
+            SuleimanState.isFailing = false;
             SuleimanState.currentScore = 0;
             SuleimanState.SeqCounter = 0;
             SuleimanState.lightTimer = 0;
@@ -443,16 +463,22 @@ const Suleiman = (function () {
         console.log(SuleimanState.sequence[SuleimanState.SeqCounter]);
         var sulid = sulbuttoninst.sul.id;
         if (SuleimanState.isListening) {
+
+            SuleimanState.isCoolingDown = false;
+            SuleimanState.selectedObjectID = sulbuttoninst.id;
+
             if (SuleimanState.SeqCounter >= SuleimanState.sequence.length) {
                 console.log("TOO MANNYY");
                 SuleimanState.isGameOn = false;
+                BeginGameOver();
             } else if (sulid == sulButtons[SuleimanState.sequence[SuleimanState.SeqCounter]].sul.id) {
                 SuleimanState.SeqCounter++;
             } else {
                 console.log("FAAAIILED");
                 SuleimanState.isGameOn = false;
+                BeginGameOver();
             }
-            SuleimanState.countdownTimer = 280;
+            SuleimanState.countdownTimer = 50;
         }
     }
 
@@ -488,8 +514,13 @@ const Suleiman = (function () {
         obStartButton.OnObjectClick = StartButtonClicked;//function (objinst) { console.log(objinst.sul.id); };
 
 
+        var waitingLight = Makarios.instantiate(Primitives.shapes["cube"], 'plainsky.jpg', null, {});
+        mat4.translate(waitingLight.matrix, waitingLight.matrix, [0.0, -1.50, 0.0]);
+        mat4.scale(waitingLight.matrix, waitingLight.matrix, [1.0, 0.20, 1.0])
+
+
         var obButton0 = MakeSulBottonInst('gmodels/plainsapphire.jpg');//Makarios.instantiate(Primitives.shapes["cube"], 'gmodels/plainsapphire.jpg', null, {});
-        mat4.translate(obButton0.matrix, obButton0.matrix, [-6.0, 6.0, 0.0]);
+        mat4.translate(obButton0.matrix, obButton0.matrix, [-3.0, 3.0, 0.0]);
         //obButton0.sul = {
         //    id:0,
         //};
@@ -578,13 +609,19 @@ const Suleiman = (function () {
         if (SuleimanState.countdownTimer <= 0) {
             if (SuleimanState.isPrompting) {
 
-                if (SuleimanState.SeqCounter < SuleimanState.currentScore) {
-                    var currentPrompt = SuleimanState.sequence[SuleimanState.SeqCounter]; 
+                if (!SuleimanState.isCoolingDown) {
+                    SuleimanState.isCoolingDown = true;
+                    SuleimanState.selectedObjectID = null;
+                    SuleimanState.countdownTimer = 18;
+
+                } else if (SuleimanState.SeqCounter < SuleimanState.currentScore) {
+                    var currentPrompt = SuleimanState.sequence[SuleimanState.SeqCounter];
 
                     SuleimanState.selectedObjectID = sulButtons[currentPrompt].id;
                     console.log(SuleimanState.selectedObjectID);
                     SuleimanState.SeqCounter++;
-                    SuleimanState.countdownTimer = 100;
+                    SuleimanState.isCoolingDown = false;
+                    SuleimanState.countdownTimer = 60;
                 } else if (SuleimanState.SeqCounter == SuleimanState.currentScore) {
                     var min = 0;
                     var max = sulButtons.length - 1;
@@ -594,33 +631,57 @@ const Suleiman = (function () {
                     SuleimanState.selectedObjectID = sulButtons[rander].id;
                     console.log(SuleimanState.selectedObjectID);
                     SuleimanState.SeqCounter++;
-                    SuleimanState.countdownTimer = 100;
+                    SuleimanState.isCoolingDown = false;
+                    SuleimanState.countdownTimer = 60;
                 } else {
                     console.log("now you go");
                     SuleimanState.selectedObjectID = null;
                     SuleimanState.SeqCounter = 0;
                     SuleimanState.isPrompting = false;
                     SuleimanState.isListening = true;
-                    SuleimanState.countdownTimer = 500;
+                    SuleimanState.isCoolingDown = false;
+                    SuleimanState.countdownTimer = 400;
                 }
             } else if (SuleimanState.isListening) {
-                if (SuleimanState.SeqCounter == SuleimanState.sequence.length) {
+                if (!SuleimanState.isCoolingDown) {
+                    SuleimanState.isCoolingDown = true;
+                    if (SuleimanState.SeqCounter == SuleimanState.sequence.length) {
+                        SuleimanState.countdownTimer = 50;
+                    } else {
+                        SuleimanState.countdownTimer = 180;
+                    }
+                    SuleimanState.selectedObjectID = null;
+                } else if (SuleimanState.SeqCounter == SuleimanState.sequence.length) {
 
                     console.log("their move");
+                    SuleimanState.selectedObjectID = null;
+                    SuleimanState.isCoolingDown = false;
                     console.log(SuleimanState.sequence);
                     SuleimanState.currentScore++;
                     SuleimanState.SeqCounter = 0;
                     SuleimanState.isPrompting = true;
                     SuleimanState.isListening = false;
-                    SuleimanState.countdownTimer = 300;
+                    SuleimanState.countdownTimer = 80;
                 } else {
                     console.log("TIMEZ UP!!");
+                    SuleimanState.isCoolingDown = false;
                     SuleimanState.isGameOn = false;
                     SuleimanState.isPrompting = false;
                     SuleimanState.isListening = false;
-                    SuleimanState.selectedObjectID = 0;
+                    BeginGameOver();
                 }
 
+            } else if (SuleimanState.isFailing) {
+                if (!SuleimanState.isCoolingDown) {
+                    SuleimanState.isCoolingDown = true;
+                    SuleimanState.countdownTimer = 150;
+                    SuleimanState.selectedObjectID = null;
+                } else {
+                    //completeFailing
+                    SuleimanState.isFailing = false;
+                    SuleimanState.selectedObjectID = 0;
+                    SuleimanState.isCoolingDown = false;
+                }
             }
         }
 
