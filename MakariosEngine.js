@@ -2349,6 +2349,31 @@ const Makarios = (function () {
         });
     };
 
+    self.preloadAudioFromUrl = function (pathloc, soundname) {
+        if (GiongNoi.AudioAssets[soundname]) { return; }
+        //console.log(primname + '==');
+
+        self.itemsToPreload++;
+        GiongNoi.loadSound(pathloc, soundname, function (res) {
+            //console.log('==' + primname);
+            //Primitives.shapes[primname] = res.prim;
+            //Primitives.shapes[primname].animations = [];
+            //if (res.animations) {
+            //    for (var a = 0; a < res.animations.length; a++) {
+            //        Primitives.animations.push(res.animations[a]);
+            //        Primitives.shapes[primname].animations[res.animations[a].name] = Primitives.animations[Primitives.animations.length - 1];
+            //    }
+            //}
+            //if (defaultTransform != null) {
+            //    console.log(primname + ' applying default transofrm');
+            //    self.applyDefaultTransformRecursive(Primitives.shapes[primname], primname, defaultTransform);
+            //    //linTransformRange(Primitives.shapes[primname].positions, Primitives.shapes[primname].positions, defaultTransform, 0, Primitives.shapes[primname].positions.length);
+            //    //linTransformRange(Primitives.shapes[primname].vertexNormals, Primitives.shapes[primname].vertexNormals, defaultTransform, 0, Primitives.shapes[primname].vertexNormals.length);
+            //}
+            self.itemsToPreload--;
+        });
+    };
+
     self.applyDefaultTransformRecursive = function (primnode, primname, defaultTransform) {
 
         //if (primnode.inverseBaseMat) {

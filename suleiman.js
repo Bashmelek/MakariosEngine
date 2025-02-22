@@ -200,7 +200,7 @@ const Suleiman = (function () {
                 
                 if(uObjectBrightness.w > 0.0) {
 
-                    vLighting = vLighting + uObjectBrightness.xyz;
+                    vLighting = vLighting + uObjectBrightness.w * uObjectBrightness.xyz;
                 }
  
                 // compute the vector of the surface to the light
@@ -229,6 +229,8 @@ const Suleiman = (function () {
     var uObjectBrightness = {};
     var currentObjectBrightness = [0.0, 0.0, 0.0, 0.0];
 
+    var soundPlayer;
+
     var Init = function () {
         StageData.ticks = 0;
         SkyboxRenderer.useSkybox('skybox');
@@ -236,6 +238,8 @@ const Suleiman = (function () {
         //OutlineRenderer.setup(null, [1.0, 0.6, 1.0]);
         ////Makarios.setStepsForCelShading(4.0);
         Makarios.SetUseAlphaInTextureBuffer(true);
+
+        GiongNoi.InitGiongNoi();
         console.log(camDist);
         maxCamDist = 300.0;//global scope, plz fix
         maxZFar = 550.0;//this global too
@@ -272,7 +276,7 @@ const Suleiman = (function () {
 
                 var val = [0.0, 0.0, 0.0, 0.0];
                 if (obj.id == SuleimanState.selectedObjectID) {
-                    val = [0.3, 0.3, 0.3, 1.0];
+                    val = [0.3, 0.3, 0.3, Math.min(1.0, 0.12 * SuleimanState.lightTimer)];
                 } else if (obj.id == 1 && SuleimanState.isListening) {
                     val = [0.4, 0.4, 0.4, 1.0];
                 }
@@ -375,6 +379,7 @@ const Suleiman = (function () {
             }
         });
 
+
         customPerObjectUniforms = [];
         for (var cu = 0; cu < customUniforms.length; cu++) {
             if (customUniforms[cu].perojbset) {
@@ -393,6 +398,10 @@ const Suleiman = (function () {
 
         var ground01loc = 'gmodels/sampleGround01.gltf';
         Makarios.preloadGltfPrimitiveFromJsResource(ground01loc, "groundsample");
+
+
+        var tonecloc = 'SFX/MusicBoxC1.mp3.jpg';
+        Makarios.preloadAudioFromUrl(tonecloc, "startc");
         //var defmat1 = mat4.create();
         //mat4.fromScaling(defmat1, [0.1, 0.1, 0.1]);
         //var foxloc = 'SampleModels/Fox/glTF-Embedded/Fox.gltf';
@@ -432,7 +441,7 @@ const Suleiman = (function () {
 
     var BeginGameOver = function () {
 
-        SuleimanState.selectedObjectID = null;
+        SuleimanState.selectedObjectID = 2;
 
         SuleimanState.isFailing = true;
         SuleimanState.isListening = false;
@@ -440,10 +449,12 @@ const Suleiman = (function () {
         SuleimanState.isPrompting = false;
         SuleimanState.isGameOn = false;
 
-        SuleimanState.countdownTimer = 100;
+        SuleimanState.countdownTimer = 200;
     };
 
     var StartButtonClicked = function (startbuttonInst) {
+
+        soundPlayer.playSoundFromSelf("startc", 400);
         if (!SuleimanState.isGameOn && !SuleimanState.isFailing) {
             SuleimanState.sequence = [];
             SuleimanState.selectedObjectID = null;
@@ -464,6 +475,7 @@ const Suleiman = (function () {
         var sulid = sulbuttoninst.sul.id;
         if (SuleimanState.isListening) {
 
+            SuleimanState.lightTimer = 0;
             SuleimanState.isCoolingDown = false;
             SuleimanState.selectedObjectID = sulbuttoninst.id;
 
@@ -500,6 +512,8 @@ const Suleiman = (function () {
 
         if (isLoading || Makarios.isPreloading()) { return };
 
+        soundPlayer = GiongNoi.createSingleSourceAudioObject();
+
         //var vmat = mat4.create();
         //mat4.translate(vmat,     // destination matrix
         //    vmat,     // matrix to translate
@@ -510,13 +524,17 @@ const Suleiman = (function () {
         //mat4.rotate(gmod, vmat, Math.PI / 12.0, [vmat[0], vmat[4], vmat[8]]);//0.65
 
 
-        var obStartButton = Makarios.instantiate(Primitives.shapes["cube"], 'gmodels/gentlegraydark.jpg', null, {});
+        var obStartButton = Makarios.instantiate(Primitives.shapes["cube"], 'gmodels/startButton.jpg', null, {});
         obStartButton.OnObjectClick = StartButtonClicked;//function (objinst) { console.log(objinst.sul.id); };
 
 
         var waitingLight = Makarios.instantiate(Primitives.shapes["cube"], 'plainsky.jpg', null, {});
         mat4.translate(waitingLight.matrix, waitingLight.matrix, [0.0, -1.50, 0.0]);
         mat4.scale(waitingLight.matrix, waitingLight.matrix, [1.0, 0.20, 1.0])
+
+        var failureLight = Makarios.instantiate(Primitives.shapes["cube"], 'gmodels/plainrubyred.jpg', null, {});
+        mat4.translate(failureLight.matrix, failureLight.matrix, [0.0, 1.50, 0.0]);
+        mat4.scale(failureLight.matrix, failureLight.matrix, [1.0, 0.20, 1.0])
 
 
         var obButton0 = MakeSulBottonInst('gmodels/plainsapphire.jpg');//Makarios.instantiate(Primitives.shapes["cube"], 'gmodels/plainsapphire.jpg', null, {});
@@ -605,6 +623,7 @@ const Suleiman = (function () {
 
 
         SuleimanState.countdownTimer--;
+        SuleimanState.lightTimer++;
 
         if (SuleimanState.countdownTimer <= 0) {
             if (SuleimanState.isPrompting) {
@@ -617,6 +636,7 @@ const Suleiman = (function () {
                 } else if (SuleimanState.SeqCounter < SuleimanState.currentScore) {
                     var currentPrompt = SuleimanState.sequence[SuleimanState.SeqCounter];
 
+                    SuleimanState.lightTimer = 0;
                     SuleimanState.selectedObjectID = sulButtons[currentPrompt].id;
                     console.log(SuleimanState.selectedObjectID);
                     SuleimanState.SeqCounter++;
@@ -628,6 +648,7 @@ const Suleiman = (function () {
                     var rander = Math.floor(Math.random() * (max - min + 1)) + min;
 
                     SuleimanState.sequence.push(rander);
+                    SuleimanState.lightTimer = 0;
                     SuleimanState.selectedObjectID = sulButtons[rander].id;
                     console.log(SuleimanState.selectedObjectID);
                     SuleimanState.SeqCounter++;
@@ -673,6 +694,7 @@ const Suleiman = (function () {
 
             } else if (SuleimanState.isFailing) {
                 if (!SuleimanState.isCoolingDown) {
+                    
                     SuleimanState.isCoolingDown = true;
                     SuleimanState.countdownTimer = 150;
                     SuleimanState.selectedObjectID = null;
