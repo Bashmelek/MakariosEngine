@@ -60,6 +60,17 @@ const GltfConverter = (function () {
         return primcombined;
     };
 
+    //from el google, thankyou? but from whom is this
+    function stringFromCodePoints(codePoints) {
+        const chunkSize = 1000;
+        let result = '';
+        for (let i = 0; i < codePoints.length; i += chunkSize) {
+            const chunk = codePoints.slice(i, i + chunkSize);
+            result += String.fromCodePoint(...chunk);
+        }
+        return result;
+    }
+
     var applyNode = function (fullobject, node, parentmatrix, nodeIndex, newprim, parentprim) {
 
         var prim = newprim;
@@ -164,8 +175,16 @@ const GltfConverter = (function () {
                                     console.log('size ' + fullobject.bufferViews[pseudoAcc.bufferView].byteLength + ' with view: ' + pseudoAcc.bufferView);
                                     //thankyou GOT 0 https://stackoverflow.com/questions/9267899/how-can-i-convert-an-arraybuffer-to-a-base64-encoded-string
                                     var asBufferArray = getBufferFromAccessor(fullobject, pseudoAcc);
+                                    console.log("newly buffed out. now to TOA");
+                                    //var experimentalToa = stringFromCodePoints(asBufferArray);
+                                    //console.log('experiment worked');
+                                    //var preThoa = String.fromCodePoint.apply(null, asBufferArray);//fromCharCode
+                                    //console.log("could pretoa:" + preThoa);
+                                    //var thethoa = btoa(String.fromCodePoint.apply(null, asBufferArray));
+                                    //console.log("could toa:" + thethoa);
                                     //console.log(asBufferArray);
-                                    fullobject.images[imageIndex].uri = "data:image/png;base64," + btoa(String.fromCharCode.apply(null, asBufferArray));
+                                    fullobject.images[imageIndex].uri = "data:image/png;base64," + btoa(stringFromCodePoints(asBufferArray));//btoa(String.fromCodePoint.apply(null, asBufferArray));//String.fromCodePoint
+                                    //console.log(fullobject.images[imageIndex].uri);
                                     //console.log(pnguri);
                                     image.src = fullobject.images[imageIndex].uri;// 'plainsky.jpg';//fullobject.images[imageIndex].uri;
                                     prim.textureUrl = fullobject.images[imageIndex].uri;// 'plainsky.jpg';//fullobject.images[imageIndex].uri;

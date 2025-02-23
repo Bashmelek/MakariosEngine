@@ -353,8 +353,8 @@ const YeuThuong = (function () {
             }
         });
 
-        var timmyloc = 'gmodels/firstCat12_emb.gltf';
-        Makarios.preloadGltfPrimitiveFromJsResource(timmyloc, "timmy");
+        //var timmyloc = 'gmodels/firstCat12_emb.gltf';
+        //Makarios.preloadGltfPrimitiveFromJsResource(timmyloc, "timmy");
 
         var katloc = 'gmodels/firstCat13_emb.gltf';
         Makarios.preloadGltfPrimitiveFromJsResource(katloc, "kat");
@@ -362,8 +362,8 @@ const YeuThuong = (function () {
         var diamondloc = 'gmodels/diamond0.gltf';
         Makarios.preloadGltfPrimitiveFromJsResource(diamondloc, "diamond");
 
-        var ground01loc = 'gmodels/sampleGround01.gltf';
-        Makarios.preloadGltfPrimitiveFromJsResource(ground01loc, "groundsample");
+        //var ground01loc = 'gmodels/sampleGround01.gltf';
+        //Makarios.preloadGltfPrimitiveFromJsResource(ground01loc, "groundsample");
         //var defmat1 = mat4.create();
         //mat4.fromScaling(defmat1, [0.1, 0.1, 0.1]);
         //var foxloc = 'SampleModels/Fox/glTF-Embedded/Fox.gltf';

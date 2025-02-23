@@ -279,6 +279,8 @@ const Suleiman = (function () {
                     val = [0.3, 0.3, 0.3, Math.min(1.0, 0.12 * SuleimanState.lightTimer)];
                 } else if (obj.id == 1 && SuleimanState.isListening) {
                     val = [0.4, 0.4, 0.4, 1.0];
+                } else if (obj.id == 1 && SuleimanState.isFailing) {
+                    val = [0.5, 0.0, 0.0, 1.0];
                 }
                 if (currentObjectBrightness[0] != val[0] || currentObjectBrightness[0] != val[1] ||
                     currentObjectBrightness[0] != val[2] || currentObjectBrightness[0] != val[3]) { 
@@ -387,21 +389,72 @@ const Suleiman = (function () {
             }
         }
 
-        var timmyloc = 'gmodels/firstCat12_emb.gltf';
-        Makarios.preloadGltfPrimitiveFromJsResource(timmyloc, "timmy");
+        //var tonecloc = 'SFX/MusicBoxC1.mp3';
+        //Makarios.preloadAudioFromUrl(tonecloc, "startc");
 
-        var katloc = 'gmodels/firstCat13_emb.gltf';
-        Makarios.preloadGltfPrimitiveFromJsResource(katloc, "kat");
+        var tonecsloc = 'SFX/MusicBoxCs1.mp3';
+        Makarios.preloadAudioFromUrl(tonecsloc, "tonecs");
+        var tonecloc = 'SFX/MusicBoxC1.mp3';
+        Makarios.preloadAudioFromUrl(tonecloc, "tonec");
+        var tonecsloc = 'SFX/MusicBoxCs1.mp3';
+        Makarios.preloadAudioFromUrl(tonecsloc, "tonecs");
+        var tonedloc = 'SFX/MusicBoxD1.mp3';
+        Makarios.preloadAudioFromUrl(tonedloc, "toned");
+        var tonedsloc = 'SFX/MusicBoxDs1.mp3';
+        Makarios.preloadAudioFromUrl(tonedsloc, "toneds");
+        var toneeloc = 'SFX/MusicBoxE1.mp3';
+        Makarios.preloadAudioFromUrl(toneeloc, "tonee");
+        var tonefloc = 'SFX/MusicBoxF1.mp3';
+        Makarios.preloadAudioFromUrl(tonefloc, "tonef");
+        var tonefsloc = 'SFX/MusicBoxFs1.mp3';
+        Makarios.preloadAudioFromUrl(tonefsloc, "tonefs");
+        var tonegloc = 'SFX/MusicBoxG1.mp3';
+        Makarios.preloadAudioFromUrl(tonegloc, "toneg");
+        var tonegsloc = 'SFX/MusicBoxGs1.mp3';
+        Makarios.preloadAudioFromUrl(tonegsloc, "tonegs");
+        var tonealoc = 'SFX/MusicBoxA1.mp3';
+        Makarios.preloadAudioFromUrl(tonealoc, "tonea");
+        var toneasloc = 'SFX/MusicBoxAs1.mp3';
+        Makarios.preloadAudioFromUrl(toneasloc, "toneas");
+        var tonebloc = 'SFX/MusicBoxB1.mp3';
+        Makarios.preloadAudioFromUrl(tonebloc, "toneb");
 
-        var diamondloc = 'gmodels/diamond0.gltf';
-        Makarios.preloadGltfPrimitiveFromJsResource(diamondloc, "diamond");
-
-        var ground01loc = 'gmodels/sampleGround01.gltf';
-        Makarios.preloadGltfPrimitiveFromJsResource(ground01loc, "groundsample");
+        var tonebloc = 'SFX/defeatsmol.mp3';
+        Makarios.preloadAudioFromUrl(tonebloc, "defeat");
 
 
-        var tonecloc = 'SFX/MusicBoxC1.mp3.jpg';
-        Makarios.preloadAudioFromUrl(tonecloc, "startc");
+        var sb1loc = 'gmodels/suleimanb1.gltf';
+        Makarios.preloadGltfPrimitiveFromJsResource(sb1loc, "sb1");
+        var sb2loc = 'gmodels/suleimanb2.gltf';
+        Makarios.preloadGltfPrimitiveFromJsResource(sb2loc, "sb2");
+        var sb3loc = 'gmodels/suleimanb3.gltf';
+        Makarios.preloadGltfPrimitiveFromJsResource(sb3loc, "sb3");
+        var sb4loc = 'gmodels/suleimanb4.gltf';
+        Makarios.preloadGltfPrimitiveFromJsResource(sb4loc, "sb4");
+        var sb5loc = 'gmodels/suleimanb5.gltf';
+        Makarios.preloadGltfPrimitiveFromJsResource(sb5loc, "sb5");
+        var sb6loc = 'gmodels/suleimanb6.gltf';
+        Makarios.preloadGltfPrimitiveFromJsResource(sb6loc, "sb6");
+        var sb7loc = 'gmodels/suleimanb7.gltf';
+        Makarios.preloadGltfPrimitiveFromJsResource(sb7loc, "sb7");
+        var sb8loc = 'gmodels/suleimanb8.gltf';
+        Makarios.preloadGltfPrimitiveFromJsResource(sb8loc, "sb8");
+        var sb9loc = 'gmodels/suleimanb9.gltf';
+        Makarios.preloadGltfPrimitiveFromJsResource(sb9loc, "sb9");
+        var sb10loc = 'gmodels/suleimanb10.gltf';
+        Makarios.preloadGltfPrimitiveFromJsResource(sb10loc, "sb10");
+        var sb11loc = 'gmodels/suleimanb11.gltf';
+        Makarios.preloadGltfPrimitiveFromJsResource(sb11loc, "sb11");
+        var sb12loc = 'gmodels/suleimanb12.gltf';
+        Makarios.preloadGltfPrimitiveFromJsResource(sb12loc, "sb12");
+
+        var sbStartloc = 'gmodels/suleimanbStart.gltf';
+        Makarios.preloadGltfPrimitiveFromJsResource(sbStartloc, "sbstart");
+        var sulstatusloc = 'gmodels/suleimanStatusLight.gltf';
+        Makarios.preloadGltfPrimitiveFromJsResource(sulstatusloc, "sulstatus");
+        var sulBoxLoc = 'gmodels/suleimanBox.gltf';
+        Makarios.preloadGltfPrimitiveFromJsResource(sulBoxLoc, "sulbox");
+
         //var defmat1 = mat4.create();
         //mat4.fromScaling(defmat1, [0.1, 0.1, 0.1]);
         //var foxloc = 'SampleModels/Fox/glTF-Embedded/Fox.gltf';
@@ -441,7 +494,9 @@ const Suleiman = (function () {
 
     var BeginGameOver = function () {
 
-        SuleimanState.selectedObjectID = 2;
+        //turn failure light one
+        //SuleimanState.selectedObjectID = 1;
+        soundPlayer.playSoundFromSelf("defeat", 1600);
 
         SuleimanState.isFailing = true;
         SuleimanState.isListening = false;
@@ -449,12 +504,12 @@ const Suleiman = (function () {
         SuleimanState.isPrompting = false;
         SuleimanState.isGameOn = false;
 
-        SuleimanState.countdownTimer = 200;
+        SuleimanState.countdownTimer = 180;
     };
 
     var StartButtonClicked = function (startbuttonInst) {
 
-        soundPlayer.playSoundFromSelf("startc", 400);
+        //soundPlayer.playSoundFromSelf("tonec", 400);
         if (!SuleimanState.isGameOn && !SuleimanState.isFailing) {
             SuleimanState.sequence = [];
             SuleimanState.selectedObjectID = null;
@@ -466,6 +521,7 @@ const Suleiman = (function () {
             SuleimanState.SeqCounter = 0;
             SuleimanState.lightTimer = 0;
             SuleimanState.countdownTimer = 120;
+            SuleimanState.isGameOn = true;
         }
     };
 
@@ -478,29 +534,35 @@ const Suleiman = (function () {
             SuleimanState.lightTimer = 0;
             SuleimanState.isCoolingDown = false;
             SuleimanState.selectedObjectID = sulbuttoninst.id;
+            SuleimanState.countdownTimer = 50;
 
             if (SuleimanState.SeqCounter >= SuleimanState.sequence.length) {
                 console.log("TOO MANNYY");
                 SuleimanState.isGameOn = false;
                 BeginGameOver();
             } else if (sulid == sulButtons[SuleimanState.sequence[SuleimanState.SeqCounter]].sul.id) {
+                soundPlayer.playSoundFromSelf(sulbuttoninst.sul.tone, 400);
                 SuleimanState.SeqCounter++;
             } else {
                 console.log("FAAAIILED");
                 SuleimanState.isGameOn = false;
                 BeginGameOver();
             }
-            SuleimanState.countdownTimer = 50;
+        } else if (SuleimanState.isPrompting) {
+            SuleimanState.isGameOn = false;
+            BeginGameOver();
         }
     }
 
-    var MakeSulBottonInst = function (textureOverride) {
-        var sulbuttonInst = Makarios.instantiate(Primitives.shapes["cube"], textureOverride || 'gmodels/plainsapphire.jpg', null, {});
+    var MakeSulBottonInst = function (textureOverride, tonename, overrideShade) {
+        var shapename = overrideShade || "cube";
+        var sulbuttonInst = Makarios.instantiate(Primitives.shapes[shapename], textureOverride || 'gmodels/plainsapphire.jpg', null, {});
         sulbuttonInst.matrix = mat4.create();''
         //mat4.translate(obButton0.matrix, obButton0.matrix, [-3.0, 3.0, 0.0]);
         sulbuttonInst.sul = {
             id: sulButtons.length,
         };
+        sulbuttonInst.sul.tone = tonename;
         sulbuttonInst.OnObjectClick = SulButtonClicked;//function (objinst) { console.log(objinst.sul.id); };
         sulButtons.push(sulbuttonInst);
 
@@ -524,34 +586,44 @@ const Suleiman = (function () {
         //mat4.rotate(gmod, vmat, Math.PI / 12.0, [vmat[0], vmat[4], vmat[8]]);//0.65
 
 
-        var obStartButton = Makarios.instantiate(Primitives.shapes["cube"], 'gmodels/startButton.jpg', null, {});
+        var obStartButton = Makarios.instantiate(Primitives.shapes["sbstart"], 'gmodels/startButton.jpg', null, {});
         obStartButton.OnObjectClick = StartButtonClicked;//function (objinst) { console.log(objinst.sul.id); };
 
 
-        var waitingLight = Makarios.instantiate(Primitives.shapes["cube"], 'plainsky.jpg', null, {});
-        mat4.translate(waitingLight.matrix, waitingLight.matrix, [0.0, -1.50, 0.0]);
-        mat4.scale(waitingLight.matrix, waitingLight.matrix, [1.0, 0.20, 1.0])
+        var waitingLight = Makarios.instantiate(Primitives.shapes["sulstatus"], 'plainsky.jpg', null, {});
+        //mat4.translate(waitingLight.matrix, waitingLight.matrix, [0.0, -1.50, 0.0]);
+        //mat4.scale(waitingLight.matrix, waitingLight.matrix, [1.0, 0.20, 1.0])
 
-        var failureLight = Makarios.instantiate(Primitives.shapes["cube"], 'gmodels/plainrubyred.jpg', null, {});
-        mat4.translate(failureLight.matrix, failureLight.matrix, [0.0, 1.50, 0.0]);
-        mat4.scale(failureLight.matrix, failureLight.matrix, [1.0, 0.20, 1.0])
+        var gameBox = Makarios.instantiate(Primitives.shapes["sulbox"], 'gmodels/offwhite.jpg', null, {});
+        //var failureLight = Makarios.instantiate(Primitives.shapes["cube"], 'gmodels/plainrubyred.jpg', null, {});
+        //mat4.translate(failureLight.matrix, failureLight.matrix, [0.0, 1.50, 0.0]);
+        //mat4.scale(failureLight.matrix, failureLight.matrix, [1.0, 0.20, 1.0])
 
 
-        var obButton0 = MakeSulBottonInst('gmodels/plainsapphire.jpg');//Makarios.instantiate(Primitives.shapes["cube"], 'gmodels/plainsapphire.jpg', null, {});
-        mat4.translate(obButton0.matrix, obButton0.matrix, [-3.0, 3.0, 0.0]);
+        var obButton0 = MakeSulBottonInst('gmodels/plainsapphire.jpg', "tonec", "sb1");//Makarios.instantiate(Primitives.shapes["cube"], 'gmodels/plainsapphire.jpg', null, {});
+        var obButton1 = MakeSulBottonInst('gmodels/oj.jpg', "tonecs", "sb2");
+        var obButton2 = MakeSulBottonInst('gmodels/pastelGreen.jpg', "toned", "sb3");
+        //mat4.translate(obButton0.matrix, obButton0.matrix, [-3.0, 3.0, 0.0]);
         //obButton0.sul = {
         //    id:0,
         //};
         //obButton0.OnObjectClick = function (objinst) { console.log(objinst.sul.id); };
         //sulButtons.push(obButton0);
 
-        var obButton1 = MakeSulBottonInst('gmodels/plainsapphire.jpg');
-        mat4.translate(obButton1.matrix, obButton1.matrix, [-3.0, -3.0, 0.0]);
+        var obButton3 = MakeSulBottonInst('gmodels/plainrubyred.jpg', "toneds", "sb4");
+        var obButton4 = MakeSulBottonInst('gmodels/lime.jpg', "tonee", "sb5");
+        var obButton5 = MakeSulBottonInst('gmodels/periwinkle.jpg', "tonef", "sb6");
+        //mat4.translate(obButton1.matrix, obButton1.matrix, [-3.0, -3.0, 0.0]);
+        //mat4.translate(obButton1.matrix, obButton1.matrix, [0.0, 0.0, 6.0]);
 
-        var obButton2 = MakeSulBottonInst('gmodels/plainsapphire.jpg');
-        mat4.translate(obButton2.matrix, obButton2.matrix, [3.0, 3.0, 0.0]);
-        var obButton3 = MakeSulBottonInst('gmodels/plainsapphire.jpg');
-        mat4.translate(obButton3.matrix, obButton3.matrix, [3.0, -3.0, 0.0]);
+        var obButton6 = MakeSulBottonInst('gmodels/deepjade.jpg', "tonefs", "sb7");
+        var obButton7 = MakeSulBottonInst('gmodels/purple.jpg', "toneg", "sb8");
+        var obButton8 = MakeSulBottonInst('gmodels/plainrosepink.jpg', "tonegs", "sb9");
+        //mat4.translate(obButton2.matrix, obButton2.matrix, [3.0, 3.0, 0.0]);
+        var obButton9 = MakeSulBottonInst('gmodels/plaintopaz.jpg', "tonea", "sb10");
+        var obButton10 = MakeSulBottonInst('gmodels/magenta.jpg', "toneas", "sb11");
+        var obButton11 = MakeSulBottonInst('gmodels/robinegg.jpg', "toneb", "sb12");
+        //mat4.translate(obButton3.matrix, obButton3.matrix, [3.0, -3.0, 0.0]);
 
 
 
@@ -579,14 +651,14 @@ const Suleiman = (function () {
             ny: 2,
 
         };
-        MakUI.writeObjToUI('prompt', 'Find the gems!', promptdata);
-        var statusdata = {
-            zone: MakUI.Zones.topRight,
-            nx: 2,
-            ny: 2,
+        //MakUI.writeObjToUI('prompt', 'Find the gems!', promptdata);
+        //var statusdata = {
+        //    zone: MakUI.Zones.topRight,
+        //    nx: 2,
+        //    ny: 2,
 
-        };
-        MakUI.writeObjToUI('status', 'Gems: ' + collectedGems + '/' + totalGems, statusdata);
+        //};
+        //MakUI.writeObjToUI('status', 'Gems: ' + collectedGems + '/' + totalGems, statusdata);
 
         document.querySelector('#uiCanvas').onmousemove = function (e) {
             e = e || window.event;
@@ -638,6 +710,7 @@ const Suleiman = (function () {
 
                     SuleimanState.lightTimer = 0;
                     SuleimanState.selectedObjectID = sulButtons[currentPrompt].id;
+                    soundPlayer.playSoundFromSelf(StageData.objects[SuleimanState.selectedObjectID].sul.tone, 400);
                     console.log(SuleimanState.selectedObjectID);
                     SuleimanState.SeqCounter++;
                     SuleimanState.isCoolingDown = false;
@@ -650,6 +723,7 @@ const Suleiman = (function () {
                     SuleimanState.sequence.push(rander);
                     SuleimanState.lightTimer = 0;
                     SuleimanState.selectedObjectID = sulButtons[rander].id;
+                    soundPlayer.playSoundFromSelf(StageData.objects[SuleimanState.selectedObjectID].sul.tone, 400);
                     console.log(SuleimanState.selectedObjectID);
                     SuleimanState.SeqCounter++;
                     SuleimanState.isCoolingDown = false;
@@ -694,11 +768,12 @@ const Suleiman = (function () {
 
             } else if (SuleimanState.isFailing) {
                 if (!SuleimanState.isCoolingDown) {
-                    
+                    console.log("FAIL STEP 1")
                     SuleimanState.isCoolingDown = true;
                     SuleimanState.countdownTimer = 150;
                     SuleimanState.selectedObjectID = null;
                 } else {
+                    console.log("FAIL STEP 2")
                     //completeFailing
                     SuleimanState.isFailing = false;
                     SuleimanState.selectedObjectID = 0;

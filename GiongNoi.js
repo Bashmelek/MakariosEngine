@@ -32,7 +32,7 @@ const GiongNoi = (function () {
             }
             ssObject.source = soundContext.createBufferSource();
             ssObject.source.buffer = AudioAssets[name];
-            
+            ssObject.source.loop = true;
 
 
             // tell the source which sound to play
@@ -48,6 +48,7 @@ const GiongNoi = (function () {
             //source.connect(soundContext.destination);       // connect the source to the context's destination (the speakers)
             ssObject.source.start(0);                          // play the source now
 
+            var thisSource = ssObject.source;
             if (duration && duration > 0.0) {
                 setTimeout(function () {  
 
@@ -55,14 +56,14 @@ const GiongNoi = (function () {
                     // now, make sure to set a "scheduling checkpoint" of the current value
                     ssObject.gainNode.gain.setValueAtTime(ssObject.gainNode.gain.value, soundContext.currentTime);
                     // NOW, set the ramp
-                    ssObject.gainNode.gain.linearRampToValueAtTime(0.0, soundContext.currentTime + 0.9);
+                    ssObject.gainNode.gain.linearRampToValueAtTime(0.0, soundContext.currentTime + 0.7);
 
 
                     ssObject.source.connect(ssObject.gainNode);
                     console.log("gainchange");
                     setTimeout(function () {
-
-                    }, duration);
+                        thisSource.stop(0);
+                    }, 1800);
                 }, duration);
             }
         }
@@ -97,7 +98,7 @@ const GiongNoi = (function () {
 
 
         var request = new XMLHttpRequest();
-        request.open('GET', 'SFX/MusicBoxC1.mp3', true);
+        request.open('GET', url, true);
         request.responseType = 'arraybuffer';
 
         // Decode asynchronously
