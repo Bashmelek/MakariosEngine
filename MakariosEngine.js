@@ -1380,7 +1380,7 @@ function onCamChange() {
 
 
 
-function recursiveCheckAllObjectsIfScreenPointHits(object, parent, itsfullmatrix, inheritedcoords, hitstuff, testpoint, inheritedTextCoordsList, rootobjindex) {
+function recursiveCheckAllObjectsIfScreenPointHits(object, parent, itsfullmatrix, inheritedcoords, hitstuff, testpoint, inheritedTextCoordsList, rootobjindex, hitFunction) {
 
     var tricount = object.indices.length / 3;
 
@@ -1453,8 +1453,9 @@ function recursiveCheckAllObjectsIfScreenPointHits(object, parent, itsfullmatrix
                 }
             }
 
-
-            if (object.OnObjectClick) {
+            if (hitFunction) {
+                hitFunction(object)
+            } else if (object.OnObjectClick) {
                 object.OnObjectClick(object);
             }
             //don't need to rebind anymore, because we do this all the time yeah?
@@ -1558,9 +1559,11 @@ function onTouchDrag(e) {
         }
     }
 }
+ 
 
 var enableClickTestFlip = false;
 var clickEnabled = false;
+var useSimpleTouchAsClick = false;
 function EnableClickActions() {
     if (clickEnabled) { return; }
     clickEnabled = true;
@@ -1603,6 +1606,37 @@ function EnableClickActions() {
             recursiveCheckAllObjectsIfScreenPointHits(StageData.objects[objindex], null, objmatrix, [], hitstuff, { x: e.clientX, y: e.clientY }, [], objindex);
         }
     });
+
+    if (useSimpleTouchAsClick) {
+        window.addEventListener("touchstart", function (e) {
+
+            e.preventDefault();
+            mouseisdown = true;
+            currentTouch = e.changedTouches[0];
+
+            //dragstartpoint = { x: currentTouch.pageX, y: currentTouch.pageY };
+            //lastmousedownpoint = { x: currentTouch.pageX, y: currentTouch.pageY };
+            var matrices = [];
+            var basematrix = mat4.create();
+            mat4.multiply(basematrix, gproj, gmod);
+            matrices.push(basematrix);
+
+            var hittris = [];
+            var hitstuff = {};
+            hitstuff.tris = [];
+            hitstuff.objects = [];
+            var objcount = StageData.objects.length;
+
+            for (var objindex = 0; objindex < objcount; objindex++) {
+                if (!StageData.objects[objindex]) { continue; }
+                var objmatrix = mat4.create();
+                mat4.multiply(objmatrix, basematrix, StageData.objects[objindex].matrix);
+
+                recursiveCheckAllObjectsIfScreenPointHits(StageData.objects[objindex], null, objmatrix, [], hitstuff, { x: currentTouch.pageX, y: currentTouch.pageY }, [], objindex);
+            }
+        });
+
+    }
     //}
 }
 

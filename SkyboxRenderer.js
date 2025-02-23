@@ -62,6 +62,9 @@ float srgb(float v)
             vec3 dir = normalize(varying_pixel_position);
             vec3 sample = texture(uniform_cubemap, vec3(-1.0, 1.0, 1.0) * dir);
             gl_FragColor = argb(sample);
+
+            ////FOR PCITURE DAY ONLY!!!
+            //gl_FragColor = vec4(0.0, 1.0, 0.0, 1.0);
         }
     `;
 
