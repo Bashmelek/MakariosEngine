@@ -509,7 +509,12 @@ const Suleiman = (function () {
     };
 
     var UpdateGameSpeedFactor = function () {
-        speedFactor = (1.0 - Math.max(0.03 * SuleimanState.currentScore, 0.35));
+        var subtractor = 0.0;
+        if (SuleimanState.currentScore > 3) {
+            subtractor = Math.min(.15, (SuleimanState.currentScore * 1.0 - 4.0) * 0.01);
+            console.log(subtractor);
+        }
+        speedFactor = (0.65 - subtractor);//Math.max(0.03 * SuleimanState.currentScore, 0.35));
     }
 
     var StartButtonClicked = function (startbuttonInst) {
@@ -532,8 +537,8 @@ const Suleiman = (function () {
     };
 
     var SulButtonClicked = function (sulbuttoninst) {
-        console.log(sulbuttoninst.sul.id);
-        console.log(SuleimanState.sequence[SuleimanState.SeqCounter]);
+        //console.log(sulbuttoninst.sul.id);
+        //console.log(SuleimanState.sequence[SuleimanState.SeqCounter]);
         var sulid = sulbuttoninst.sul.id;
         if (SuleimanState.isListening) {
 
@@ -722,7 +727,7 @@ const Suleiman = (function () {
                     SuleimanState.lightTimer = 0;
                     SuleimanState.selectedObjectID = sulButtons[currentPrompt].id;
                     soundPlayer.playSoundFromSelf(StageData.objects[SuleimanState.selectedObjectID].sul.tone, 400);
-                    console.log(SuleimanState.selectedObjectID);
+                    //console.log(SuleimanState.selectedObjectID);
                     SuleimanState.SeqCounter++;
                     SuleimanState.isCoolingDown = false;
                     SuleimanState.countdownTimer = 60.0 * Math.pow(speedFactor, 1.5);
@@ -735,7 +740,7 @@ const Suleiman = (function () {
                     SuleimanState.lightTimer = 0;
                     SuleimanState.selectedObjectID = sulButtons[rander].id;
                     soundPlayer.playSoundFromSelf(StageData.objects[SuleimanState.selectedObjectID].sul.tone, 400);
-                    console.log(SuleimanState.selectedObjectID);
+                    //console.log(SuleimanState.selectedObjectID);
                     SuleimanState.SeqCounter++;
                     SuleimanState.isCoolingDown = false;
                     SuleimanState.countdownTimer = 60.0 * Math.pow(speedFactor, 1.5);

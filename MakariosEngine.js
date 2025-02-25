@@ -1584,6 +1584,7 @@ function EnableClickActions() {
     //document.querySelector('#uiCanvas').addEventListener("touchend", onJustTouchUp, false);
     //document.querySelector('#uiCanvas').addEventListener("touchcancel", onJustTouchUp, false); 
 
+    console.log('ADDING CLIQUE HANDLER');
 
     window.addEventListener("click", function (e) {
 
@@ -1608,6 +1609,7 @@ function EnableClickActions() {
     });
 
     if (useSimpleTouchAsClick) {
+        console.log('ADDING TOUCHE HANDLER');
         window.addEventListener("touchstart", function (e) {
 
             e.preventDefault();

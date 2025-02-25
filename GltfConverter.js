@@ -59,16 +59,17 @@ const GltfConverter = (function () {
         primTargeterGlobal(primcombined);
         return primcombined;
     };
+    
+    function getStringFromBufferArray(bufferarray) {
+        var batchsize = 1000;
+        var asString = "";
 
-    //from el google, thankyou? but from whom is this
-    function stringFromCodePoints(codePoints) {
-        const chunkSize = 1000;
-        let result = '';
-        for (let i = 0; i < codePoints.length; i += chunkSize) {
-            const chunk = codePoints.slice(i, i + chunkSize);
-            result += String.fromCodePoint(...chunk);
+        for (var i = 0; i < bufferarray.length; i += batchsize) {
+            var buffersegment = bufferarray.slice(i, i + batchsize);
+            asString += String.fromCodePoint.apply(null, bufferarray);
         }
-        return result;
+
+        return asString;
     }
 
     var applyNode = function (fullobject, node, parentmatrix, nodeIndex, newprim, parentprim) {
@@ -176,14 +177,14 @@ const GltfConverter = (function () {
                                     //thankyou GOT 0 https://stackoverflow.com/questions/9267899/how-can-i-convert-an-arraybuffer-to-a-base64-encoded-string
                                     var asBufferArray = getBufferFromAccessor(fullobject, pseudoAcc);
                                     console.log("newly buffed out. now to TOA");
-                                    //var experimentalToa = stringFromCodePoints(asBufferArray);
+                                    //var experimentalToa = getStringFromBufferArray(asBufferArray);
                                     //console.log('experiment worked');
                                     //var preThoa = String.fromCodePoint.apply(null, asBufferArray);//fromCharCode
                                     //console.log("could pretoa:" + preThoa);
                                     //var thethoa = btoa(String.fromCodePoint.apply(null, asBufferArray));
                                     //console.log("could toa:" + thethoa);
                                     //console.log(asBufferArray);
-                                    fullobject.images[imageIndex].uri = "data:image/png;base64," + btoa(stringFromCodePoints(asBufferArray));//btoa(String.fromCodePoint.apply(null, asBufferArray));//String.fromCodePoint
+                                    fullobject.images[imageIndex].uri = "data:image/png;base64," + btoa(getStringFromBufferArray(asBufferArray));//btoa(String.fromCodePoint.apply(null, asBufferArray));//String.fromCodePoint
                                     //console.log(fullobject.images[imageIndex].uri);
                                     //console.log(pnguri);
                                     image.src = fullobject.images[imageIndex].uri;// 'plainsky.jpg';//fullobject.images[imageIndex].uri;

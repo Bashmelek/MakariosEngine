@@ -36,7 +36,7 @@ const GiongNoi = (function () {
 
 
             // tell the source which sound to play
-            console.log(ssObject.source);
+            //console.log(ssObject.source);
             ssObject.gainNode.gain.cancelScheduledValues(soundContext.currentTime);
             // now, make sure to set a "scheduling checkpoint" of the current value
             ssObject.gainNode.gain.setValueAtTime(ssObject.gainNode.gain.value, soundContext.currentTime);
@@ -60,7 +60,7 @@ const GiongNoi = (function () {
 
 
                     ssObject.source.connect(ssObject.gainNode);
-                    console.log("gainchange");
+                    //console.log("gainchange");
                     setTimeout(function () {
                         thisSource.stop(0);
                     }, 1800);
