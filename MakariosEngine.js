@@ -709,7 +709,7 @@ function RenderObjects(gl, programInfo, objects, parentmatrix, depth, dataHolder
 
         // Bind the texture to texture unit 0
         if (!objects[oj].textureImage && objects[oj].textureUrl) {
-            //console.log(objects[oj]);
+            //console.log(objects[oj].textureUrl);
             objects[oj].textureImage = loadTexture(gl, objects[oj].textureUrl);
         }
         gl.bindTexture(gl.TEXTURE_2D, objects[oj].textureImage);
@@ -956,12 +956,12 @@ function main() {
     // Initialize a shader program; this is where all the lighting
     // for the vertices and so forth is established.
     var vsSourceTrue = vsSource;
-    if (typeof vsOverride != 'undefined') {
+    if (typeof vsOverride != 'undefined' && vsOverride.length > 0) {
         vsSourceTrue = vsOverride;
     }
 
     var fsSourceTrue = fsSource;
-    if (typeof fsOverride != 'undefined') {
+    if (typeof fsOverride != 'undefined' && fsOverride.length > 0) {
         fsSourceTrue = fsOverride;
     }
 
@@ -1564,6 +1564,7 @@ function onTouchDrag(e) {
 var enableClickTestFlip = false;
 var clickEnabled = false;
 var useSimpleTouchAsClick = false;
+var ghostClickEventDisabled = false;
 function EnableClickActions() {
     if (clickEnabled) { return; }
     clickEnabled = true;
@@ -1586,7 +1587,9 @@ function EnableClickActions() {
 
     console.log('ADDING CLIQUE HANDLER');
 
-    window.addEventListener("click", function (e) {
+    var clickHandler = function (e) {
+        e.preventDefault();
+        console.log('firing CLIQUE HANDLER');
 
         var matrices = [];
         var basematrix = mat4.create();
@@ -1606,11 +1609,20 @@ function EnableClickActions() {
 
             recursiveCheckAllObjectsIfScreenPointHits(StageData.objects[objindex], null, objmatrix, [], hitstuff, { x: e.clientX, y: e.clientY }, [], objindex);
         }
-    });
+    }
+
+    window.addEventListener("click", clickHandler);
 
     if (useSimpleTouchAsClick) {
         console.log('ADDING TOUCHE HANDLER');
         window.addEventListener("touchstart", function (e) {
+            console.log('firing TOUCHE HANDLER');
+
+            //thankyou Slashback https://stackoverflow.com/questions/20225153/preventing-ghost-click-when-binding-touchstart-and-click
+            if (!ghostClickEventDisabled && e.type == 'touchstart') {
+                ghostClickEventDisabled = true;
+                window.removeEventListener("click", clickHandler); 
+            }
 
             e.preventDefault();
             mouseisdown = true;
