@@ -17,13 +17,14 @@ const FrameLogic = (function () {
 
             var theobj = StageData.objects[0];
             theobj.isRunning = false;
+            var facing = theobj.Actor ? theobj.Actor.yrot : theobj.yrot;
 
             if (keystates[87] && !keystates[83]) {//w key
-                tryMoveObject(theobj, [Math.sin(theobj.yrot) * theobj.baseSpeed * StageData.timeDelta * 0.18, 0.0, Math.cos(theobj.yrot) * theobj.baseSpeed * StageData.timeDelta * 0.18]);
+                tryMoveObject(theobj, [Math.sin(facing) * theobj.baseSpeed * StageData.timeDelta * 0.18, 0.0, Math.cos(facing) * theobj.baseSpeed * StageData.timeDelta * 0.18]);
                 theobj.isRunning = true;
             }
             if (keystates[83] && !keystates[87]) {//s key
-                tryMoveObject(theobj, [Math.sin(theobj.yrot) * -theobj.baseSpeed * StageData.timeDelta * 0.18, 0.0, Math.cos(theobj.yrot) * -theobj.baseSpeed * StageData.timeDelta * 0.18]);
+                tryMoveObject(theobj, [Math.sin(facing) * -theobj.baseSpeed * StageData.timeDelta * 0.18, 0.0, Math.cos(facing) * -theobj.baseSpeed * StageData.timeDelta * 0.18]);
                 theobj.isRunning = true;
             }
 
@@ -40,10 +41,10 @@ const FrameLogic = (function () {
             //    tryMoveObject(StageData.objects[0], [0.0, 0.0, 0.07]);
             //}
             if (keystates[65] && !keystates[68]) {
-                tryRotateObject(theobj, theobj.baseRotSpeed * StageData.timeDelta * 0.18);
+                tryRotateObject(theobj, theobj.baseRotSpeed * StageData.timeDelta * 0.18, theobj.Actor);
             }
             if (keystates[68] && !keystates[65]) {
-                tryRotateObject(theobj, -theobj.baseRotSpeed * StageData.timeDelta * 0.18);
+                tryRotateObject(theobj, -theobj.baseRotSpeed * StageData.timeDelta * 0.18, theobj.Actor);
             }
             if (keystates[32]) {
                 if (!spaceWasDown.value) {
@@ -57,6 +58,16 @@ const FrameLogic = (function () {
         applyVeleocity();
         applyGravityAndGround();
         checkAxisAlignedCollideTriggers(StageData.objects[0]);
+
+        if (theobj.Actor) {
+            const x = 12;
+            const y = 13;
+            const z = 14;
+
+            theobj.Actor.matrix[x] = theobj.matrix[x];
+            theobj.Actor.matrix[y] = theobj.matrix[y];
+            theobj.Actor.matrix[z] = theobj.matrix[z];
+        }
     }
 
     var tryMoveObject = function (object, vec) {
@@ -1000,7 +1011,7 @@ const FrameLogic = (function () {
 
 
 
-    var tryRotateObject = function (object, rot) {
+    var tryRotateObject = function (object, rot, actor) {
         const x = 12;
         const y = 13;
         const z = 14;
@@ -1012,6 +1023,19 @@ const FrameLogic = (function () {
         var botOffset = (object.collider ? object.collider.bot || 0.0 : 0.0);
         //console.log(probx + ', ' + proby + ', ' + probz);
 
+        if (actor) {
+
+            if (actor.yrot != null) {
+                actor.yrot += rot;
+            }
+
+            mat4.rotate(actor.matrix,  // destination matrix
+                actor.matrix,  // matrix to rotate
+                rot,   // amount to rotate in radians
+                [0, 1, 0]);
+
+            return;
+        }
 
         for (var oo = 0; oo < StageData.objects.length; oo++) {
             if (StageData.objects[oo] && StageData.objects[oo] != object && oo != 3) {
@@ -1175,7 +1199,7 @@ const FrameLogic = (function () {
             var hasHit = false;
 
             var object = StageData.objects[i];
-            if (!object) { continue; }
+            if (!object || object.isActor) { continue; }
             //if (object.isAABoxTrigger) { continue; }
             var velyOrig = object.velocity.y * StageData.timeDelta * 0.18;
 

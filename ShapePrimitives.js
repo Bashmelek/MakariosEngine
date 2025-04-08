@@ -403,6 +403,22 @@ const Primitives = (function () {
         
     };
 
+
+    shapes["empty"] = {
+        id: 4,
+        isComposite: false,
+        positions: [],
+
+        textureCoordinates: [],
+
+        textureCoordinatesWithAlpha: [],
+
+        indices: [],
+
+        vertexNormals: []
+    };
+
+
     return {
         'shapes': shapes,
         'instantiate': instantiate,
