@@ -40,7 +40,7 @@ const ChaosControlv0 = (function () {
                 var mainguy = StageData.objects[mainCharIndex];
 
                 mainguy.matrix[x] += lstick.h;
-                mainguy.matrix[z] += lstick.v;
+                mainguy.matrix[z] += lstick.v * 1.0;
 
             }
         }

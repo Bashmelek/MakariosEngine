@@ -24,7 +24,7 @@ const ChaosGamepad = (function () {
     self.GetLStick = function () {
         var pad = navigator.getGamepads()[0];
         var stickstate = {
-            v: navigator.getGamepads()[0].axes[1],// * -1.0,
+            v: navigator.getGamepads()[0].axes[1] * -1.0,
             h: navigator.getGamepads()[0].axes[0],
             hasInput: true
         }

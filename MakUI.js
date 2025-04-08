@@ -73,13 +73,21 @@ const MakUI = (function () {
         //gui.fillRect(10, 10, 100, 100);// + 400 - now * 10000);
 
         //base was 28 for height 480 (at 4:3) so 120 - 7
-        var newfontsize = (Math.floor(ui.height * 7.0 / 240.0) * 1).toString();
+        var newfontsize = (Math.floor(ui.height * (uiItem.fontsize || 7.0) / 240.0) * 1).toString();
         console.log(newfontsize);
         gui.font = 'bold small-caps ' + newfontsize + 'px serif';
         gui.textBaseline = 'hanging';
 
         console.log(uiItem.text);
-        gui.fillText(uiItem.text, uiItem.x, uiItem.y + 2);
+
+        //thankyou Gabriele https://stackoverflow.com/questions/5026961/html5-canvas-ctx-filltext-wont-do-line-breaks
+        var lineheight = (uiItem.fontsize || 7.0) * 4.0;//24;
+        var tlines = (uiItem.text + '').split('\n');
+        for (var i = 0; i < tlines.length; i++) {
+            //c.fillText(lines[i], x, y + (i * lineheight));
+            gui.fillText(tlines[i], uiItem.x, uiItem.y + 2 + (i * lineheight));
+        }
+         
 
         uiState.hasany = true;
     };

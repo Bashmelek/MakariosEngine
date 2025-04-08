@@ -907,7 +907,11 @@ function resizeCanvas() {
         ui.height = weightedHeight;//height;
         if (uiState.hasany) {
             //Makarios.rewriteToUI();
-            MakUI.refreshUI();
+            if (typeof MakUI != 'undefined') {
+                MakUI.refreshUI();
+            } else {
+                Makarios.rewriteToUI();
+            }
         }
     }
 
@@ -1310,6 +1314,7 @@ function onJustTouchUp(e) {
 
 
 window.addEventListener("keydown", function (e) {
+    if (typeof FrameLogic == 'undefined') { return; }
     FrameLogic.keystates[e.keyCode] = true;
 })
 window.addEventListener("keyup", function (e) {
@@ -1559,7 +1564,8 @@ function onTouchDrag(e) {
         }
     }
 }
- 
+
+const uiCanvas = document.querySelector('#uiCanvas');
 
 var enableClickTestFlip = false;
 var clickEnabled = false;
@@ -1588,6 +1594,9 @@ function EnableClickActions() {
     console.log('ADDING CLIQUE HANDLER');
 
     var clickHandler = function (e) {
+
+        //const ui = document.querySelector('#uiCanvas');//uiCanvas
+        if (e.target != uiCanvas) { return; }
         e.preventDefault();
         console.log('firing CLIQUE HANDLER');
 
@@ -1623,6 +1632,8 @@ function EnableClickActions() {
                 ghostClickEventDisabled = true;
                 window.removeEventListener("click", clickHandler); 
             }
+            //const ui = document.querySelector('#uiCanvas');//uiCanvas
+            if (e.target != uiCanvas) { return; }
 
             e.preventDefault();
             mouseisdown = true;

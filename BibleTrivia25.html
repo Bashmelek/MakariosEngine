@@ -1,0 +1,95 @@
+﻿<!DOCTYPE html>
+
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta content="text/html;charset=utf-8" http-equiv="Content-Type">
+    <meta content="utf-8" http-equiv="encoding">
+    <title></title>
+    <style>
+        html {
+            background-color: #111111;
+        }
+
+        body {
+            background-color: #111111
+        }
+
+        a:hover {
+            color: #44aacc;
+        }
+    </style>
+</head>
+<body style="background-color: #111111; background-image: url('dark_marble_smaller.jpg'); background-size: 60% 60%;" link="#339bbd" vlink="#339bbd" alink="#339bbd">
+    <div style="height: 4px;"></div>
+    <div id="centerdiv" style="width: calc(100vw - 72px); display: flex; justify-content: center; padding-left: 36px; margin-right: 36px;">
+        <div id="canvasHolder" style="margin-left: auto; margin-right: auto;">
+            <canvas id="glCanvas" style="position: absolute; background-color: black; " width="640" height="480"></canvas>
+            <!--Thank you to https://stackoverflow.com/questions/6796194/canvas-getcontext2d-returns-null and https://stackoverflow.com/questions/10037649/how-can-i-stack-two-same-sized-canvas-on-top-of-each-other -->
+            <canvas id="uiCanvas" style="position: relative;" width="640" height="480"></canvas>
+        </div>
+    </div>
+
+    <div style="width: 90vw; display: flex; justify-content: center; padding-top: 18px; padding-bottom: 18px; font-family: sans-serif; font-size: 14pt;">
+        <div style="margin-left: 10%; color: #efefff;">
+        </div>
+    </div>
+    <div>
+        <footer>
+            <div style="border-top: 1px solid  #efefff; width: 80%; margin-left: auto; margin-right: auto; color: #efefff;">
+            </div>
+        </footer>
+    </div>
+</body>
+</html>
+<script src="Shaders/CommonShaders.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/gl-matrix@3.0.0/gl-matrix-min.js"></script>
+<!--<script src="wander.js"></script>-->
+<script src="BibleTrivia25.js"></script>
+<script>
+
+    var theGame = BibleTrivia25;
+    //theGame must have functions:
+    //    Init
+    //    OnFrame
+
+</script>
+
+
+<script src="GltfConverter.js"></script>
+<script src="ShapePrimitives.js"></script>
+<script src="Entera.js"></script>
+<!--<script src="ObjectsShapeData.js"></script>-->
+<!--<script src="LevelData.js"></script>-->
+<script src="StageData.js"></script>
+<script src="MakUI.js"></script>
+<script src="ChaosControl/ChaosGamepad.js"></script>
+<script src="ChaosControl/ChaosControlv0.js"></script>
+<script src="SkyboxRenderer.js"></script>
+<script src="ShadowShader.js"></script>
+<script src="OutlineRenderer.js"></script>
+<script src="MakariosEngine.js"></script>
+<script type="text/javascript">
+    (function () {
+        //$("html,body").scrollTop(29);
+        ////console.log('king kscrolled');
+        //document.getElementById('glCanvas').scrollIntoView();
+        ////setTimeout(function () {
+        ////    window.scrollTo(0, 55);
+        ////}, 10);
+
+        //thank you Sameera Thilakasiri https://stackoverflow.com/questions/7915882/disabling-mouse-scrolling with a few edits
+        setTimeout(function () {
+            document.getElementById('uiCanvas').onmouseenter = function () {
+                document.getElementsByTagName('body')[0].style.overflow = 'hidden';
+                document.getElementById('centerdiv').style.marginRight = "2px";
+                //document.getElementById('centerdiv').style.width = "calc(100% - 38px)";
+            };
+            document.getElementById('uiCanvas').onmouseleave = function () {
+                document.getElementsByTagName('body')[0].style.overflow = 'auto';
+                document.getElementById('centerdiv').style.marginRight = "36px";
+                //document.getElementById('centerdiv').style.width = "calc(100% - 72px)";
+            };
+        }, 10);
+
+    })();
+</script>
