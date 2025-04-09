@@ -368,6 +368,38 @@ const BashNegBlock = (function () {
             bot: -6.0,
             hwidth: 6.0
         };
+
+        var col3 = Makarios.instantiate(Primitives.shapes["cube"], 'plainsky.jpg', null, {});
+        glMatrix.mat4.translate(col3.matrix,     // destination matrix
+            col3.matrix,     // matrix to translate
+            [80.0, 16.0, -20.0]);
+        mat4.rotate(col3.matrix, col3.matrix, -Math.PI / 3.0, [col3.matrix[1], col3.matrix[5], col3.matrix[9]]);
+        mat4.scale(col3.matrix, col3.matrix, [6.0, 6.0, 6.0])
+        initVelocity(col3);
+        col3.collider = {
+            type: 'yrotbox',
+            hdepth: 6.0,
+            hheight: 6.0,
+            bot: -6.0,
+            hwidth: 6.0
+        };
+        //col3.isAABoxTrigger = true;
+
+        var col2 = Makarios.instantiate(Primitives.shapes["cube"], 'plainsky.jpg', null, {});
+        glMatrix.mat4.translate(col2.matrix,     // destination matrix
+            col2.matrix,     // matrix to translate
+            [80.0, 16.0, -50.0]);
+        mat4.rotate(col2.matrix, col2.matrix, -Math.PI / 1.0, [col2.matrix[1], col2.matrix[5], col2.matrix[9]]);
+        mat4.scale(col2.matrix, col2.matrix, [6.0, 6.0, 6.0])
+        initVelocity(col2);
+        col2.collider = {
+            type: 'yrotbox',
+            hdepth: 6.0,
+            hheight: 6.0,
+            bot: -6.0,
+            hwidth: 6.0
+        };
+
         var startplat = Makarios.instantiate(Primitives.shapes["cube"], 'plainsky.jpg', null, {});
         glMatrix.mat4.translate(startplat.matrix,     // destination matrix
             startplat.matrix,     // matrix to translate
