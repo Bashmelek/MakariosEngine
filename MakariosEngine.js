@@ -1316,7 +1316,7 @@ function onJustTouchUp(e) {
 window.addEventListener("keydown", function (e) {
     if (typeof FrameLogic == 'undefined') { return; }
     FrameLogic.keystates[e.keyCode] = true;
-})
+});
 window.addEventListener("keyup", function (e) {
     if (typeof FrameLogic == 'undefined') { return; }
     FrameLogic.keystates[e.keyCode] = false;
@@ -1324,8 +1324,20 @@ window.addEventListener("keyup", function (e) {
         FrameLogic.spaceWasDown.value = false;
         console.log('uppnathim');
     }
-})
+});
 
+function AllKeysOff() {
+    for (var i = 0; i < FrameLogic.keystates.length; i++) {
+        FrameLogic.keystates[i] = false;
+    }
+}
+document.addEventListener("visibilitychange", () => {
+    if (document.hidden) { 
+        AllKeysOff();
+    }
+});
+
+window.addEventListener("blur", AllKeysOff);
 
 function onCamChange() {
     if (typeof ShadowShader !== 'undefined' && gproj && StageData.defShadowProjMat) {

@@ -373,7 +373,7 @@ const BashNegBlock = (function () {
         glMatrix.mat4.translate(col3.matrix,     // destination matrix
             col3.matrix,     // matrix to translate
             [80.0, 16.0, -20.0]);
-        mat4.rotate(col3.matrix, col3.matrix, -Math.PI / 3.0, [col3.matrix[1], col3.matrix[5], col3.matrix[9]]);
+        mat4.rotate(col3.matrix, col3.matrix, -3.0 * Math.PI / 4.0, [col3.matrix[1], col3.matrix[5], col3.matrix[9]]);
         mat4.scale(col3.matrix, col3.matrix, [6.0, 6.0, 6.0])
         initVelocity(col3);
         col3.collider = {
@@ -388,7 +388,7 @@ const BashNegBlock = (function () {
         var col2 = Makarios.instantiate(Primitives.shapes["cube"], 'plainsky.jpg', null, {});
         glMatrix.mat4.translate(col2.matrix,     // destination matrix
             col2.matrix,     // matrix to translate
-            [80.0, 16.0, -50.0]);
+            [80.0, 18.0, -50.0]);
         mat4.rotate(col2.matrix, col2.matrix, -Math.PI / 1.0, [col2.matrix[1], col2.matrix[5], col2.matrix[9]]);
         mat4.scale(col2.matrix, col2.matrix, [6.0, 6.0, 6.0])
         initVelocity(col2);
@@ -399,6 +399,22 @@ const BashNegBlock = (function () {
             bot: -6.0,
             hwidth: 6.0
         };
+
+        var step00 = Makarios.instantiate(Primitives.shapes["cube"], 'plainsky.jpg', null, {});
+        glMatrix.mat4.translate(step00.matrix,     // destination matrix
+            step00.matrix,     // matrix to translate
+            [-70.0, 4.0, -102.0]);
+        mat4.rotate(step00.matrix, step00.matrix, -Math.PI / 2.0, [step00.matrix[1], step00.matrix[5], step00.matrix[9]]);
+        mat4.scale(step00.matrix, step00.matrix, [12.0, 2.0, 12.0])
+        initVelocity(step00);
+        step00.collider = {
+            type: 'yrotbox',
+            hdepth: 12.0,
+            hheight: 2.0,
+            bot: -2.0,
+            hwidth: 12.0
+        };
+        step00.isBaked = true;
 
         var startplat = Makarios.instantiate(Primitives.shapes["cube"], 'plainsky.jpg', null, {});
         glMatrix.mat4.translate(startplat.matrix,     // destination matrix
