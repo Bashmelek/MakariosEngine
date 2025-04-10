@@ -549,7 +549,7 @@ const FrameLogic = (function () {
                                             object.isGrounded = true;
                                             object.confirmGrounded = true;
                                             object.velocity.y = 0.0;
-                                            if(object.id == 0)
+                                            //if(object.id == 0)
                                             //console.log('case aase 0');
                                         } else {
                                             vec[1] = (other.matrix[y] + obotOffset) - (object.matrix[y] + botOffset) - (object.collider.hheight + object.collider.hheight + 0.0001);
