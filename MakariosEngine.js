@@ -1311,19 +1311,22 @@ function onJustTouchUp(e) {
     mouseisdown = false;
 }
 
-
+//var keycount = 0;
 
 window.addEventListener("keydown", function (e) {
     if (typeof FrameLogic == 'undefined') { return; }
     FrameLogic.keystates[e.keyCode] = true;
+    //keycount = 0;
 });
 window.addEventListener("keyup", function (e) {
     if (typeof FrameLogic == 'undefined') { return; }
     FrameLogic.keystates[e.keyCode] = false;
     if (e.keyCode == 32) {
         FrameLogic.spaceWasDown.value = false;
-        console.log('uppnathim');
+        //console.log('uppnathim');
     }
+    //var county = keycount;
+    //console.log(county);
 });
 
 function AllKeysOff() {

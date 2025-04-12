@@ -11,7 +11,7 @@ const FrameLogic = (function () {
     var onFrame = function () {
         //console.log('why lparen why')
         framenum++;
-
+        //keycount++;
         //just for mainChar right now, who has yrot
         if (StageData.objects[0].yrot != null) {
 
