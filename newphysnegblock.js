@@ -122,36 +122,18 @@ const BashNegBlock = (function () {
         if (collectedGems == totalGems && !gameComplete) {
             const ui = document.querySelector('#uiCanvas');
             const gui = ui.getContext('2d');
-            MakUI.writeObjToUI('lovemessage', "", null);
-            MakUI.writeObjToUI('prompt', 'I love you REDACTED! Thank you for playing', null);
-            var loveimage = new Image();
-            loveimage.src = 'Exclude_PersonalFiles/IMG_2006_smol.jpg'; // can also be a remote URL e.g. http://
-            loveimage.onload = function () {
-                gui.drawImage(loveimage, 120, 120);
-                gameComplete = true;
-            };
             //with a little thanks to https://stackoverflow.com/questions/8977369/drawing-png-to-a-canvas-element-not-showing-transparency thank you!
         }
     };
 
     var GemOnPickup = function (geminst) {
-
-        currentGemMessage = geminst.gem.lovemessage || "You are my Sunshine";
-
+        
         console.log('picked up gem +1');
         collectedGems++;
         //MakUI.writeObjToUI('prompt', 'picked up gem +1', null);
         MakUI.writeObjToUI('status', 'Gems: ' + collectedGems + '/' + totalGems, null);
         Makarios.destroy(geminst);
 
-        var yeuMessageData = {
-            zone: MakUI.Zones.lowCenter,
-            nx: 2,
-            ny: 2,
-        };
-        MakUI.writeObjToUI('lovemessage', currentGemMessage, yeuMessageData);
-        isGemMessageShowing = true;
-        gemMessageCountdown = 180;
     };
 
     var GemSpin = function (geminst) {
@@ -272,9 +254,9 @@ const BashNegBlock = (function () {
         obplane.matrix = mat4.create();
         mat4.translate(obplane.matrix,     // destination matrix
             obplane.matrix,     // matrix to translate
-            [0, -1.0, 0.0]);
+            [0, -1.0, -8.0]);
         //mat4.scale(obplane.matrix, obplane.matrix, [1.0, 1.0, 1.0]);// [14.0, 4.0, 14.0]);
-        mat4.scale(obplane.matrix, obplane.matrix, [60.0, 144.0, 164.0]);//[140.0, 194.0, 260.0]
+        mat4.scale(obplane.matrix, obplane.matrix, [92.0, 144.0, 172.0]);//[140.0, 194.0, 260.0]
 
 
         //var obEmpty = Makarios.instantiate(Primitives.shapes["empty"], null, null, {});//'plainsky.jpg'  Primitives.shapes["testbox"].textureUrl "timmy"
@@ -345,20 +327,20 @@ const BashNegBlock = (function () {
         var step4 = Makarios.instantiate(Primitives.shapes["cube"], 'gmodels/gentlesteel.jpg', null, {});
         glMatrix.mat4.translate(step4.matrix,     // destination matrix
             step4.matrix,     // matrix to translate
-            [40.0, 30.0, -172.0]);
-        mat4.scale(step4.matrix, step4.matrix, [4.0, 2.0, 32.0])
+            [8.0, 30.0, -136.0]);
+        mat4.scale(step4.matrix, step4.matrix, [32.0, 2.0, 4.0])
         initVelocity(step4);
         step4.collider = {
             type: 'yrotbox',
-            hdepth: 4.0,
+            hdepth: 32.0,
             hheight: 2.0,
             bot: -2.0,
-            hwidth: 32.0
+            hwidth: 4.0
         };
         var col1 = Makarios.instantiate(Primitives.shapes["cube"], 'plainsky.jpg', null, {});
         glMatrix.mat4.translate(col1.matrix,     // destination matrix
             col1.matrix,     // matrix to translate
-            [40.0, 16.0, -200.0]);
+            [-18.0, 16.0, -136.0]);
         mat4.scale(col1.matrix, col1.matrix, [6.0, 6.0, 6.0])
         initVelocity(col1);
         col1.collider = {
@@ -372,7 +354,7 @@ const BashNegBlock = (function () {
         var col3 = Makarios.instantiate(Primitives.shapes["cube"], 'plainsky.jpg', null, {});
         glMatrix.mat4.translate(col3.matrix,     // destination matrix
             col3.matrix,     // matrix to translate
-            [80.0, 16.0, -20.0]);
+            [54.0, 16.0, -20.0]);
         mat4.rotate(col3.matrix, col3.matrix, -3.0 * Math.PI / 4.0, [col3.matrix[1], col3.matrix[5], col3.matrix[9]]);
         mat4.scale(col3.matrix, col3.matrix, [6.0, 6.0, 6.0])
         initVelocity(col3);
@@ -388,7 +370,7 @@ const BashNegBlock = (function () {
         var col2 = Makarios.instantiate(Primitives.shapes["cube"], 'plainsky.jpg', null, {});
         glMatrix.mat4.translate(col2.matrix,     // destination matrix
             col2.matrix,     // matrix to translate
-            [80.0, 18.0, -50.0]);
+            [54.0, 18.0, -50.0]);
         mat4.rotate(col2.matrix, col2.matrix, -Math.PI / 1.0, [col2.matrix[1], col2.matrix[5], col2.matrix[9]]);
         mat4.scale(col2.matrix, col2.matrix, [6.0, 6.0, 6.0])
         initVelocity(col2);
@@ -670,6 +652,23 @@ const BashNegBlock = (function () {
         };
         tempstep.isBaked = true;
 
+        var step15 = Makarios.instantiate(Primitives.shapes["cube"], 'plainsky.jpg', null, {});
+        tempstep = step15;
+        glMatrix.mat4.translate(tempstep.matrix,     // destination matrix
+            tempstep.matrix,     // matrix to translate
+            [-212.0, 16.0, -80.0]);
+        mat4.rotate(tempstep.matrix, tempstep.matrix, -Math.PI / 2.0, [tempstep.matrix[1], tempstep.matrix[5], tempstep.matrix[9]]);
+        mat4.scale(tempstep.matrix, tempstep.matrix, [12.0, 2.0, 12.0])
+        initVelocity(tempstep);
+        tempstep.collider = {
+            type: 'yrotbox',
+            hdepth: 12.0,
+            hheight: 2.0,
+            bot: -2.0,
+            hwidth: 12.0
+        };
+        tempstep.isBaked = true;
+
 
 
         var startplat = Makarios.instantiate(Primitives.shapes["cube"], 'plainsky.jpg', null, {});
@@ -707,7 +706,6 @@ const BashNegBlock = (function () {
         glMatrix.mat4.translate(d0.matrix,     // destination matrix
             d0.matrix,     // matrix to translate
             [14.0, 2.0, 16.0]);
-        d0.gem.lovemessage = "Đẹp quá!";
 
         var d1 = MakeGemInst('gmodels/plainrubyred.jpg');
         glMatrix.mat4.translate(d1.matrix,     // destination matrix
@@ -715,7 +713,6 @@ const BashNegBlock = (function () {
             [-14.0, 2.0, 26.0]);
         mat4.rotate(d1.matrix, d1.matrix, .92, [1.0, 0.0, 0.0]);//.6
         d1.gem.spin2 = 0.01;
-        d1.gem.lovemessage = "Anh yêu em";
 
         var d2 = MakeGemInst('gmodels/plainsapphire.jpg');
         glMatrix.mat4.translate(d2.matrix,     // destination matrix
@@ -723,47 +720,48 @@ const BashNegBlock = (function () {
             [-24.0, 2.0, -26.0]);
         mat4.rotate(d2.matrix, d2.matrix, .42, [1.0, 0.0, 0.0]);//.6
         d2.gem.spin2 = 0.028;
-        d2.gem.lovemessage = "You are my Sunshine";
 
         var d3 = MakeGemInst('gmodels/plaintopaz.jpg');
         glMatrix.mat4.translate(d3.matrix,     // destination matrix
             d3.matrix,     // matrix to translate
-            [40.0, 8.0, -188.0]);
+            [-20.0, 18.0, -136.0]);
         mat4.rotate(d3.matrix, d3.matrix, .42, [1.0, 0.0, 0.0]);//.6
         d3.gem.spin2 = 0.028;
-        d3.gem.lovemessage = "My life partner <3";
 
         var d4 = MakeGemInst('gmodels/plainrubyred.jpg');
         glMatrix.mat4.translate(d4.matrix,     // destination matrix
             d4.matrix,     // matrix to translate
-            [40.0, 2.0, -218.0]);
+            [-40.0, 2.0, -136.0]);
         mat4.rotate(d4.matrix, d4.matrix, .42, [1.0, 0.0, 0.0]);//.6
         d4.gem.spin2 = 0.028;
-        d4.gem.lovemessage = "Hello beautiful!";
 
         var d5 = MakeGemInst('gmodels/plainrosepink.jpg');
         glMatrix.mat4.translate(d5.matrix,     // destination matrix
             d5.matrix,     // matrix to translate
-            [40.0, 128.0, -188.0]);
+            [36.0, 128.0, -136.0]);
         mat4.rotate(d5.matrix, d5.matrix, .42, [1.0, 0.0, 0.0]);//.6
         d5.gem.spin2 = 0.028;
-        d5.gem.lovemessage = "Em yêu";
 
         var d6 = MakeGemInst('gmodels/plainsapphire.jpg');
         glMatrix.mat4.translate(d6.matrix,     // destination matrix
             d6.matrix,     // matrix to translate
-            [24.0, 24.0, 200.0]);
+            [24.0, 24.0, 100.0]);
         mat4.rotate(d6.matrix, d6.matrix, .42, [1.0, 0.0, 0.0]);//.6
         d6.gem.spin2 = 0.028;
-        d6.gem.lovemessage = "Anh Nhớ Em";
+
+        var d6a = MakeGemInst('gmodels/plainrubyred.jpg');
+        glMatrix.mat4.translate(d6a.matrix,     // destination matrix
+            d6a.matrix,     // matrix to translate
+            [-24.0, 24.0, 100.0]);
+        mat4.rotate(d6a.matrix, d6a.matrix, .42, [1.0, 0.0, 0.0]);//.6
+        d6a.gem.spin2 = 0.028;
 
         var d7 = MakeGemInst('gmodels/plaintopaz.jpg');
         glMatrix.mat4.translate(d7.matrix,     // destination matrix
             d7.matrix,     // matrix to translate
-            [-24.0, 24.0, 200.0]);
+            [-22.0, 24.0, 202.0]);
         mat4.rotate(d7.matrix, d7.matrix, .42, [1.0, 0.0, 0.0]);//.6
         d7.gem.spin2 = 0.028;
-        d7.gem.lovemessage = "I love you";
 
 
 
@@ -867,17 +865,7 @@ const BashNegBlock = (function () {
             Makarios.SetAnimation(mainChar.Actor, "walkCasual");
         } else {
             Makarios.SetAnimation(mainChar.Actor, "IdleStand0");
-        }
-
-        if (isGemMessageShowing && gemMessageCountdown <= 0 && !gameComplete) {
-            currentGemMessage = "";
-            MakUI.writeObjToUI('lovemessage', currentGemMessage, null);
-            isGemMessageShowing = false;
-            if (collectedGems == totalGems && !gameComplete) {
-                MakUI.writeObjToUI('lovemessage', "Return to the starting place", null);
-            }
-        }
-        gemMessageCountdown--;
+        } 
 
         //if mainchar is fallen, pick them back up
         if (StageData.objects[0] && StageData.objects[0].matrix[13] < -200.0) {
