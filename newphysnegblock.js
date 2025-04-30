@@ -137,14 +137,23 @@ const BashNegBlock = (function () {
     };
 
     var GemSpin = function (geminst) {
+        //const x = 12;
+        //const y = 13;
+        //const z = 14;
 
         var gemmat = geminst.matrix;
+
+        //fix for weird drift issue?
+        var oldx = gemmat[12];
+        var oldz = gemmat[14];
 
         if (gemmat[5] != 1.0) {
             mat4.rotate(gemmat, gemmat, geminst.gem.spin2 || .02, [0.0, 1.0, 0.0]);
             // mat4.rotate(gemmat, gemmat, geminst.gem.spin1 || .02, [gemmat[1], gemmat[5], gemmat[9]]);
         }
         mat4.rotate(gemmat, gemmat, geminst.gem.spin1 || .02, [gemmat[1], gemmat[5], gemmat[9]]);
+        gemmat[12] = oldx;
+        gemmat[14] = oldz;
         //mat4.rotate(gemmat, gemmat, pitch, [vmat[0], vmat[4], vmat[8]]);
     };
 
@@ -351,7 +360,7 @@ const BashNegBlock = (function () {
             hwidth: 6.0
         };
 
-        var col3 = Makarios.instantiate(Primitives.shapes["cube"], 'plainsky.jpg', null, {});
+        var col3 = Makarios.instantiate(Primitives.shapes["cube"], 'gmodels/gentlesteel.jpg', null, {});
         glMatrix.mat4.translate(col3.matrix,     // destination matrix
             col3.matrix,     // matrix to translate
             [54.0, 16.0, -20.0]);
@@ -367,7 +376,7 @@ const BashNegBlock = (function () {
         };
         //col3.isAABoxTrigger = true;
 
-        var col2 = Makarios.instantiate(Primitives.shapes["cube"], 'plainsky.jpg', null, {});
+        var col2 = Makarios.instantiate(Primitives.shapes["cube"], 'gmodels/gentlegraydark.jpg', null, {});
         glMatrix.mat4.translate(col2.matrix,     // destination matrix
             col2.matrix,     // matrix to translate
             [54.0, 18.0, -50.0]);
@@ -398,7 +407,7 @@ const BashNegBlock = (function () {
         };
         step00.isBaked = true;
 
-        var step01 = Makarios.instantiate(Primitives.shapes["cube"], 'plainsky.jpg', null, {});
+        var step01 = Makarios.instantiate(Primitives.shapes["cube"], 'gmodels/gentlegraydark.jpg', null, {});
         glMatrix.mat4.translate(step01.matrix,     // destination matrix
             step01.matrix,     // matrix to translate
             [0.0, 4.0, 178.0]);
@@ -432,7 +441,7 @@ const BashNegBlock = (function () {
         };
         step0a.isBaked = true;
 
-        var step02 = Makarios.instantiate(Primitives.shapes["cube"], 'plainsky.jpg', null, {});
+        var step02 = Makarios.instantiate(Primitives.shapes["cube"], 'gmodels/gentlegraydark.jpg', null, {});
         glMatrix.mat4.translate(step02.matrix,     // destination matrix
             step02.matrix,     // matrix to translate
             [-30.0, 12.0, 226.0]);
@@ -465,209 +474,209 @@ const BashNegBlock = (function () {
         };
         tempstep.isBaked = true;
 
-        var step04 = Makarios.instantiate(Primitives.shapes["cube"], 'plainsky.jpg', null, {});
-        tempstep = step04;
-        glMatrix.mat4.translate(tempstep.matrix,     // destination matrix
-            tempstep.matrix,     // matrix to translate
-            [-126.0, 16.0, 206.0]);
-        mat4.rotate(tempstep.matrix, tempstep.matrix, -Math.PI / 2.0, [tempstep.matrix[1], tempstep.matrix[5], tempstep.matrix[9]]);
-        mat4.scale(tempstep.matrix, tempstep.matrix, [36.0, 2.0, 12.0])
-        initVelocity(tempstep);
-        tempstep.collider = {
-            type: 'yrotbox',
-            hdepth: 36.0,
-            hheight: 2.0,
-            bot: -2.0,
-            hwidth: 12.0
-        };
-        tempstep.isBaked = true;
+        //var step04 = Makarios.instantiate(Primitives.shapes["cube"], 'plainsky.jpg', null, {});
+        //tempstep = step04;
+        //glMatrix.mat4.translate(tempstep.matrix,     // destination matrix
+        //    tempstep.matrix,     // matrix to translate
+        //    [-126.0, 16.0, 206.0]);
+        //mat4.rotate(tempstep.matrix, tempstep.matrix, -Math.PI / 2.0, [tempstep.matrix[1], tempstep.matrix[5], tempstep.matrix[9]]);
+        //mat4.scale(tempstep.matrix, tempstep.matrix, [36.0, 2.0, 12.0])
+        //initVelocity(tempstep);
+        //tempstep.collider = {
+        //    type: 'yrotbox',
+        //    hdepth: 36.0,
+        //    hheight: 2.0,
+        //    bot: -2.0,
+        //    hwidth: 12.0
+        //};
+        //tempstep.isBaked = true;
 
-        var step05 = Makarios.instantiate(Primitives.shapes["cube"], 'plainsky.jpg', null, {});
-        tempstep = step05;
-        glMatrix.mat4.translate(tempstep.matrix,     // destination matrix
-            tempstep.matrix,     // matrix to translate
-            [-150.0, 16.0, 106.0]);
-        mat4.rotate(tempstep.matrix, tempstep.matrix, -Math.PI / 2.0, [tempstep.matrix[1], tempstep.matrix[5], tempstep.matrix[9]]);
-        mat4.scale(tempstep.matrix, tempstep.matrix, [80.0, 2.0, 40.0])
-        initVelocity(tempstep);
-        tempstep.collider = {
-            type: 'yrotbox',
-            hdepth: 80.0,
-            hheight: 2.0,
-            bot: -2.0,
-            hwidth: 40.0
-        };
-        tempstep.isBaked = true;
+        //var step05 = Makarios.instantiate(Primitives.shapes["cube"], 'plainsky.jpg', null, {});
+        //tempstep = step05;
+        //glMatrix.mat4.translate(tempstep.matrix,     // destination matrix
+        //    tempstep.matrix,     // matrix to translate
+        //    [-150.0, 16.0, 106.0]);
+        //mat4.rotate(tempstep.matrix, tempstep.matrix, -Math.PI / 2.0, [tempstep.matrix[1], tempstep.matrix[5], tempstep.matrix[9]]);
+        //mat4.scale(tempstep.matrix, tempstep.matrix, [80.0, 2.0, 40.0])
+        //initVelocity(tempstep);
+        //tempstep.collider = {
+        //    type: 'yrotbox',
+        //    hdepth: 80.0,
+        //    hheight: 2.0,
+        //    bot: -2.0,
+        //    hwidth: 40.0
+        //};
+        //tempstep.isBaked = true;
 
-        var step06 = Makarios.instantiate(Primitives.shapes["cube"], 'plainsky.jpg', null, {});
-        tempstep = step06;
-        glMatrix.mat4.translate(tempstep.matrix,     // destination matrix
-            tempstep.matrix,     // matrix to translate
-            [-190.0, 24.0, 66.0]);
-        mat4.rotate(tempstep.matrix, tempstep.matrix, -Math.PI / 2.0, [tempstep.matrix[1], tempstep.matrix[5], tempstep.matrix[9]]);
-        mat4.scale(tempstep.matrix, tempstep.matrix, [120.0, 24.0, 2.0])
-        initVelocity(tempstep);
-        tempstep.collider = {
-            type: 'yrotbox',
-            hdepth: 120.0,
-            hheight: 24.0,
-            bot: -24.0,
-            hwidth: 2.0
-        };
-        tempstep.isBaked = true;
+        //var step06 = Makarios.instantiate(Primitives.shapes["cube"], 'plainsky.jpg', null, {});
+        //tempstep = step06;
+        //glMatrix.mat4.translate(tempstep.matrix,     // destination matrix
+        //    tempstep.matrix,     // matrix to translate
+        //    [-190.0, 24.0, 66.0]);
+        //mat4.rotate(tempstep.matrix, tempstep.matrix, -Math.PI / 2.0, [tempstep.matrix[1], tempstep.matrix[5], tempstep.matrix[9]]);
+        //mat4.scale(tempstep.matrix, tempstep.matrix, [120.0, 24.0, 2.0])
+        //initVelocity(tempstep);
+        //tempstep.collider = {
+        //    type: 'yrotbox',
+        //    hdepth: 120.0,
+        //    hheight: 24.0,
+        //    bot: -24.0,
+        //    hwidth: 2.0
+        //};
+        //tempstep.isBaked = true;
 
-        var step07 = Makarios.instantiate(Primitives.shapes["cube"], 'plainsky.jpg', null, {});
-        tempstep = step07;
-        glMatrix.mat4.translate(tempstep.matrix,     // destination matrix
-            tempstep.matrix,     // matrix to translate
-            [-110.0, 24.0, 66.0]);
-        mat4.rotate(tempstep.matrix, tempstep.matrix, -Math.PI / 2.0, [tempstep.matrix[1], tempstep.matrix[5], tempstep.matrix[9]]);
-        mat4.scale(tempstep.matrix, tempstep.matrix, [120.0, 24.0, 2.0])
-        initVelocity(tempstep);
-        tempstep.collider = {
-            type: 'yrotbox',
-            hdepth: 120.0,
-            hheight: 24.0,
-            bot: -24.0,
-            hwidth: 2.0
-        };
-        tempstep.isBaked = true;
+        //var step07 = Makarios.instantiate(Primitives.shapes["cube"], 'plainsky.jpg', null, {});
+        //tempstep = step07;
+        //glMatrix.mat4.translate(tempstep.matrix,     // destination matrix
+        //    tempstep.matrix,     // matrix to translate
+        //    [-110.0, 24.0, 66.0]);
+        //mat4.rotate(tempstep.matrix, tempstep.matrix, -Math.PI / 2.0, [tempstep.matrix[1], tempstep.matrix[5], tempstep.matrix[9]]);
+        //mat4.scale(tempstep.matrix, tempstep.matrix, [120.0, 24.0, 2.0])
+        //initVelocity(tempstep);
+        //tempstep.collider = {
+        //    type: 'yrotbox',
+        //    hdepth: 120.0,
+        //    hheight: 24.0,
+        //    bot: -24.0,
+        //    hwidth: 2.0
+        //};
+        //tempstep.isBaked = true;
 
-        var step08 = Makarios.instantiate(Primitives.shapes["cube"], 'plainsky.jpg', null, {});
-        tempstep = step08;
-        glMatrix.mat4.translate(tempstep.matrix,     // destination matrix
-            tempstep.matrix,     // matrix to translate
-            [-150.0, 4.0, -14.0]);
-        mat4.rotate(tempstep.matrix, tempstep.matrix, -Math.PI / 2.0, [tempstep.matrix[1], tempstep.matrix[5], tempstep.matrix[9]]);
-        mat4.scale(tempstep.matrix, tempstep.matrix, [40.0, 2.0, 40.0])
-        initVelocity(tempstep);
-        tempstep.collider = {
-            type: 'yrotbox',
-            hdepth: 40.0,
-            hheight: 2.0,
-            bot: -2.0,
-            hwidth: 40.0
-        };
-        tempstep.isBaked = true;
+        //var step08 = Makarios.instantiate(Primitives.shapes["cube"], 'plainsky.jpg', null, {});
+        //tempstep = step08;
+        //glMatrix.mat4.translate(tempstep.matrix,     // destination matrix
+        //    tempstep.matrix,     // matrix to translate
+        //    [-150.0, 4.0, -14.0]);
+        //mat4.rotate(tempstep.matrix, tempstep.matrix, -Math.PI / 2.0, [tempstep.matrix[1], tempstep.matrix[5], tempstep.matrix[9]]);
+        //mat4.scale(tempstep.matrix, tempstep.matrix, [40.0, 2.0, 40.0])
+        //initVelocity(tempstep);
+        //tempstep.collider = {
+        //    type: 'yrotbox',
+        //    hdepth: 40.0,
+        //    hheight: 2.0,
+        //    bot: -2.0,
+        //    hwidth: 40.0
+        //};
+        //tempstep.isBaked = true;
 
-        var step09 = Makarios.instantiate(Primitives.shapes["cube"], 'plainsky.jpg', null, {});
-        tempstep = step09;
-        glMatrix.mat4.translate(tempstep.matrix,     // destination matrix
-            tempstep.matrix,     // matrix to translate
-            [-150.0, 4.0, 28.0]);
-        mat4.rotate(tempstep.matrix, tempstep.matrix, -Math.PI / 2.0, [tempstep.matrix[1], tempstep.matrix[5], tempstep.matrix[9]]);
-        mat4.scale(tempstep.matrix, tempstep.matrix, [2.0, 12.0, 40.0])
-        initVelocity(tempstep);
-        tempstep.collider = {
-            type: 'yrotbox',
-            hdepth: 2.0,
-            hheight: 12.0,
-            bot: -12.0,
-            hwidth: 40.0
-        };
-        tempstep.isBaked = true;
+        //var step09 = Makarios.instantiate(Primitives.shapes["cube"], 'plainsky.jpg', null, {});
+        //tempstep = step09;
+        //glMatrix.mat4.translate(tempstep.matrix,     // destination matrix
+        //    tempstep.matrix,     // matrix to translate
+        //    [-150.0, 4.0, 28.0]);
+        //mat4.rotate(tempstep.matrix, tempstep.matrix, -Math.PI / 2.0, [tempstep.matrix[1], tempstep.matrix[5], tempstep.matrix[9]]);
+        //mat4.scale(tempstep.matrix, tempstep.matrix, [2.0, 12.0, 40.0])
+        //initVelocity(tempstep);
+        //tempstep.collider = {
+        //    type: 'yrotbox',
+        //    hdepth: 2.0,
+        //    hheight: 12.0,
+        //    bot: -12.0,
+        //    hwidth: 40.0
+        //};
+        //tempstep.isBaked = true;
 
-        var step10 = Makarios.instantiate(Primitives.shapes["cube"], 'plainsky.jpg', null, {});
-        tempstep = step10;
-        glMatrix.mat4.translate(tempstep.matrix,     // destination matrix
-            tempstep.matrix,     // matrix to translate
-            [-150.0, 4.0, 10.0]);
-        mat4.rotate(tempstep.matrix, tempstep.matrix, -Math.PI / 2.0, [tempstep.matrix[1], tempstep.matrix[5], tempstep.matrix[9]]);
-        mat4.scale(tempstep.matrix, tempstep.matrix, [2.0, 12.0, 40.0])
-        initVelocity(tempstep);
-        tempstep.collider = {
-            type: 'yrotbox',
-            hdepth: 2.0,
-            hheight: 12.0,
-            bot: -12.0,
-            hwidth: 40.0
-        };
-        tempstep.isBaked = true;
+        //var step10 = Makarios.instantiate(Primitives.shapes["cube"], 'plainsky.jpg', null, {});
+        //tempstep = step10;
+        //glMatrix.mat4.translate(tempstep.matrix,     // destination matrix
+        //    tempstep.matrix,     // matrix to translate
+        //    [-150.0, 4.0, 10.0]);
+        //mat4.rotate(tempstep.matrix, tempstep.matrix, -Math.PI / 2.0, [tempstep.matrix[1], tempstep.matrix[5], tempstep.matrix[9]]);
+        //mat4.scale(tempstep.matrix, tempstep.matrix, [2.0, 12.0, 40.0])
+        //initVelocity(tempstep);
+        //tempstep.collider = {
+        //    type: 'yrotbox',
+        //    hdepth: 2.0,
+        //    hheight: 12.0,
+        //    bot: -12.0,
+        //    hwidth: 40.0
+        //};
+        //tempstep.isBaked = true;
 
-        var step11 = Makarios.instantiate(Primitives.shapes["cube"], 'plainsky.jpg', null, {});
-        tempstep = step11;
-        glMatrix.mat4.translate(tempstep.matrix,     // destination matrix
-            tempstep.matrix,     // matrix to translate
-            [-150.0, 16.0, -48.0]);
-        mat4.rotate(tempstep.matrix, tempstep.matrix, -Math.PI / 2.0, [tempstep.matrix[1], tempstep.matrix[5], tempstep.matrix[9]]);
-        mat4.scale(tempstep.matrix, tempstep.matrix, [60.0, 2.0, 40.0])
-        initVelocity(tempstep);
-        tempstep.collider = {
-            type: 'yrotbox',
-            hdepth: 60.0,
-            hheight: 2.0,
-            bot: -2.0,
-            hwidth: 40.0
-        };
-        tempstep.isBaked = true;
+        //var step11 = Makarios.instantiate(Primitives.shapes["cube"], 'plainsky.jpg', null, {});
+        //tempstep = step11;
+        //glMatrix.mat4.translate(tempstep.matrix,     // destination matrix
+        //    tempstep.matrix,     // matrix to translate
+        //    [-150.0, 16.0, -48.0]);
+        //mat4.rotate(tempstep.matrix, tempstep.matrix, -Math.PI / 2.0, [tempstep.matrix[1], tempstep.matrix[5], tempstep.matrix[9]]);
+        //mat4.scale(tempstep.matrix, tempstep.matrix, [60.0, 2.0, 40.0])
+        //initVelocity(tempstep);
+        //tempstep.collider = {
+        //    type: 'yrotbox',
+        //    hdepth: 60.0,
+        //    hheight: 2.0,
+        //    bot: -2.0,
+        //    hwidth: 40.0
+        //};
+        //tempstep.isBaked = true;
 
-        var step12 = Makarios.instantiate(Primitives.shapes["cube"], 'plainsky.jpg', null, {});
-        tempstep = step12;
-        glMatrix.mat4.translate(tempstep.matrix,     // destination matrix
-            tempstep.matrix,     // matrix to translate
-            [-210.0, 9.0, -14.0]);
-        mat4.rotate(tempstep.matrix, tempstep.matrix, -Math.PI / 2.0, [tempstep.matrix[1], tempstep.matrix[5], tempstep.matrix[9]]);
-        mat4.scale(tempstep.matrix, tempstep.matrix, [40.0, 2.0, 40.0])
-        initVelocity(tempstep);
-        tempstep.collider = {
-            type: 'yrotbox',
-            hdepth: 40.0,
-            hheight: 2.0,
-            bot: -2.0,
-            hwidth: 40.0
-        };
-        tempstep.isBaked = true;
+        //var step12 = Makarios.instantiate(Primitives.shapes["cube"], 'plainsky.jpg', null, {});
+        //tempstep = step12;
+        //glMatrix.mat4.translate(tempstep.matrix,     // destination matrix
+        //    tempstep.matrix,     // matrix to translate
+        //    [-210.0, 9.0, -14.0]);
+        //mat4.rotate(tempstep.matrix, tempstep.matrix, -Math.PI / 2.0, [tempstep.matrix[1], tempstep.matrix[5], tempstep.matrix[9]]);
+        //mat4.scale(tempstep.matrix, tempstep.matrix, [40.0, 2.0, 40.0])
+        //initVelocity(tempstep);
+        //tempstep.collider = {
+        //    type: 'yrotbox',
+        //    hdepth: 40.0,
+        //    hheight: 2.0,
+        //    bot: -2.0,
+        //    hwidth: 40.0
+        //};
+        //tempstep.isBaked = true;
 
-        var step13 = Makarios.instantiate(Primitives.shapes["cube"], 'plainsky.jpg', null, {});
-        tempstep = step13;
-        glMatrix.mat4.translate(tempstep.matrix,     // destination matrix
-            tempstep.matrix,     // matrix to translate
-            [-216.0, 12.0, -14.0]);
-        mat4.rotate(tempstep.matrix, tempstep.matrix, -Math.PI / 2.0, [tempstep.matrix[1], tempstep.matrix[5], tempstep.matrix[9]]);
-        mat4.scale(tempstep.matrix, tempstep.matrix, [40.0, 2.0, 40.0])
-        initVelocity(tempstep);
-        tempstep.collider = {
-            type: 'yrotbox',
-            hdepth: 40.0,
-            hheight: 2.0,
-            bot: -2.0,
-            hwidth: 40.0
-        };
-        tempstep.isBaked = true;
+        //var step13 = Makarios.instantiate(Primitives.shapes["cube"], 'plainsky.jpg', null, {});
+        //tempstep = step13;
+        //glMatrix.mat4.translate(tempstep.matrix,     // destination matrix
+        //    tempstep.matrix,     // matrix to translate
+        //    [-216.0, 12.0, -14.0]);
+        //mat4.rotate(tempstep.matrix, tempstep.matrix, -Math.PI / 2.0, [tempstep.matrix[1], tempstep.matrix[5], tempstep.matrix[9]]);
+        //mat4.scale(tempstep.matrix, tempstep.matrix, [40.0, 2.0, 40.0])
+        //initVelocity(tempstep);
+        //tempstep.collider = {
+        //    type: 'yrotbox',
+        //    hdepth: 40.0,
+        //    hheight: 2.0,
+        //    bot: -2.0,
+        //    hwidth: 40.0
+        //};
+        //tempstep.isBaked = true;
 
-        var step14 = Makarios.instantiate(Primitives.shapes["cube"], 'plainsky.jpg', null, {});
-        tempstep = step14;
-        glMatrix.mat4.translate(tempstep.matrix,     // destination matrix
-            tempstep.matrix,     // matrix to translate
-            [-98.0, 10.0, -118.0]);
-        mat4.rotate(tempstep.matrix, tempstep.matrix, -Math.PI / 2.0, [tempstep.matrix[1], tempstep.matrix[5], tempstep.matrix[9]]);
-        mat4.scale(tempstep.matrix, tempstep.matrix, [12.0, 2.0, 36.0])
-        initVelocity(tempstep);
-        tempstep.collider = {
-            type: 'yrotbox',
-            hdepth: 12.0,
-            hheight: 2.0,
-            bot: -2.0,
-            hwidth: 36.0
-        };
-        tempstep.isBaked = true;
+        //var step14 = Makarios.instantiate(Primitives.shapes["cube"], 'plainsky.jpg', null, {});
+        //tempstep = step14;
+        //glMatrix.mat4.translate(tempstep.matrix,     // destination matrix
+        //    tempstep.matrix,     // matrix to translate
+        //    [-98.0, 10.0, -118.0]);
+        //mat4.rotate(tempstep.matrix, tempstep.matrix, -Math.PI / 2.0, [tempstep.matrix[1], tempstep.matrix[5], tempstep.matrix[9]]);
+        //mat4.scale(tempstep.matrix, tempstep.matrix, [12.0, 2.0, 36.0])
+        //initVelocity(tempstep);
+        //tempstep.collider = {
+        //    type: 'yrotbox',
+        //    hdepth: 12.0,
+        //    hheight: 2.0,
+        //    bot: -2.0,
+        //    hwidth: 36.0
+        //};
+        //tempstep.isBaked = true;
 
-        var step15 = Makarios.instantiate(Primitives.shapes["cube"], 'plainsky.jpg', null, {});
-        tempstep = step15;
-        glMatrix.mat4.translate(tempstep.matrix,     // destination matrix
-            tempstep.matrix,     // matrix to translate
-            [-212.0, 16.0, -80.0]);
-        mat4.rotate(tempstep.matrix, tempstep.matrix, -Math.PI / 2.0, [tempstep.matrix[1], tempstep.matrix[5], tempstep.matrix[9]]);
-        mat4.scale(tempstep.matrix, tempstep.matrix, [12.0, 2.0, 12.0])
-        initVelocity(tempstep);
-        tempstep.collider = {
-            type: 'yrotbox',
-            hdepth: 12.0,
-            hheight: 2.0,
-            bot: -2.0,
-            hwidth: 12.0
-        };
-        tempstep.isBaked = true;
+        //var step15 = Makarios.instantiate(Primitives.shapes["cube"], 'plainsky.jpg', null, {});
+        //tempstep = step15;
+        //glMatrix.mat4.translate(tempstep.matrix,     // destination matrix
+        //    tempstep.matrix,     // matrix to translate
+        //    [-212.0, 16.0, -80.0]);
+        //mat4.rotate(tempstep.matrix, tempstep.matrix, -Math.PI / 2.0, [tempstep.matrix[1], tempstep.matrix[5], tempstep.matrix[9]]);
+        //mat4.scale(tempstep.matrix, tempstep.matrix, [12.0, 2.0, 12.0])
+        //initVelocity(tempstep);
+        //tempstep.collider = {
+        //    type: 'yrotbox',
+        //    hdepth: 12.0,
+        //    hheight: 2.0,
+        //    bot: -2.0,
+        //    hwidth: 12.0
+        //};
+        //tempstep.isBaked = true;
 
 
 
@@ -738,7 +747,7 @@ const BashNegBlock = (function () {
         var d5 = MakeGemInst('gmodels/plainrosepink.jpg');
         glMatrix.mat4.translate(d5.matrix,     // destination matrix
             d5.matrix,     // matrix to translate
-            [36.0, 128.0, -136.0]);
+            [36.0, 32.0, -136.0]);
         mat4.rotate(d5.matrix, d5.matrix, .42, [1.0, 0.0, 0.0]);//.6
         d5.gem.spin2 = 0.028;
 
@@ -762,6 +771,78 @@ const BashNegBlock = (function () {
             [-22.0, 24.0, 202.0]);
         mat4.rotate(d7.matrix, d7.matrix, .42, [1.0, 0.0, 0.0]);//.6
         d7.gem.spin2 = 0.028;
+
+        var d8 = MakeGemInst('gmodels/plainrosepink.jpg');
+        var tgem = d8;
+        glMatrix.mat4.translate(tgem.matrix,     // destination matrix
+            tgem.matrix,     // matrix to translate
+            [42.0, 32.0, -148.0]);
+        mat4.rotate(tgem.matrix, tgem.matrix, .42, [1.0, 0.0, 0.0]);//.6
+        tgem.gem.spin2 = 0.028;
+
+        var d9 = MakeGemInst('gmodels/plaintopaz.jpg');
+        var tgem = d9;
+        glMatrix.mat4.translate(tgem.matrix,     // destination matrix
+            tgem.matrix,     // matrix to translate
+            [54.5, 24.0, -130.0]);
+        mat4.rotate(tgem.matrix, tgem.matrix, .42, [1.0, 0.0, 0.0]);//.6
+        tgem.gem.spin2 = 0.028;
+
+        var d10 = MakeGemInst('gmodels/plainrubyred.jpg');
+        var tgem = d10;
+        glMatrix.mat4.translate(tgem.matrix,     // destination matrix
+            tgem.matrix,     // matrix to translate
+            [67.5, 2.0, -25.0]);
+        mat4.rotate(tgem.matrix, tgem.matrix, .22, [1.0, 0.0, 0.0]);//.6
+        tgem.gem.spin2 = 0.028;
+
+        var d11 = MakeGemInst('gmodels/plainsapphire.jpg');
+        var tgem = d11;
+        glMatrix.mat4.translate(tgem.matrix,     // destination matrix
+            tgem.matrix,     // matrix to translate
+            [36.8, 24.0, 64.0]);
+        mat4.rotate(tgem.matrix, tgem.matrix, .42, [1.0, 0.0, 0.0]);//.6
+        tgem.gem.spin2 = 0.028;
+
+        var d12 = MakeGemInst('gmodels/plainrosepink.jpg');
+        var tgem = d12;
+        glMatrix.mat4.translate(tgem.matrix,     // destination matrix
+            tgem.matrix,     // matrix to translate
+            [-36.8, 24.0, 64.0]);
+        mat4.rotate(tgem.matrix, tgem.matrix, .42, [1.0, 0.0, 0.0]);//.6
+        tgem.gem.spin2 = 0.028;
+
+        var d13 = MakeGemInst('gmodels/plaintopaz.jpg');
+        var tgem = d13;
+        glMatrix.mat4.translate(tgem.matrix,     // destination matrix
+            tgem.matrix,     // matrix to translate
+            [-70.0, 24.0, 232.0]);
+        mat4.rotate(tgem.matrix, tgem.matrix, .42, [1.0, 0.0, 0.0]);//.6
+        tgem.gem.spin2 = 0.028;
+
+        var d14 = MakeGemInst('gmodels/plainrubyred.jpg');
+        var tgem = d14;
+        glMatrix.mat4.translate(tgem.matrix,     // destination matrix
+            tgem.matrix,     // matrix to translate
+            [-9.0, 2.0, -136.0]);
+        mat4.rotate(tgem.matrix, tgem.matrix, .42, [1.0, 0.0, 0.0]);//.6
+        tgem.gem.spin2 = 0.028;
+
+        var d15 = MakeGemInst('gmodels/plainsapphire.jpg');
+        var tgem = d15;
+        glMatrix.mat4.translate(tgem.matrix,     // destination matrix
+            tgem.matrix,     // matrix to translate
+            [-18.0, 18.0, -146.0]);
+        mat4.rotate(tgem.matrix, tgem.matrix, .42, [1.0, 0.0, 0.0]);//.6
+        tgem.gem.spin2 = 0.028;
+
+        var d16 = MakeGemInst('gmodels/plainrosepink.jpg');
+        var tgem = d16;
+        glMatrix.mat4.translate(tgem.matrix,     // destination matrix
+            tgem.matrix,     // matrix to translate
+            [24.5, 12.0, -136.0]);
+        mat4.rotate(tgem.matrix, tgem.matrix, .42, [1.0, 0.0, 0.0]);//.6
+        tgem.gem.spin2 = 0.028;
 
 
 
