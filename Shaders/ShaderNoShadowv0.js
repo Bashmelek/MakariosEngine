@@ -1,8 +1,6 @@
 // JavaScript source code
-
-var fsOverride;
-var vsOverride;
-const CommonShaders = (function () { 
+ 
+const ShaderNoShadowv0 = (function () { 
 
     var self = this;
 
@@ -10,7 +8,7 @@ const CommonShaders = (function () {
     customAttributes = [];
     customUniforms = [];
 
-    self.InitShader0v0a = function () {
+    self.InitShaderNoShadowv0 = function () {
 
         fsOverride = `
             precision mediump float;
@@ -55,37 +53,9 @@ const CommonShaders = (function () {
 
                 float textureDepth = texture2D(uProjectedTexture, projectedTexcoord.xy).r;
                 float interpolatedTextureVal = 0.0;
-                float shadelessLight = inRange ? 1.0 : 0.00;//(inRange && textureDepth <= currentDepth) ? 0.0 : 1.0; 
+                float shadelessLight = inRange ? 1.0 : 1.00;//(inRange && textureDepth <= currentDepth) ? 0.0 : 1.0; 
                 float interpCheckDepth = projectedTexcoord.z - 0.00030;//0.0010;  
-                if (inRange && textureDepth <= currentDepth) {
-                    shadelessLight = 0.0;
-                    float leftBorder = onePixel.x * floor(projectedTexcoord.x / onePixel.x);
-                    float topBorder = onePixel.y * floor(projectedTexcoord.y / onePixel.y);
-
-                    interpolatedTextureVal += (texture2D(uProjectedTexture, projectedTexcoord.xy + vec2(onePixel.x, 0.0)).r <= interpCheckDepth) ? 0.0 : abs(projectedTexcoord.x - leftBorder) / onePixel.x;//1.0;
-                    interpolatedTextureVal += (texture2D(uProjectedTexture, projectedTexcoord.xy + vec2(-onePixel.x, 0.0)).r <= interpCheckDepth) ? 0.0 : abs((leftBorder + onePixel.x) - projectedTexcoord.x)/ onePixel.x;
-                    interpolatedTextureVal += (texture2D(uProjectedTexture, projectedTexcoord.xy + vec2(0.0, onePixel.y)).r <= interpCheckDepth) ? 0.0 : abs(projectedTexcoord.y - topBorder) / onePixel.y;
-                    interpolatedTextureVal += (texture2D(uProjectedTexture, projectedTexcoord.xy + vec2(0.0, -onePixel.y)).r <= interpCheckDepth) ? 0.0 : abs((topBorder + onePixel.y) - projectedTexcoord.y) / onePixel.y;
-                    
-                    interpolatedTextureVal += (texture2D(uProjectedTexture, projectedTexcoord.xy + vec2(onePixel.x, onePixel.y)).r <= interpCheckDepth) ? 0.0 : 0.12;//abs(projectedTexcoord.x - leftBorder) / onePixel.x;//1.0;
-                    interpolatedTextureVal += (texture2D(uProjectedTexture, projectedTexcoord.xy + vec2(-onePixel.x, onePixel.y)).r <= interpCheckDepth) ? 0.0 : 0.12;//abs((leftBorder + onePixel.x) - projectedTexcoord.x)/ onePixel.x;
-                    interpolatedTextureVal += (texture2D(uProjectedTexture, projectedTexcoord.xy + vec2(onePixel.x, -onePixel.y)).r <= interpCheckDepth) ? 0.0 : 0.12;//abs(projectedTexcoord.y - topBorder) / onePixel.y;
-                    interpolatedTextureVal += (texture2D(uProjectedTexture, projectedTexcoord.xy + vec2(-onePixel.x, -onePixel.y)).r <= interpCheckDepth) ? 0.0 : 0.12;//abs((topBorder + onePixel.y) - projectedTexcoord.y) / onePixel.y;
-
-                    shadelessLight += min(pow(interpolatedTextureVal, 0.5) / 1.6, 1.0);//interpolatedTextureVal;//min(interpolatedTextureVal / 1.0, 1.0);
-                }
-                //else if (inRange) {
-                //    shadelessLight = 0.0;
-                //    float leftBorder = onePixel.x * floor(projectedTexcoord.x / onePixel.x);
-                //    float topBorder = onePixel.y * floor(projectedTexcoord.y / onePixel.y);
-
-                //    interpolatedTextureVal -= (texture2D(uProjectedTexture, projectedTexcoord.xy + vec2(onePixel.x, 0.0)).r <= interpCheckDepth) ? abs(projectedTexcoord.x - leftBorder) / onePixel.x : 0.0;//1.0;
-                //    interpolatedTextureVal -= (texture2D(uProjectedTexture, projectedTexcoord.xy + vec2(-onePixel.x, 0.0)).r <= interpCheckDepth) ? abs((leftBorder + onePixel.x) - projectedTexcoord.x)/ onePixel.x : 0.0;
-                //    interpolatedTextureVal -= (texture2D(uProjectedTexture, projectedTexcoord.xy + vec2(0.0, onePixel.y)).r <= interpCheckDepth) ? abs(projectedTexcoord.y - topBorder) / onePixel.y : 0.0;
-                //    interpolatedTextureVal -= (texture2D(uProjectedTexture, projectedTexcoord.xy + vec2(0.0, -onePixel.y)).r <= interpCheckDepth) ? abs((topBorder + onePixel.y) - projectedTexcoord.y) / onePixel.y : 0.0;
-
-                //    shadelessLight += min(pow(interpolatedTextureVal, 0.25) / 1.0, 1.0);
-                //}
+                 
 
                 highp vec4 texelColor = texture2D(uSampler, vec2(vTextureCoord[0], vTextureCoord[1]));// vTextureCoord);
 
@@ -95,13 +65,8 @@ const CommonShaders = (function () {
 
                 resultColor = vec4(texelColor.rgb * (vLighting), texelColor.a * 1.0);
                 resultColor.rgb *= (1.0 + shadelessLight + pointlight * vec3(0.4, 0.85,  1.0));
-//resultColor.rgb = vec3(shadelessLight, shadelessLight,  shadelessLight);
 
-                //testval
-                ////resultColor = vec4(texture2D(uProjectedTexture, projectedTexcoord.xy * 1.0).rrr * 0.333, 1);//
-                ////resultColor = vec4(currentDepth * 1.0,currentDepth * 1.0, currentDepth * 1.0,  1);//
-                ////resultColor = vec4(currentDepth * 2.0 - texture2D(uProjectedTexture, projectedTexcoord.xy * 1.0).r * 1.0, currentDepth * 2.0 - texture2D(uProjectedTexture, projectedTexcoord.xy * 1.0).r * 1.0, currentDepth * 2.0 - texture2D(uProjectedTexture, projectedTexcoord.xy * 1.0).r * 1.0, 1);
-                
+
                 // Just add in the specular
                 highp vec3 surfaceToViewDirection = normalize(vPosToCam);
                 highp vec3 halfVector = normalize(surfaceToLightDirection + surfaceToViewDirection);
@@ -197,7 +162,7 @@ const CommonShaders = (function () {
         `;
     }
 
-    self.InitCustoms0v0a = function () {
+    self.InitCustomsNoShadowv0 = function () {
 
         var canvas = document.getElementById("glCanvas");
         wgl = canvas.getContext("webgl");
@@ -306,21 +271,7 @@ const CommonShaders = (function () {
         });
     };
 
-    self.InitCustomShader = function (shadername) {
-        if (shadername == "0v0a") {
-            self.InitShader0v0a();
-        } else if (shadername == "noShadowv0") {
-            ShaderNoShadowv0.InitShaderNoShadowv0();
-        }
-    };
 
-    self.InitCustomShaderData = function (shadername) {
-        if (shadername == "0v0a") {
-            self.InitCustoms0v0a();
-        } else if (shadername == "noShadowv0") {
-            CommonShaders.InitCustomsNoShadowv0();
-        }
-    };
 
     return self;
 

@@ -74,7 +74,7 @@ const BashNegBlock = (function () {
         //var timmyloc = 'gmodels/firstCat12_emb.gltf';
         //Makarios.preloadGltfPrimitiveFromJsResource(timmyloc, "timmy");
 
-        var katloc = 'gmodels/firstCat13_emb.gltf';
+        var katloc = 'gmodels/firstCat15_newtim.gltf';
         Makarios.preloadGltfPrimitiveFromJsResource(katloc, "kat");
 
         var diamondloc = 'gmodels/diamond0.gltf';

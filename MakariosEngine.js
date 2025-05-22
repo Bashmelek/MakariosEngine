@@ -1315,6 +1315,10 @@ function onJustTouchUp(e) {
 
 window.addEventListener("keydown", function (e) {
     if (typeof FrameLogic == 'undefined') { return; }
+    //thankyou https://stackoverflow.com/questions/22559830/html-prevent-space-bar-from-scrolling-page
+    if (e.keyCode == 32 && e.target == document.body) {
+        e.preventDefault();
+    }
     FrameLogic.keystates[e.keyCode] = true;
     //keycount = 0;
 });
