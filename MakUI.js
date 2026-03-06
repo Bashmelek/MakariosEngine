@@ -4,6 +4,11 @@ const MakUI = (function () {
 
     var self = this;
 
+    self.uiItemType = {
+        text: 0,
+        image: 1
+    };
+
     self.Zones = {
         topLeft: {
             id: 1,
@@ -49,6 +54,7 @@ const MakUI = (function () {
         data = data || uiItem.data;
         uiItem.data = data;
 
+        uiItem.uiItemType = self.uiItemType.text;
         uiItem.text = text;
         uiItem.textColor = data && data.textColor ? data.textColor : '#DDBB00';
         console.log(data);
@@ -92,13 +98,62 @@ const MakUI = (function () {
         uiState.hasany = true;
     };
 
+    self.drawObjToUI = function (id, src, data, dontClear) { //pos, font
+        var uiItem = self.uiState[id];
+        if (uiItem == null) {
+            uiItem = {};
+            self.uiState[id] = uiItem;
+        }
+        data = data || uiItem.data;
+        uiItem.data = data;
+
+        var givensrc = src || data.src;
+        if (!uiItem.src || uiItem.src != givensrc) {
+            var sourceImage = new Image();
+            sourceImage.src = givensrc;// 'gmodels/CatPallette.png'; //
+            uiItem.isLoaded = false;
+            uiItem.sourceImage = sourceImage;//'gmodels/CatPallette.png'; // can also be a remote URL e.g. http://
+            uiItem.src = givensrc;
+        }
+
+        uiItem.uiItemType = self.uiItemType.image; 
+
+        uiItem.nx = data.nx || uiItem.nx;
+        uiItem.ny = data.ny || uiItem.ny;
+        //uiItem.textAlign = data.textAlign || uiItem.zone.textAlign || 'center';
+
+
+        const ui = document.querySelector('#uiCanvas');
+        const gui = ui.getContext('2d');
+
+        uiItem.x = uiItem.nx * ui.width;
+        uiItem.y = uiItem.ny * ui.height; 
+
+
+        if (!uiItem.isLoaded) {
+            uiItem.sourceImage.onload = function () {
+                gui.drawImage(uiItem.sourceImage, 120, 120);
+                uiItem.isLoaded = true;
+            };
+        } else {
+            gui.drawImage(uiItem.sourceImage, 120, 120);
+        }
+
+
+        uiState.hasany = true;
+    };
+
     self.refreshUI = function () {
 
         for (let id in self.uiState) {
             //console.log('fresher');
             //console.log(self.uiState);
             if (!self.uiState[id].data) { continue; }
-            self.writeObjToUI(id, self.uiState[id].text, null);
+            if (self.uiState[id].uiItemType == self.uiItemType.text) {
+                self.writeObjToUI(id, self.uiState[id].text, null);
+            } else if (self.uiState[id].uiItemType == self.uiItemType.image) {
+                self.drawObjToUI(id, self.uiState[id].src, null);
+            }
         }
         //const ui = document.querySelector('#uiCanvas');
         //const gui = ui.getContext('2d');

@@ -2472,9 +2472,9 @@ const Makarios = (function () {
         self.uiState.text = text;
         const ui = document.querySelector('#uiCanvas');
         const gui = ui.getContext('2d');
+        console.log('writeToUI');
         gui.clearRect(0, 0, ui.width, ui.height);
-        gui.fillStyle = '#DDBB00';//;'yellow';
-        //gui.fillRect(10, 10, 100, 100);// + 400 - now * 10000);
+        gui.fillStyle = '#DDBB00';//
 
         //base was 28 for height 480 (at 4:3) so 120 - 7
         var newfontsize = (Math.floor(ui.height * 7.0 / 120.0) * 1).toString();
@@ -2515,9 +2515,9 @@ const Makarios = (function () {
     self.rewriteToUI = function () {
         const ui = document.querySelector('#uiCanvas');
         const gui = ui.getContext('2d');
+        console.log('rewriteToUI');
         gui.clearRect(0, 0, ui.width, ui.height);
-        gui.fillStyle = '#DDBB00';//;'yellow';
-        //gui.fillRect(10, 10, 100, 100);// + 400 - now * 10000);
+        gui.fillStyle = '#DDBB00';//;
 
         //base was 28 for height 480 (at 4:3) so 120 - 7
         var newfontsize = (Math.floor(ui.height * 7.0 / 120.0) * 1).toString();
