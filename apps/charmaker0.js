@@ -158,7 +158,9 @@ const Charmaker0 = (function () {
             //console.log(county);
         });
 
-        MakUI.drawObjToUI('catpallete', 'gmodels/CatPallette.png', { nx: 120, ny: 120 });
+        MakUI.drawObjToUI('catpallete', 'gmodels/CatPallette.png', { nx: .1, ny: .1, clickHandler: function () { console.log('palette'); } });
+
+        MakUI.EnableMakUIClick();
 
         //const ui = document.querySelector('#uiCanvas');
         //const gui = ui.getContext('2d');

@@ -1,7 +1,9 @@
 {
   "ExpandedNodes": [
-    ""
+    "",
+    "\\apps",
+    "\\Shaders"
   ],
-  "SelectedNode": "\\ShapePrimitives.js",
+  "SelectedNode": "\\apps\\charmaker0.js",
   "PreviewInSolutionExplorer": false
 }

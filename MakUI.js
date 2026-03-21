@@ -118,6 +118,11 @@ const MakUI = (function () {
 
         uiItem.uiItemType = self.uiItemType.image; 
 
+        uiItem.clickHandler = data.clickHandler;
+        if (data.clickHandler) {
+            uiItem.isClickable = true;
+        }
+
         uiItem.nx = data.nx || uiItem.nx;
         uiItem.ny = data.ny || uiItem.ny;
         //uiItem.textAlign = data.textAlign || uiItem.zone.textAlign || 'center';
@@ -128,15 +133,29 @@ const MakUI = (function () {
 
         uiItem.x = uiItem.nx * ui.width;
         uiItem.y = uiItem.ny * ui.height; 
+        uiItem.scale = (ui.width / 1200.0);
+         
 
+        //console.log(uiItem.x);
+        //console.log(ui.width);
 
         if (!uiItem.isLoaded) {
             uiItem.sourceImage.onload = function () {
-                gui.drawImage(uiItem.sourceImage, 120, 120);
+                uiItem.nheight = uiItem.sourceImage.naturalHeight;
+                uiItem.nwidth = uiItem.sourceImage.naturalWidth;
+                uiItem.height = uiItem.sourceImage.naturalHeight * (uiItem.scale);
+                uiItem.width = uiItem.sourceImage.naturalWidth * (uiItem.scale);
+
+                gui.drawImage(uiItem.sourceImage, uiItem.x, uiItem.y, uiItem.sourceImage.naturalWidth * (uiItem.scale), uiItem.sourceImage.naturalHeight * (uiItem.scale));
                 uiItem.isLoaded = true;
             };
         } else {
-            gui.drawImage(uiItem.sourceImage, 120, 120);
+            uiItem.nheight = uiItem.sourceImage.naturalHeight;
+            uiItem.nwidth = uiItem.sourceImage.naturalWidth;
+            uiItem.height = uiItem.sourceImage.naturalHeight * (uiItem.scale);
+            uiItem.width = uiItem.sourceImage.naturalWidth * (uiItem.scale);
+
+            gui.drawImage(uiItem.sourceImage, uiItem.x, uiItem.y, uiItem.sourceImage.naturalWidth * (uiItem.scale), uiItem.sourceImage.naturalHeight * (uiItem.scale));
         }
 
 
@@ -171,6 +190,91 @@ const MakUI = (function () {
         //gui.fillText(self.uiState.text, ui.width / 2.0, ui.height / 2.1);
         //uiState.hasany = true;
     }
+
+
+
+
+
+
+
+
+    const uiCanvas = document.querySelector('#uiCanvas');
+
+    self.makUIClickEnabled = false;
+    var useSimpleTouchAsClick = false;
+    var ghostClickEventDisabled = false;
+    self.EnableMakUIClick = function() {
+        if (self.makUIClickEnabled) { return; }
+        self.makUIClickEnabled = true;
+
+        var clickHandler = function (e) {
+            //console.log("ui click");
+            //const ui = document.querySelector('#uiCanvas');//uiCanvas
+            if (e.target != uiCanvas) { return; }
+            e.preventDefault(); 
+
+            var matrices = [];
+            var basematrix = mat4.create();
+            mat4.multiply(basematrix, gproj, gmod);
+            matrices.push(basematrix);
+
+            var hitui = {};
+
+            for (let id in self.uiState) {
+                if (!self.uiState[id].data || !self.uiState[id].isClickable) { continue; }
+                if (self.uiState[id].uiItemType == self.uiItemType.text) {
+                    //
+                } else if (self.uiState[id].uiItemType == self.uiItemType.image) {
+
+                    //{ x: e.clientX, y: e.clientY }
+                    var uiItem = self.uiState[id];
+                    //console.log(uiItem);
+                    //console.log(e.clientX);
+                    //console.log(e.clientY);
+
+                    var h = uiItem.height;
+                    var w = uiItem.width;
+                    var x = uiItem.x;
+                    var y = uiItem.y;
+                    var rect = document.querySelector('#uiCanvas').getBoundingClientRect();
+
+                    var tx = (e.clientX - rect.left);
+                    var ty = (e.clientY - rect.top);
+
+                    if (tx >= x && tx <= x + w &&
+                        ty >= y && ty <= y + h) {
+
+                        uiItem.clickHandler();
+
+                        break;
+                    }
+                }
+            }
+
+        }
+
+        window.addEventListener("click", clickHandler);
+
+        if (useSimpleTouchAsClick) {
+            window.addEventListener("touchstart", function (e) {
+
+                //thankyou Slashback https://stackoverflow.com/questions/20225153/preventing-ghost-click-when-binding-touchstart-and-click
+                if (!ghostClickEventDisabled && e.type == 'touchstart') {
+                    ghostClickEventDisabled = true;
+                    window.removeEventListener("click", clickHandler);
+                }
+                //const ui = document.querySelector('#uiCanvas');//uiCanvas
+                if (e.target != uiCanvas) { return; }
+
+                e.preventDefault();
+                mouseisdown = true;
+                currentTouch = e.changedTouches[0];                
+            });
+
+        }
+    }
+
+
 
 
 
