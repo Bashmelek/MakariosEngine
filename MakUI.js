@@ -244,7 +244,7 @@ const MakUI = (function () {
                     if (tx >= x && tx <= x + w &&
                         ty >= y && ty <= y + h) {
 
-                        uiItem.clickHandler();
+                        uiItem.clickHandler(e);
 
                         break;
                     }

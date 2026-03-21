@@ -37,6 +37,52 @@ const Charmaker0 = (function () {
     var mousePos = { x: 0.0, y: 0.0 };
 
 
+    var baseTexture = null;
+
+
+    var cachedImageInfo = {};
+
+    //var InnerGetColorAtPoint = function (imgUri, testpoint, imageScaler) {
+
+    //}
+
+    var GetColorAtPoint = function (imgUri, testpoint, imageScaler) {
+
+        if (cachedImageInfo[imgUri]) {
+            var cui = cachedImageInfo[imgUri];
+
+            var tx = Math.floor(testpoint.x / imageScaler);
+            var ty = Math.floor(testpoint.y / imageScaler);
+            var pixel = (ty * cui.w + tx % cui.w);
+
+            console.log(cui.data[4 * pixel + 0]);
+        } else {
+
+            const ui = document.createElement('canvas');//// document.querySelector('#uiCanvas');
+            const gui = ui.getContext('2d');
+
+            var checkimg = new Image();
+            checkimg.onload = function () {
+                ui.height = checkimg.height;
+                ui.width = checkimg.width;
+                gui.drawImage(checkimg, 0, 0);
+
+                var imgData = gui.getImageData(0, 0, checkimg.width, checkimg.height);
+
+                var tx = Math.floor(testpoint.x / imageScaler);
+                var ty = Math.floor(testpoint.y / imageScaler);
+                var pixel = (ty * ui.width + tx % ui.width);
+
+                cachedImageInfo[imgUri] = { h: ui.height, w: ui.width, data: imgData.data};
+
+                GetColorAtPoint(imgUri, testpoint, imageScaler);
+            }
+            console.log('origurl:' + ' origTextureUrl is a long datauri');//origTextureUrl);
+            checkimg.src = imgUri;
+        }
+    }
+
+
     var Init = function () {
         StageData.ticks = 0;
         ////SkyboxRenderer.useSkybox('skybox');
@@ -158,9 +204,25 @@ const Charmaker0 = (function () {
             //console.log(county);
         });
 
-        MakUI.drawObjToUI('catpallete', 'gmodels/CatPallette.png', { nx: .1, ny: .1, clickHandler: function () { console.log('palette'); } });
+        var paletteClickHandler = function (e) {
+            //console.log('palette');
+
+            var rect = document.querySelector('#uiCanvas').getBoundingClientRect();
+            var tx = (e.clientX - rect.left);
+            var ty = (e.clientY - rect.top);
+
+            var tpoint = { x: tx - MakUI.uiState['catpallete'].x, y: ty - MakUI.uiState['catpallete'].y };
+            GetColorAtPoint('gmodels/CatPallette.png', tpoint, MakUI.uiState['catpallete'].scale);
+        }
+
+        MakUI.drawObjToUI('catpallete', 'gmodels/CatPallette.png', { nx: .1, ny: .1, clickHandler: paletteClickHandler });
 
         MakUI.EnableMakUIClick();
+
+        if (!baseTexture) {
+            baseTexture = mainChar.children[0].textureUrl;
+            console.log(baseTexture);
+        }
 
         //const ui = document.querySelector('#uiCanvas');
         //const gui = ui.getContext('2d');
