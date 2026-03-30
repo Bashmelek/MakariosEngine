@@ -38,7 +38,7 @@ const Charmaker0 = (function () {
 
 
     var baseTexture = null;
-
+    var currentColorIndex = 1;
 
     var cachedImageInfo = {};
 
@@ -216,6 +216,30 @@ const Charmaker0 = (function () {
         }
 
         MakUI.drawObjToUI('catpallete', 'gmodels/CatPallette.png', { nx: .1, ny: .1, clickHandler: paletteClickHandler });
+
+        var labelClickHandler = function (clickerID) {
+            var newid = clickerID;
+
+            return function () {
+                currentColorIndex = newid;
+                console.log(currentColorIndex);
+
+                const ui = document.querySelector('#uiCanvas');
+                const gui = ui.getContext('2d');
+                gui.clearRect(0, 0, ui.width, ui.height);
+
+                MakUI.uiState['buttonhighlight'].data.ny = MakUI.uiState['colorlabel' + currentColorIndex].data.ny;
+                MakUI.refreshUI();
+            };
+        };
+
+        MakUI.drawObjToUI('colorlabel1', 'gmodels/colorLabel1.png', { nx: .1, ny: .4, clickHandler: labelClickHandler(1) });
+        MakUI.drawObjToUI('colorlabel2', 'gmodels/colorLabel2.png', { nx: .1, ny: .45, clickHandler: labelClickHandler(2) });
+        MakUI.drawObjToUI('colorlabel3', 'gmodels/colorLabel3.png', { nx: .1, ny: .5, clickHandler: labelClickHandler(3) });
+        MakUI.drawObjToUI('colorlabel4', 'gmodels/colorLabel4.png', { nx: .1, ny: .55, clickHandler: labelClickHandler(4) });
+
+        MakUI.drawObjToUI('buttonhighlight', 'gmodels/buttonHighlight.png', { nx: .097, ny: .394 });
+
 
         MakUI.EnableMakUIClick();
 
