@@ -204,7 +204,13 @@ const MakUI = (function () {
         uiState.hasany = true;
     };
 
+    self.cleanRefreshUI = function () {
 
+        const ui = document.querySelector('#uiCanvas');
+        const gui = ui.getContext('2d');
+        gui.clearRect(0, 0, ui.width, ui.height);
+        self.refreshUI();
+    }
 
     self.refreshUI = function () {
 

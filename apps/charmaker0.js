@@ -230,7 +230,8 @@ const Charmaker0 = (function () {
 
             MakUI.uiState['colorsample' + currentColorIndex].data.color = "rgb(" + selectedColor.r + ", " + selectedColor.g + ", " + selectedColor.b + ")";
             console.log("given new color to " + currentColorIndex);
-            MakUI.refreshUI();
+            MakUI.cleanRefreshUI();
+            UpdateMainCharTexture();
         }
 
         var paletteClickHandler = function (e) {
@@ -258,7 +259,7 @@ const Charmaker0 = (function () {
                 gui.clearRect(0, 0, ui.width, ui.height);
 
                 MakUI.uiState['buttonhighlight'].data.ny = MakUI.uiState['colorlabel' + currentColorIndex].data.ny;
-                MakUI.refreshUI();
+                MakUI.cleanRefreshUI();
             };
         };
 
@@ -379,6 +380,98 @@ const Charmaker0 = (function () {
                 newData.data[i * 4 + 1] = 255.0 - imgData.data[i * 4 + 1];// 255.0 * 1.0;//data[i][1];
                 newData.data[i * 4 + 2] = 255.0 - imgData.data[i * 4 + 2];// 255.0 * 1.0;//data[i][2];
                 newData.data[i * 4 + 3] = imgData.data[i * 4 + 3];// 255.0 * 1.0;//data[i][3];
+            }
+            gui.putImageData(newData, 0, 0);
+            image.src = ui.toDataURL("image/png");
+            //document.body.appendChild(image);
+        }
+        console.log('origurl:' + ' origTextureUrl is a long datauri');//origTextureUrl);
+        origImageTexmpImage.src = origTextureUrl;
+    }
+
+    var UpdateMainCharTexture = function () {
+        var origTextureUrl = "gmodels/CatImage3.png";////mainChar.children[0].textureUrl;
+
+
+        const texture = wgl.createTexture();
+        wgl.bindTexture(wgl.TEXTURE_2D, texture);
+
+        // Because images have to be download over the internet
+        // they might take a moment until they are ready.
+        // Until then put a single pixel in the texture so we can
+        // use it immediately. When the image has finished downloading
+        // we'll update the texture with the contents of the image.
+        const level = 0;
+        const internalFormat = wgl.RGBA;
+        const width = 1;
+        const height = 1;
+        const border = 0;
+        const srcFormat = wgl.RGBA;
+        const srcType = wgl.UNSIGNED_BYTE;
+        const pixel = new Uint8Array([0, 0, 255, 255]);  // opaque blue
+        wgl.texImage2D(wgl.TEXTURE_2D, level, internalFormat,
+            width, height, border, srcFormat, srcType,
+            pixel);
+
+        const image = new Image();
+        //image.crossOrigin = "anonymous";
+        image.onload = function () {
+            //console.log(url);
+            MakTextures[mainChar.children[0].textureUrl] = null;
+
+            wgl.bindTexture(wgl.TEXTURE_2D, texture);
+            wgl.texImage2D(wgl.TEXTURE_2D, level, internalFormat,
+                srcFormat, srcType, image);
+
+            // WebGL1 has different requirements for power of 2 images
+            // vs non power of 2 images so check if the image is a
+            // power of 2 in both dimensions.
+            if (isPowerOf2(image.width) && isPowerOf2(image.height)) {
+                // Yes, it's a power of 2. Generate mips.
+                wgl.generateMipmap(wgl.TEXTURE_2D);
+            } else {
+                // No, it's not a power of 2. Turn off mips and set
+                // wrapping to clamp to edge
+                wgl.texParameteri(wgl.TEXTURE_2D, wgl.TEXTURE_WRAP_S, wgl.CLAMP_TO_EDGE);
+                wgl.texParameteri(wgl.TEXTURE_2D, wgl.TEXTURE_WRAP_T, wgl.CLAMP_TO_EDGE);
+                wgl.texParameteri(wgl.TEXTURE_2D, wgl.TEXTURE_MIN_FILTER, wgl.LINEAR);
+            }
+
+
+            console.log("settext new");
+            MakTextures[mainChar.children[0].textureUrl] = texture;
+            mainChar.children[0].textureImage = texture;
+            mainChar.children[0].textureUrl = image.src;
+        };
+
+
+
+        const ui = document.createElement('canvas');
+        const gui = ui.getContext('2d');
+
+        var origImageTexmpImage = new Image();
+        origImageTexmpImage.onload = function () {
+
+            ui.height = origImageTexmpImage.height;
+            ui.width = origImageTexmpImage.width;
+            gui.drawImage(origImageTexmpImage, 0, 0);
+            console.log(ui.height);
+
+            var imgData = gui.getImageData(0, 0, origImageTexmpImage.width, origImageTexmpImage.height);
+
+            var newData = gui.createImageData(origImageTexmpImage.width, origImageTexmpImage.height);
+            for (var i = 0; i < origImageTexmpImage.width * origImageTexmpImage.height; i++) {
+                if (imgData.data[i * 4 + 0] == baseColors[0].r && imgData.data[i * 4 + 1] == baseColors[0].g && imgData.data[i * 4 + 2] == baseColors[0].b) {
+                    newData.data[i * 4 + 0] = currentColors[0].r;
+                    newData.data[i * 4 + 1] = currentColors[0].g;
+                    newData.data[i * 4 + 2] = currentColors[0].b;
+                    newData.data[i * 4 + 3] = imgData.data[i * 4 + 3];
+                } else {
+                    newData.data[i * 4 + 0] = imgData.data[i * 4 + 0];
+                    newData.data[i * 4 + 1] = imgData.data[i * 4 + 1];
+                    newData.data[i * 4 + 2] = imgData.data[i * 4 + 2];
+                    newData.data[i * 4 + 3] = imgData.data[i * 4 + 3];
+                }
             }
             gui.putImageData(newData, 0, 0);
             image.src = ui.toDataURL("image/png");
