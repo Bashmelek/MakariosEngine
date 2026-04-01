@@ -40,13 +40,30 @@ const Charmaker0 = (function () {
     var baseTexture = null;
     var currentColorIndex = 1;
 
+
+    //"rgb(191, 225, 231)" });
+    //"rgb(118, 139, 143)" });
+    //"rgb(236, 175, 27)" });
+    //"rgb(231, 113, 208)" });
+    var baseColors = [];
+    baseColors.push({ r: 191, g: 225, b: 231 });
+    baseColors.push({ r: 118, g: 139, b: 143 });
+    baseColors.push({ r: 236, g: 175, b: 27 });
+    baseColors.push({ r: 231, g: 113, b: 208 });
+
+    var currentColors = [];
+    currentColors.push({ r: baseColors[0].r, g: baseColors[0].g, b: baseColors[0].b });
+    currentColors.push({ r: baseColors[1].r, g: baseColors[1].g, b: baseColors[1].b });
+    currentColors.push({ r: baseColors[2].r, g: baseColors[2].g, b: baseColors[2].b });
+    currentColors.push({ r: baseColors[3].r, g: baseColors[3].g, b: baseColors[3].b });
+
     var cachedImageInfo = {};
 
     //var InnerGetColorAtPoint = function (imgUri, testpoint, imageScaler) {
 
     //}
 
-    var GetColorAtPoint = function (imgUri, testpoint, imageScaler) {
+    var GetColorAtPoint = function (imgUri, testpoint, imageScaler, callback) {
 
         if (cachedImageInfo[imgUri]) {
             var cui = cachedImageInfo[imgUri];
@@ -56,6 +73,8 @@ const Charmaker0 = (function () {
             var pixel = (ty * cui.w + tx % cui.w);
 
             console.log(cui.data[4 * pixel + 0]);
+            //return { r: cui.data[4 * pixel + 0], g: cui.data[4 * pixel + 1], b: cui.data[4 * pixel + 2]}
+            callback({ r: cui.data[4 * pixel + 0], g: cui.data[4 * pixel + 1], b: cui.data[4 * pixel + 2] });
         } else {
 
             const ui = document.createElement('canvas');//// document.querySelector('#uiCanvas');
@@ -75,7 +94,7 @@ const Charmaker0 = (function () {
 
                 cachedImageInfo[imgUri] = { h: ui.height, w: ui.width, data: imgData.data};
 
-                GetColorAtPoint(imgUri, testpoint, imageScaler);
+                GetColorAtPoint(imgUri, testpoint, imageScaler, callback);
             }
             console.log('origurl:' + ' origTextureUrl is a long datauri');//origTextureUrl);
             checkimg.src = imgUri;
@@ -204,6 +223,16 @@ const Charmaker0 = (function () {
             //console.log(county);
         });
 
+        var palleteClickFinisherCallBack = function (selectedColor) {
+            currentColors[currentColorIndex - 1].r = selectedColor.r;
+            currentColors[currentColorIndex - 1].g = selectedColor.g;
+            currentColors[currentColorIndex - 1].b = selectedColor.b;
+
+            MakUI.uiState['colorsample' + currentColorIndex].data.color = "rgb(" + selectedColor.r + ", " + selectedColor.g + ", " + selectedColor.b + ")";
+            console.log("given new color to " + currentColorIndex);
+            MakUI.refreshUI();
+        }
+
         var paletteClickHandler = function (e) {
             //console.log('palette');
 
@@ -212,7 +241,7 @@ const Charmaker0 = (function () {
             var ty = (e.clientY - rect.top);
 
             var tpoint = { x: tx - MakUI.uiState['catpallete'].x, y: ty - MakUI.uiState['catpallete'].y };
-            GetColorAtPoint('gmodels/CatPallette.png', tpoint, MakUI.uiState['catpallete'].scale);
+            GetColorAtPoint('gmodels/CatPallette.png', tpoint, MakUI.uiState['catpallete'].scale, palleteClickFinisherCallBack);
         }
 
         MakUI.drawObjToUI('catpallete', 'gmodels/CatPallette.png', { nx: .1, ny: .1, clickHandler: paletteClickHandler });
@@ -237,6 +266,12 @@ const Charmaker0 = (function () {
         MakUI.drawObjToUI('colorlabel2', 'gmodels/colorLabel2.png', { nx: .1, ny: .45, clickHandler: labelClickHandler(2) });
         MakUI.drawObjToUI('colorlabel3', 'gmodels/colorLabel3.png', { nx: .1, ny: .5, clickHandler: labelClickHandler(3) });
         MakUI.drawObjToUI('colorlabel4', 'gmodels/colorLabel4.png', { nx: .1, ny: .55, clickHandler: labelClickHandler(4) });
+
+
+        MakUI.drawShapeToUI('colorsample1', { nx: .16, ny: .4, nw: 0.05, nh: 0.05, color: "rgb(" + baseColors[0].r + ", " + baseColors[0].g + ", " + baseColors[0].b + ")" });
+        MakUI.drawShapeToUI('colorsample2', { nx: .16, ny: .45, nw: 0.05, nh: 0.05, color: "rgb(" + baseColors[1].r + ", " + baseColors[1].g + ", " + baseColors[1].b + ")" });
+        MakUI.drawShapeToUI('colorsample3', { nx: .16, ny: .5, nw: 0.05, nh: 0.05, color: "rgb(" + baseColors[2].r + ", " + baseColors[2].g + ", " + baseColors[2].b + ")" });
+        MakUI.drawShapeToUI('colorsample4', { nx: .16, ny: .55, nw: 0.05, nh: 0.05, color: "rgb(" + baseColors[3].r + ", " + baseColors[3].g + ", " + baseColors[3].b + ")" });
 
         MakUI.drawObjToUI('buttonhighlight', 'gmodels/buttonHighlight.png', { nx: .097, ny: .394 });
 

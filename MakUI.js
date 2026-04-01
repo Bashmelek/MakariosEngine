@@ -6,7 +6,8 @@ const MakUI = (function () {
 
     self.uiItemType = {
         text: 0,
-        image: 1
+        image: 1,
+        shape: 2
     };
 
     self.Zones = {
@@ -162,6 +163,49 @@ const MakUI = (function () {
         uiState.hasany = true;
     };
 
+    self.drawShapeToUI = function (id, data, dontClear) { //pos, font
+        var uiItem = self.uiState[id];
+        if (uiItem == null) {
+            uiItem = {};
+            self.uiState[id] = uiItem;
+        }
+        data = data || uiItem.data;
+        uiItem.data = data;
+        uiItem.uiItemType = self.uiItemType.shape; 
+
+
+
+        uiItem.clickHandler = data.clickHandler;
+        if (data.clickHandler) {
+            uiItem.isClickable = true;
+        }
+
+        uiItem.nx = data.nx || uiItem.nx;
+        uiItem.ny = data.ny || uiItem.ny;
+        //uiItem.textAlign = data.textAlign || uiItem.zone.textAlign || 'center';
+
+
+        const ui = document.querySelector('#uiCanvas');
+        const gui = ui.getContext('2d');
+
+        uiItem.x = uiItem.nx * ui.width;
+        uiItem.y = uiItem.ny * ui.height;
+        uiItem.scale = (ui.width / 1200.0);
+
+         
+        uiItem.height = ui.height * uiItem.data.nh * (uiItem.scale);
+        uiItem.width = ui.width * uiItem.data.nw * (uiItem.scale);
+
+        //gui.drawImage(uiItem.sourceImage, uiItem.x, uiItem.y, uiItem.nw * (uiItem.scale), uiItem.nh * (uiItem.scale));
+        gui.fillStyle = uiItem.data.color || "green";
+        gui.fillRect(uiItem.x, uiItem.y, uiItem.width, uiItem.height);
+        console.log(uiItem.width);
+
+        uiState.hasany = true;
+    };
+
+
+
     self.refreshUI = function () {
 
         for (let id in self.uiState) {
@@ -172,6 +216,8 @@ const MakUI = (function () {
                 self.writeObjToUI(id, self.uiState[id].text, null);
             } else if (self.uiState[id].uiItemType == self.uiItemType.image) {
                 self.drawObjToUI(id, self.uiState[id].src, null);
+            } else if (self.uiState[id].uiItemType == self.uiItemType.shape) {
+                self.drawShapeToUI(id, null);
             }
         }
         //const ui = document.querySelector('#uiCanvas');
