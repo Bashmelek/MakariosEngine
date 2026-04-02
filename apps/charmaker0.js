@@ -52,10 +52,9 @@ const Charmaker0 = (function () {
     baseColors.push({ r: 231, g: 113, b: 208 });
 
     var currentColors = [];
-    currentColors.push({ r: baseColors[0].r, g: baseColors[0].g, b: baseColors[0].b });
-    currentColors.push({ r: baseColors[1].r, g: baseColors[1].g, b: baseColors[1].b });
-    currentColors.push({ r: baseColors[2].r, g: baseColors[2].g, b: baseColors[2].b });
-    currentColors.push({ r: baseColors[3].r, g: baseColors[3].g, b: baseColors[3].b });
+    for (var bc = 0; bc < baseColors.length; bc++) {
+        currentColors.push({ r: baseColors[bc].r, g: baseColors[bc].g, b: baseColors[bc].b });
+    }
 
     var cachedImageInfo = {};
 
@@ -389,6 +388,15 @@ const Charmaker0 = (function () {
         origImageTexmpImage.src = origTextureUrl;
     }
 
+    var origTextureUrl = "gmodels/CatImage3.png";
+    var origImageTexmpImage = null;
+    var origImageTexmpImageLoaded = false;
+
+    var UpdateMainCharTexture = function(loadCallBack) {
+
+        origImageTexmpImageLoaded = true;
+    }
+
     var UpdateMainCharTexture = function () {
         var origTextureUrl = "gmodels/CatImage3.png";////mainChar.children[0].textureUrl;
 
@@ -461,17 +469,34 @@ const Charmaker0 = (function () {
 
             var newData = gui.createImageData(origImageTexmpImage.width, origImageTexmpImage.height);
             for (var i = 0; i < origImageTexmpImage.width * origImageTexmpImage.height; i++) {
-                if (imgData.data[i * 4 + 0] == baseColors[0].r && imgData.data[i * 4 + 1] == baseColors[0].g && imgData.data[i * 4 + 2] == baseColors[0].b) {
-                    newData.data[i * 4 + 0] = currentColors[0].r;
-                    newData.data[i * 4 + 1] = currentColors[0].g;
-                    newData.data[i * 4 + 2] = currentColors[0].b;
-                    newData.data[i * 4 + 3] = imgData.data[i * 4 + 3];
-                } else {
-                    newData.data[i * 4 + 0] = imgData.data[i * 4 + 0];
-                    newData.data[i * 4 + 1] = imgData.data[i * 4 + 1];
-                    newData.data[i * 4 + 2] = imgData.data[i * 4 + 2];
-                    newData.data[i * 4 + 3] = imgData.data[i * 4 + 3];
+                for (var rc = 0; rc < baseColors.length; rc++) {
+                    if (imgData.data[i * 4 + 0] == baseColors[rc].r && imgData.data[i * 4 + 1] == baseColors[rc].g && imgData.data[i * 4 + 2] == baseColors[rc].b) {
+                        newData.data[i * 4 + 0] = currentColors[rc].r;
+                        newData.data[i * 4 + 1] = currentColors[rc].g;
+                        newData.data[i * 4 + 2] = currentColors[rc].b;
+                        newData.data[i * 4 + 3] = imgData.data[i * 4 + 3];
+                        rc = baseColors.length;
+                    } else if (rc == baseColors.length - 1) {
+                        //if last one and not written, just take defaulr data.
+                        newData.data[i * 4 + 0] = imgData.data[i * 4 + 0];
+                        newData.data[i * 4 + 1] = imgData.data[i * 4 + 1];
+                        newData.data[i * 4 + 2] = imgData.data[i * 4 + 2];
+                        newData.data[i * 4 + 3] = imgData.data[i * 4 + 3];
+                    }
+
                 }
+
+                //if (imgData.data[i * 4 + 0] == baseColors[0].r && imgData.data[i * 4 + 1] == baseColors[0].g && imgData.data[i * 4 + 2] == baseColors[0].b) {
+                //    newData.data[i * 4 + 0] = currentColors[0].r;
+                //    newData.data[i * 4 + 1] = currentColors[0].g;
+                //    newData.data[i * 4 + 2] = currentColors[0].b;
+                //    newData.data[i * 4 + 3] = imgData.data[i * 4 + 3];
+                //} else {
+                //    newData.data[i * 4 + 0] = imgData.data[i * 4 + 0];
+                //    newData.data[i * 4 + 1] = imgData.data[i * 4 + 1];
+                //    newData.data[i * 4 + 2] = imgData.data[i * 4 + 2];
+                //    newData.data[i * 4 + 3] = imgData.data[i * 4 + 3];
+                //}
             }
             gui.putImageData(newData, 0, 0);
             image.src = ui.toDataURL("image/png");
