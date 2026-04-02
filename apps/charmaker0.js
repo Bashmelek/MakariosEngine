@@ -390,15 +390,93 @@ const Charmaker0 = (function () {
 
     var origTextureUrl = "gmodels/CatImage3.png";
     var origImageTexmpImage = null;
+    var origImageTexmpImageData = null;
     var origImageTexmpImageLoaded = false;
 
-    var UpdateMainCharTexture = function(loadCallBack) {
+    var UpdateMainCharTextureWrap = function (loadCallBack) {
+        const ui = document.createElement('canvas');
+        const gui = ui.getContext('2d');
 
-        origImageTexmpImageLoaded = true;
+        origImageTexmpImage = new Image();
+        origImageTexmpImage.onload = function () {
+
+            ui.height = origImageTexmpImage.height;
+            ui.width = origImageTexmpImage.width;
+            gui.drawImage(origImageTexmpImage, 0, 0);
+             
+
+            var imgData = gui.getImageData(0, 0, origImageTexmpImage.width, origImageTexmpImage.height);
+            origImageTexmpImageData = imgData;
+            console.log(origImageTexmpImageData);
+            origImageTexmpImageLoaded = true;
+            loadCallBack();
+
+            //var newData = gui.createImageData(origImageTexmpImage.width, origImageTexmpImage.height);
+            //for (var i = 0; i < origImageTexmpImage.width * origImageTexmpImage.height; i++) {
+            //    for (var rc = 0; rc < baseColors.length; rc++) {
+            //        if (imgData.data[i * 4 + 0] == baseColors[rc].r && imgData.data[i * 4 + 1] == baseColors[rc].g && imgData.data[i * 4 + 2] == baseColors[rc].b) {
+            //            newData.data[i * 4 + 0] = currentColors[rc].r;
+            //            newData.data[i * 4 + 1] = currentColors[rc].g;
+            //            newData.data[i * 4 + 2] = currentColors[rc].b;
+            //            newData.data[i * 4 + 3] = imgData.data[i * 4 + 3];
+            //            rc = baseColors.length;
+            //        } else if (rc == baseColors.length - 1) {
+            //            //if last one and not written, just take defaulr data.
+            //            newData.data[i * 4 + 0] = imgData.data[i * 4 + 0];
+            //            newData.data[i * 4 + 1] = imgData.data[i * 4 + 1];
+            //            newData.data[i * 4 + 2] = imgData.data[i * 4 + 2];
+            //            newData.data[i * 4 + 3] = imgData.data[i * 4 + 3];
+            //        }
+
+            //    }
+            //}
+            //gui.putImageData(newData, 0, 0);
+            //image.src = ui.toDataURL("image/png");
+        }
+        console.log('origurl:' + ' origTextureUrl is a long datauri');//origTextureUrl);
+        origImageTexmpImage.src = origTextureUrl;
+
     }
 
     var UpdateMainCharTexture = function () {
         var origTextureUrl = "gmodels/CatImage3.png";////mainChar.children[0].textureUrl;
+
+        if (!origImageTexmpImageLoaded) {
+            UpdateMainCharTextureWrap(UpdateMainCharTexture);
+
+            return;
+        }
+
+        const ui = document.createElement('canvas');
+        const gui = ui.getContext('2d');
+        ui.height = origImageTexmpImage.height;
+        ui.width = origImageTexmpImage.width;
+        gui.drawImage(origImageTexmpImage, 0, 0);
+
+        var imgData = origImageTexmpImageData;
+        console.log(imgData);
+
+        var newData = gui.createImageData(origImageTexmpImage.width, origImageTexmpImage.height);
+        for (var i = 0; i < origImageTexmpImage.width * origImageTexmpImage.height; i++) {
+            for (var rc = 0; rc < baseColors.length; rc++) {
+                if (imgData.data[i * 4 + 0] == baseColors[rc].r && imgData.data[i * 4 + 1] == baseColors[rc].g && imgData.data[i * 4 + 2] == baseColors[rc].b) {
+                    newData.data[i * 4 + 0] = currentColors[rc].r;
+                    newData.data[i * 4 + 1] = currentColors[rc].g;
+                    newData.data[i * 4 + 2] = currentColors[rc].b;
+                    newData.data[i * 4 + 3] = imgData.data[i * 4 + 3];
+                    rc = baseColors.length;
+                } else if (rc == baseColors.length - 1) {
+                    //if last one and not written, just take defaulr data.
+                    newData.data[i * 4 + 0] = imgData.data[i * 4 + 0];
+                    newData.data[i * 4 + 1] = imgData.data[i * 4 + 1];
+                    newData.data[i * 4 + 2] = imgData.data[i * 4 + 2];
+                    newData.data[i * 4 + 3] = imgData.data[i * 4 + 3];
+                }
+        
+            }
+        }
+        gui.putImageData(newData, 0, 0);
+        //image.src = ui.toDataURL("image/png");
 
 
         const texture = wgl.createTexture();
@@ -451,59 +529,47 @@ const Charmaker0 = (function () {
             mainChar.children[0].textureImage = texture;
             mainChar.children[0].textureUrl = image.src;
         };
+        image.src = ui.toDataURL("image/png");
 
 
+        //const ui = document.createElement('canvas');
+        //const gui = ui.getContext('2d');
 
-        const ui = document.createElement('canvas');
-        const gui = ui.getContext('2d');
+        //var origImageTexmpImage = new Image();
+        //origImageTexmpImage.onload = function () {
 
-        var origImageTexmpImage = new Image();
-        origImageTexmpImage.onload = function () {
+        //    ui.height = origImageTexmpImage.height;
+        //    ui.width = origImageTexmpImage.width;
+        //    gui.drawImage(origImageTexmpImage, 0, 0);
+        //    console.log(ui.height);
 
-            ui.height = origImageTexmpImage.height;
-            ui.width = origImageTexmpImage.width;
-            gui.drawImage(origImageTexmpImage, 0, 0);
-            console.log(ui.height);
+        //    var imgData = gui.getImageData(0, 0, origImageTexmpImage.width, origImageTexmpImage.height);
 
-            var imgData = gui.getImageData(0, 0, origImageTexmpImage.width, origImageTexmpImage.height);
+        //    var newData = gui.createImageData(origImageTexmpImage.width, origImageTexmpImage.height);
+        //    for (var i = 0; i < origImageTexmpImage.width * origImageTexmpImage.height; i++) {
+        //        for (var rc = 0; rc < baseColors.length; rc++) {
+        //            if (imgData.data[i * 4 + 0] == baseColors[rc].r && imgData.data[i * 4 + 1] == baseColors[rc].g && imgData.data[i * 4 + 2] == baseColors[rc].b) {
+        //                newData.data[i * 4 + 0] = currentColors[rc].r;
+        //                newData.data[i * 4 + 1] = currentColors[rc].g;
+        //                newData.data[i * 4 + 2] = currentColors[rc].b;
+        //                newData.data[i * 4 + 3] = imgData.data[i * 4 + 3];
+        //                rc = baseColors.length;
+        //            } else if (rc == baseColors.length - 1) {
+        //                //if last one and not written, just take defaulr data.
+        //                newData.data[i * 4 + 0] = imgData.data[i * 4 + 0];
+        //                newData.data[i * 4 + 1] = imgData.data[i * 4 + 1];
+        //                newData.data[i * 4 + 2] = imgData.data[i * 4 + 2];
+        //                newData.data[i * 4 + 3] = imgData.data[i * 4 + 3];
+        //            }
 
-            var newData = gui.createImageData(origImageTexmpImage.width, origImageTexmpImage.height);
-            for (var i = 0; i < origImageTexmpImage.width * origImageTexmpImage.height; i++) {
-                for (var rc = 0; rc < baseColors.length; rc++) {
-                    if (imgData.data[i * 4 + 0] == baseColors[rc].r && imgData.data[i * 4 + 1] == baseColors[rc].g && imgData.data[i * 4 + 2] == baseColors[rc].b) {
-                        newData.data[i * 4 + 0] = currentColors[rc].r;
-                        newData.data[i * 4 + 1] = currentColors[rc].g;
-                        newData.data[i * 4 + 2] = currentColors[rc].b;
-                        newData.data[i * 4 + 3] = imgData.data[i * 4 + 3];
-                        rc = baseColors.length;
-                    } else if (rc == baseColors.length - 1) {
-                        //if last one and not written, just take defaulr data.
-                        newData.data[i * 4 + 0] = imgData.data[i * 4 + 0];
-                        newData.data[i * 4 + 1] = imgData.data[i * 4 + 1];
-                        newData.data[i * 4 + 2] = imgData.data[i * 4 + 2];
-                        newData.data[i * 4 + 3] = imgData.data[i * 4 + 3];
-                    }
-
-                }
-
-                //if (imgData.data[i * 4 + 0] == baseColors[0].r && imgData.data[i * 4 + 1] == baseColors[0].g && imgData.data[i * 4 + 2] == baseColors[0].b) {
-                //    newData.data[i * 4 + 0] = currentColors[0].r;
-                //    newData.data[i * 4 + 1] = currentColors[0].g;
-                //    newData.data[i * 4 + 2] = currentColors[0].b;
-                //    newData.data[i * 4 + 3] = imgData.data[i * 4 + 3];
-                //} else {
-                //    newData.data[i * 4 + 0] = imgData.data[i * 4 + 0];
-                //    newData.data[i * 4 + 1] = imgData.data[i * 4 + 1];
-                //    newData.data[i * 4 + 2] = imgData.data[i * 4 + 2];
-                //    newData.data[i * 4 + 3] = imgData.data[i * 4 + 3];
-                //}
-            }
-            gui.putImageData(newData, 0, 0);
-            image.src = ui.toDataURL("image/png");
-            //document.body.appendChild(image);
-        }
-        console.log('origurl:' + ' origTextureUrl is a long datauri');//origTextureUrl);
-        origImageTexmpImage.src = origTextureUrl;
+        //        }
+        //    }
+        //    gui.putImageData(newData, 0, 0);
+        //    image.src = ui.toDataURL("image/png");
+        //    //document.body.appendChild(image);
+        //}
+        //console.log('origurl:' + ' origTextureUrl is a long datauri');//origTextureUrl);
+        //origImageTexmpImage.src = origTextureUrl;
     }
 
     var MainProc = function () {
