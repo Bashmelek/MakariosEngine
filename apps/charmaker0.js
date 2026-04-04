@@ -203,6 +203,47 @@ const Charmaker0 = (function () {
             mousePos = { x: e.clientX, y: e.clientY };
         } 
 
+        var onDragThis = function (e) {
+
+            //types
+            //0: free
+            //1: look
+            var camType = 1;
+            if (mouseisdown) {
+                var xdel;
+                var ydel
+                if (usePointerLock > 0) {
+                    xdel = (e.movementX) * 0.001;
+                    ydel = (e.movementY) * 0.001;
+                } else {
+                    xdel = (e.clientX - lastmousedownpoint.x) * 0.001;
+                    ydel = (e.clientY - lastmousedownpoint.y) * 0.001;
+                    lastmousedownpoint = { x: e.clientX, y: e.clientY };
+                }
+
+                if (camType == 0) {
+                    mat4.rotate(gmod, gmod, (xdel), [gmod[1], gmod[5], gmod[9]]);//[0, 1, 0]);//linTransform(gproj, [0, 1, 0]));// [0, 1, 0]);//linTransform(origmod, [0, 1, 0]));// [0, 1, 0]);
+                    mat4.rotate(gmod, gmod, (ydel), [gmod[0], gmod[4], gmod[8]]);//[1, 0, 0]);//linTransform(gproj, [1, 0, 0]));// [1, 0, 0]);//linTransform(origmod, [1, 0, 0]));
+                } else if (camType == 1) {
+                    //var vmat = mat4.create();
+                    //// Now move the drawing position a bit to where we want to
+                    //// start drawing the square.
+                    //mat4.translate(vmat,     // destination matrix
+                    //    vmat,     // matrix to translate
+                    //    [-0.0, 0.0, -camDist]); //negative camdist
+
+
+                    //yaw += xdel;
+                    //pitch += ydel
+                    mat4.rotate(mainChar.matrix, mainChar.matrix, xdel, [mainChar.matrix[1], mainChar.matrix[5], mainChar.matrix[9]]);// [0.0, 1.0, 0.0]);//[mainChar.matrix[1], mainChar.matrix[5], mainChar.matrix[9]]);
+                    mat4.rotate(mainChar.matrix, mainChar.matrix, ydel, [mainChar.matrix[0], mainChar.matrix[4], mainChar.matrix[8]]);// [1.0, 0.0, 0.0]);//[mainChar.matrix[0], mainChar.matrix[4], mainChar.matrix[8]]);
+
+                    //mat4.rotate(vmat, vmat, yaw, [vmat[1], vmat[5], vmat[9]]);
+                    //mat4.rotate(gmod, vmat, pitch, [vmat[0], vmat[4], vmat[8]]);
+                }
+            }
+        };
+
 
         window.addEventListener("keydown", function (e) {
             //thankyou https://stackoverflow.com/questions/22559830/html-prevent-space-bar-from-scrolling-page
@@ -221,6 +262,11 @@ const Charmaker0 = (function () {
             //var county = keycount;
             //console.log(county);
         });
+
+        usePointerLock = 0;
+        document.querySelector('#uiCanvas').addEventListener("mousedown", onJustMouseDown);
+        window.addEventListener("mouseup", onJustMouseUp);
+        onmousemove = onDragThis;
 
         var palleteClickFinisherCallBack = function (selectedColor) {
             currentColors[currentColorIndex - 1].r = selectedColor.r;
@@ -282,7 +328,7 @@ const Charmaker0 = (function () {
             baseTexture = mainChar.children[0].textureUrl;
             console.log(baseTexture);
         }
-
+        console.log(mainChar);
         //const ui = document.querySelector('#uiCanvas');
         //const gui = ui.getContext('2d');
         //var loveimage = new Image();
@@ -407,7 +453,6 @@ const Charmaker0 = (function () {
 
             var imgData = gui.getImageData(0, 0, origImageTexmpImage.width, origImageTexmpImage.height);
             origImageTexmpImageData = imgData;
-            console.log(origImageTexmpImageData);
             origImageTexmpImageLoaded = true;
             loadCallBack();
 
@@ -454,7 +499,6 @@ const Charmaker0 = (function () {
         gui.drawImage(origImageTexmpImage, 0, 0);
 
         var imgData = origImageTexmpImageData;
-        console.log(imgData);
 
         var newData = gui.createImageData(origImageTexmpImage.width, origImageTexmpImage.height);
         for (var i = 0; i < origImageTexmpImage.width * origImageTexmpImage.height; i++) {
@@ -528,6 +572,10 @@ const Charmaker0 = (function () {
             MakTextures[mainChar.children[0].textureUrl] = texture;
             mainChar.children[0].textureImage = texture;
             mainChar.children[0].textureUrl = image.src;
+
+            MakTextures[mainChar.children[1].textureUrl] = texture;
+            mainChar.children[1].textureImage = texture;
+            mainChar.children[1].textureUrl = image.src;
         };
         image.src = ui.toDataURL("image/png");
 
@@ -605,7 +653,7 @@ const Charmaker0 = (function () {
         mat4.translate(vmat,     // destination matrix
             baseGmod,     // matrix to translate
             [-0.0, 0.0, 0.0]);
-        yaw = Math.PI - mainChar.yrot;
+        ////yaw = Math.PI - mainChar.yrot;
         mat4.rotate(vmat, vmat, yaw, [vmat[1], vmat[5], vmat[9]]);//.6
         mat4.rotate(vmat, vmat, pitch, [vmat[0], vmat[4], vmat[8]]);
         mat4.translate(gmod,     // destination matrix
