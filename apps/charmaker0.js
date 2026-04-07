@@ -58,6 +58,15 @@ const Charmaker0 = (function () {
 
     var cachedImageInfo = {};
 
+    var currentSelections = [];
+    var selectorItems = [];
+    selectorItems[0] = [{ name: "Simple", loc: "gmodels/CatImage3_0.png" }, { name: "Spots", loc: "gmodels/CatImage3_1.png" }, { name: "Stripes", loc: "gmodels/CatImage3_2.png" }];
+    selectorItems[1] = ["Plain", "Cheeks", "Groucho"];
+
+    for (var sel = 0; sel < selectorItems.length; sel++) {
+        currentSelections[sel] = 0;
+    }
+
     //var InnerGetColorAtPoint = function (imgUri, testpoint, imageScaler) {
 
     //}
@@ -138,7 +147,7 @@ const Charmaker0 = (function () {
         //var timmyloc = 'gmodels/firstCat12_emb.gltf';
         //Makarios.preloadGltfPrimitiveFromJsResource(timmyloc, "timmy");
 
-        var katloc = 'gmodels/firstCat15_newtim.gltf';
+        var katloc = 'gmodels/firstCat16_newtim.gltf';
         Makarios.preloadGltfPrimitiveFromJsResource(katloc, "kat");
 
         var diamondloc = 'gmodels/diamond0.gltf';
@@ -170,7 +179,7 @@ const Charmaker0 = (function () {
         pitch = Math.PI / 12.0;//0.65 
 
         //Primitives.shapes["kat"].textureUrl
-        var obFox = Makarios.instantiate(Primitives.shapes["kat"], "gmodels/CatImage3.png", null, {});//'plainsky.jpg'  Primitives.shapes["testbox"].textureUrl "timmy"
+        var obFox = Makarios.instantiate(Primitives.shapes["kat"], "gmodels/CatImage3_0.png", null, {});//'plainsky.jpg'  Primitives.shapes["testbox"].textureUrl "timmy"
         Makarios.SetAnimation(obFox, "IdleStand0");//"0"    Survey  Run
         //mat4.fromScaling(obFox.matrix, [0.1, 0.1, 0.1]);
         mat4.rotate(obFox.matrix, obFox.matrix, 3.1, [obFox.matrix[1], obFox.matrix[5], obFox.matrix[9]]);//.6
@@ -235,7 +244,7 @@ const Charmaker0 = (function () {
 
                     //yaw += xdel;
                     //pitch += ydel
-                    mat4.rotate(mainChar.matrix, mainChar.matrix, xdel, [mainChar.matrix[1], mainChar.matrix[5], mainChar.matrix[9]]);// [0.0, 1.0, 0.0]);//[mainChar.matrix[1], mainChar.matrix[5], mainChar.matrix[9]]);
+                    mat4.rotate(mainChar.matrix, mainChar.matrix, xdel, [0.0, 1.0, 0.0]);//[mainChar.matrix[1], mainChar.matrix[5], mainChar.matrix[9]]);
                     mat4.rotate(mainChar.matrix, mainChar.matrix, ydel, [mainChar.matrix[0], mainChar.matrix[4], mainChar.matrix[8]]);// [1.0, 0.0, 0.0]);//[mainChar.matrix[0], mainChar.matrix[4], mainChar.matrix[8]]);
 
                     //mat4.rotate(vmat, vmat, yaw, [vmat[1], vmat[5], vmat[9]]);
@@ -308,6 +317,21 @@ const Charmaker0 = (function () {
             };
         };
 
+        var selectorArrowClickHandler = function (selID, direction) {
+            //dir: 1 is right, -1 is left
+            var selectorID = selID;
+            var dir = direction;
+
+            return function () {
+                currentSelections[selectorID] = (currentSelections[selectorID] + dir + selectorItems[selectorID].length) % selectorItems[selectorID].length;//selectorItems[0]
+                MakUI.uiState['selectorTitle' + (selectorID)].data.text = selectorItems[selectorID][currentSelections[selectorID]].name;
+                MakUI.cleanRefreshUI();
+                origTextureUrls[0] = selectorItems[selectorID][currentSelections[selectorID]].loc;
+                origImageTexmpImageLoaded = false;
+                UpdateMainCharTexture();
+            }
+        };
+
         MakUI.drawObjToUI('colorlabel1', 'gmodels/colorLabel1.png', { nx: .1, ny: .4, clickHandler: labelClickHandler(1) });
         MakUI.drawObjToUI('colorlabel2', 'gmodels/colorLabel2.png', { nx: .1, ny: .45, clickHandler: labelClickHandler(2) });
         MakUI.drawObjToUI('colorlabel3', 'gmodels/colorLabel3.png', { nx: .1, ny: .5, clickHandler: labelClickHandler(3) });
@@ -321,6 +345,9 @@ const Charmaker0 = (function () {
 
         MakUI.drawObjToUI('buttonhighlight', 'gmodels/buttonHighlight.png', { nx: .097, ny: .394 });
 
+        MakUI.drawShapeToUI('selectorTitle0', { nx: .16, ny: .65, nw: 0.08, nh: 0.05, text: selectorItems[0][currentSelections[0]].name, color: "rgb(180, 220, 180)" });
+        MakUI.drawObjToUI('selector0LB', 'gmodels/menuarrowLeft.png', { nx: .13, ny: .655, clickHandler: selectorArrowClickHandler(0, -1) });
+        MakUI.drawObjToUI('selector0RB', 'gmodels/menuarrowRight.png', { nx: .23, ny: .655, clickHandler: selectorArrowClickHandler(0, 1) });
 
         MakUI.EnableMakUIClick();
 
@@ -434,7 +461,8 @@ const Charmaker0 = (function () {
         origImageTexmpImage.src = origTextureUrl;
     }
 
-    var origTextureUrl = "gmodels/CatImage3.png";
+    var origTextureUrls = [];//"gmodels/CatImage3_0.png";
+    origTextureUrls[0] = selectorItems[0][currentSelections[0]].loc;
     var origImageTexmpImage = null;
     var origImageTexmpImageData = null;
     var origImageTexmpImageLoaded = false;
@@ -479,12 +507,12 @@ const Charmaker0 = (function () {
             //image.src = ui.toDataURL("image/png");
         }
         console.log('origurl:' + ' origTextureUrl is a long datauri');//origTextureUrl);
-        origImageTexmpImage.src = origTextureUrl;
+        origImageTexmpImage.src = origTextureUrls[0];
 
     }
 
     var UpdateMainCharTexture = function () {
-        var origTextureUrl = "gmodels/CatImage3.png";////mainChar.children[0].textureUrl;
+        var origTextureUrl = "gmodels/CatImage3_0.png";////mainChar.children[0].textureUrl;
 
         if (!origImageTexmpImageLoaded) {
             UpdateMainCharTextureWrap(UpdateMainCharTexture);

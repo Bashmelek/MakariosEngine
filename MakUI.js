@@ -196,10 +196,34 @@ const MakUI = (function () {
         uiItem.height = ui.height * uiItem.data.nh * (uiItem.scale);
         uiItem.width = ui.width * uiItem.data.nw * (uiItem.scale);
 
+        if (uiItem.data.text) {
+
+            uiItem.text = uiItem.data.text;
+            uiItem.textColor = data && data.textColor ? data.textColor : '#443344';
+             
+            //uiItem.nx = data.nx || uiItem.zone.nx;
+            //uiItem.ny = data.ny || uiItem.zone.ny;
+            uiItem.textAlign = data.textAlign || 'center';;// || uiItem.zone.textAlign || 'center';
+        }
+
         //gui.drawImage(uiItem.sourceImage, uiItem.x, uiItem.y, uiItem.nw * (uiItem.scale), uiItem.nh * (uiItem.scale));
         gui.fillStyle = uiItem.data.color || "green";
         gui.fillRect(uiItem.x, uiItem.y, uiItem.width, uiItem.height);
-        console.log(uiItem.width);
+        if (uiItem.data.text) {
+            var newfontsize = (Math.floor(ui.height * (uiItem.fontsize || 7.0) / 240.0) * 1).toString();
+            gui.fillStyle = uiItem.textColor;//'#DDBB00';//;'yellow';
+            gui.textAlign = uiItem.textAlign;
+            gui.font = 'bold small-caps ' + newfontsize + 'px serif';
+            gui.textBaseline = 'hanging'; 
+
+            //thankyou Gabriele https://stackoverflow.com/questions/5026961/html5-canvas-ctx-filltext-wont-do-line-breaks
+            var lineheight = (uiItem.fontsize || 7.0) * 4.0;//24;
+            var tlines = (uiItem.text + '').split('\n');
+            for (var i = 0; i < tlines.length; i++) {
+                //c.fillText(lines[i], x, y + (i * lineheight));
+                gui.fillText(tlines[i], uiItem.x + (uiItem.width / 2.0), uiItem.y + 2 + (i * lineheight));
+            }
+        }
 
         uiState.hasany = true;
     };
