@@ -58,6 +58,8 @@ const Charmaker0 = (function () {
 
     var cachedImageInfo = {};
 
+    var layerIDs = { base: 0, face: 1, belly: 2, eyes: 3 };
+
     var currentSelections = [];
     var selectorItems = [];
     selectorItems[0] = [{ name: "Simple", loc: "gmodels/CatImage3_0.png" }, { name: "Spots", loc: "gmodels/CatImage3_1.png" }, { name: "Stripes", loc: "gmodels/CatImage3_2.png" }];
@@ -326,8 +328,9 @@ const Charmaker0 = (function () {
                 currentSelections[selectorID] = (currentSelections[selectorID] + dir + selectorItems[selectorID].length) % selectorItems[selectorID].length;//selectorItems[0]
                 MakUI.uiState['selectorTitle' + (selectorID)].data.text = selectorItems[selectorID][currentSelections[selectorID]].name;
                 MakUI.cleanRefreshUI();
-                origTextureUrls[0] = selectorItems[selectorID][currentSelections[selectorID]].loc;
+                origTextureUrls[selectorID] = selectorItems[selectorID][currentSelections[selectorID]].loc;
                 origImageTexmpImageLoaded = false;
+                origImageTexmpImagesAll[selectorID].loaded = false;
                 UpdateMainCharTexture();
             }
         };
@@ -463,51 +466,56 @@ const Charmaker0 = (function () {
 
     var origTextureUrls = [];//"gmodels/CatImage3_0.png";
     origTextureUrls[0] = selectorItems[0][currentSelections[0]].loc;
-    var origImageTexmpImage = null;
-    var origImageTexmpImageData = null;
+    //var origImageTexmpImage = null;
+    //var origImageTexmpImageData = null;
     var origImageTexmpImageLoaded = false;
+
+    var origImageTexmpImagesAll = [];
+    for (var x = 0; x < selectorItems.length; x++) {
+        if (x == 0) {// || x == 1) {
+            origImageTexmpImagesAll.push({ data: null, loaded: false, img: null });
+        }
+    }
 
     var UpdateMainCharTextureWrap = function (loadCallBack) {
         const ui = document.createElement('canvas');
         const gui = ui.getContext('2d');
 
-        origImageTexmpImage = new Image();
-        origImageTexmpImage.onload = function () {
+        var anyUnloaded = false;
+        var escape = false;
+        for (var i = 0; i < origImageTexmpImagesAll.length && !escape; i++) {
 
-            ui.height = origImageTexmpImage.height;
-            ui.width = origImageTexmpImage.width;
-            gui.drawImage(origImageTexmpImage, 0, 0);
-             
+            if (!origImageTexmpImagesAll[i].loaded) {
+                anyUnloaded = true;
+                escape = true;
 
-            var imgData = gui.getImageData(0, 0, origImageTexmpImage.width, origImageTexmpImage.height);
-            origImageTexmpImageData = imgData;
+                var id = i;
+                origImageTexmpImagesAll[id].img = new Image();
+                origImageTexmpImagesAll[id].img.onload = function () {
+
+                    ui.height = origImageTexmpImagesAll[id].img.height;
+                    ui.width = origImageTexmpImagesAll[id].img.width;
+                    gui.drawImage(origImageTexmpImagesAll[id].img, 0, 0);
+
+
+                    var imgData = gui.getImageData(0, 0, origImageTexmpImagesAll[id].img.width, origImageTexmpImagesAll[id].img.height);
+                    ////origImageTexmpImageData = imgData;
+                    ////origImageTexmpImageLoaded = true;
+                    origImageTexmpImagesAll[id].loaded = true;
+                    origImageTexmpImagesAll[id].data = imgData;
+                    //loadCallBack();
+                    UpdateMainCharTextureWrap(loadCallBack);
+                }
+                console.log('origurl:' + ' origTextureUrl is a long datauri: ' + id);//origTextureUrl);
+                origImageTexmpImagesAll[id].img.src = origTextureUrls[id];
+            }
+
+        }
+
+        if (!escape && !anyUnloaded) {
             origImageTexmpImageLoaded = true;
             loadCallBack();
-
-            //var newData = gui.createImageData(origImageTexmpImage.width, origImageTexmpImage.height);
-            //for (var i = 0; i < origImageTexmpImage.width * origImageTexmpImage.height; i++) {
-            //    for (var rc = 0; rc < baseColors.length; rc++) {
-            //        if (imgData.data[i * 4 + 0] == baseColors[rc].r && imgData.data[i * 4 + 1] == baseColors[rc].g && imgData.data[i * 4 + 2] == baseColors[rc].b) {
-            //            newData.data[i * 4 + 0] = currentColors[rc].r;
-            //            newData.data[i * 4 + 1] = currentColors[rc].g;
-            //            newData.data[i * 4 + 2] = currentColors[rc].b;
-            //            newData.data[i * 4 + 3] = imgData.data[i * 4 + 3];
-            //            rc = baseColors.length;
-            //        } else if (rc == baseColors.length - 1) {
-            //            //if last one and not written, just take defaulr data.
-            //            newData.data[i * 4 + 0] = imgData.data[i * 4 + 0];
-            //            newData.data[i * 4 + 1] = imgData.data[i * 4 + 1];
-            //            newData.data[i * 4 + 2] = imgData.data[i * 4 + 2];
-            //            newData.data[i * 4 + 3] = imgData.data[i * 4 + 3];
-            //        }
-
-            //    }
-            //}
-            //gui.putImageData(newData, 0, 0);
-            //image.src = ui.toDataURL("image/png");
         }
-        console.log('origurl:' + ' origTextureUrl is a long datauri');//origTextureUrl);
-        origImageTexmpImage.src = origTextureUrls[0];
 
     }
 
@@ -520,29 +528,32 @@ const Charmaker0 = (function () {
             return;
         }
 
+        var origImageTexmpImage = origImageTexmpImagesAll[0].img;
         const ui = document.createElement('canvas');
         const gui = ui.getContext('2d');
         ui.height = origImageTexmpImage.height;
         ui.width = origImageTexmpImage.width;
         gui.drawImage(origImageTexmpImage, 0, 0);
 
-        var imgData = origImageTexmpImageData;
+        var imgData = origImageTexmpImagesAll[0].data;//origImageTexmpImageData;
 
+        var px = 0;
         var newData = gui.createImageData(origImageTexmpImage.width, origImageTexmpImage.height);
         for (var i = 0; i < origImageTexmpImage.width * origImageTexmpImage.height; i++) {
             for (var rc = 0; rc < baseColors.length; rc++) {
-                if (imgData.data[i * 4 + 0] == baseColors[rc].r && imgData.data[i * 4 + 1] == baseColors[rc].g && imgData.data[i * 4 + 2] == baseColors[rc].b) {
-                    newData.data[i * 4 + 0] = currentColors[rc].r;
-                    newData.data[i * 4 + 1] = currentColors[rc].g;
-                    newData.data[i * 4 + 2] = currentColors[rc].b;
-                    newData.data[i * 4 + 3] = imgData.data[i * 4 + 3];
+                px = i * 4;
+                if (imgData.data[px + 0] == baseColors[rc].r && imgData.data[px + 1] == baseColors[rc].g && imgData.data[px + 2] == baseColors[rc].b) {
+                    newData.data[px + 0] = currentColors[rc].r;
+                    newData.data[px + 1] = currentColors[rc].g;
+                    newData.data[px + 2] = currentColors[rc].b;
+                    newData.data[px + 3] = imgData.data[px + 3];
                     rc = baseColors.length;
                 } else if (rc == baseColors.length - 1) {
                     //if last one and not written, just take defaulr data.
-                    newData.data[i * 4 + 0] = imgData.data[i * 4 + 0];
-                    newData.data[i * 4 + 1] = imgData.data[i * 4 + 1];
-                    newData.data[i * 4 + 2] = imgData.data[i * 4 + 2];
-                    newData.data[i * 4 + 3] = imgData.data[i * 4 + 3];
+                    newData.data[px + 0] = imgData.data[px + 0];
+                    newData.data[px + 1] = imgData.data[px + 1];
+                    newData.data[px + 2] = imgData.data[px + 2];
+                    newData.data[px + 3] = imgData.data[px + 3];
                 }
         
             }
