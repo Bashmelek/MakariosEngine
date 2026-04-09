@@ -58,16 +58,18 @@ const Charmaker0 = (function () {
 
     var cachedImageInfo = {};
 
-    var layerIDs = { base: 0, face: 1, belly: 2, eyes: 3 };
+    var layerIDs = { base: 0, eyes: 1 };//{ base: 0, face: 1, belly: 2, eyes: 3 };
 
     var currentSelections = [];
     var selectorItems = [];
     selectorItems[0] = [{ name: "Simple", loc: "gmodels/CatImage3_0.png" }, { name: "Spots", loc: "gmodels/CatImage3_1.png" }, { name: "Stripes", loc: "gmodels/CatImage3_2.png" }];
-    selectorItems[1] = ["Plain", "Cheeks", "Groucho"];
+    selectorItems[1] = [{ name: "Simple", loc: "gmodels/CatEyes3_0.png" }, { name: "Human", loc: "gmodels/CatEyes3_1.png" }, { name: "Slit", loc: "gmodels/CatEyes3_2.png" }, { name: "Blank", loc: "gmodels/CatEyes3_3.png" }];
+    //selectorItems[1] = ["Plain", "Cheeks", "Groucho"];
 
     for (var sel = 0; sel < selectorItems.length; sel++) {
         currentSelections[sel] = 0;
     }
+    //console.log("sellout at: " + selectorItems.length);
 
     //var InnerGetColorAtPoint = function (imgUri, testpoint, imageScaler) {
 
@@ -187,6 +189,8 @@ const Charmaker0 = (function () {
         mat4.rotate(obFox.matrix, obFox.matrix, 3.1, [obFox.matrix[1], obFox.matrix[5], obFox.matrix[9]]);//.6
         mat4.translate(obFox.matrix, obFox.matrix, [0.0, 6.4, 0.0]); 
         //initVelocity(obFox);
+
+        UpdateMainCharTexture();
 
 
         Makarios.setCamDist(12.0);
@@ -331,7 +335,8 @@ const Charmaker0 = (function () {
                 origTextureUrls[selectorID] = selectorItems[selectorID][currentSelections[selectorID]].loc;
                 origImageTexmpImageLoaded = false;
                 origImageTexmpImagesAll[selectorID].loaded = false;
-                UpdateMainCharTexture();
+                console.log()
+                UpdateMainCharTexture(origTextureUrls[selectorID]);
             }
         };
 
@@ -352,6 +357,10 @@ const Charmaker0 = (function () {
         MakUI.drawObjToUI('selector0LB', 'gmodels/menuarrowLeft.png', { nx: .13, ny: .655, clickHandler: selectorArrowClickHandler(0, -1) });
         MakUI.drawObjToUI('selector0RB', 'gmodels/menuarrowRight.png', { nx: .23, ny: .655, clickHandler: selectorArrowClickHandler(0, 1) });
 
+        MakUI.drawShapeToUI('selectorTitle1', { nx: .16, ny: .72, nw: 0.08, nh: 0.05, text: selectorItems[1][currentSelections[1]].name, color: "rgb(220, 180, 180)" });
+        MakUI.drawObjToUI('selector1LB', 'gmodels/menuarrowLeft.png', { nx: .13, ny: .725, clickHandler: selectorArrowClickHandler(1, -1) });
+        MakUI.drawObjToUI('selector1RB', 'gmodels/menuarrowRight.png', { nx: .23, ny: .725, clickHandler: selectorArrowClickHandler(1, 1) });
+
         MakUI.EnableMakUIClick();
 
         if (!baseTexture) {
@@ -367,7 +376,6 @@ const Charmaker0 = (function () {
         //    gui.drawImage(loveimage, 120, 120);
         //    gameComplete = true;
         //};
-
 
         WanderProc = MainProc;
     };
@@ -465,15 +473,16 @@ const Charmaker0 = (function () {
     }
 
     var origTextureUrls = [];//"gmodels/CatImage3_0.png";
-    origTextureUrls[0] = selectorItems[0][currentSelections[0]].loc;
+     
     //var origImageTexmpImage = null;
     //var origImageTexmpImageData = null;
     var origImageTexmpImageLoaded = false;
 
     var origImageTexmpImagesAll = [];
     for (var x = 0; x < selectorItems.length; x++) {
-        if (x == 0) {// || x == 1) {
+        if (x == 0 || x == 1) {
             origImageTexmpImagesAll.push({ data: null, loaded: false, img: null });
+            origTextureUrls[x] = selectorItems[x][currentSelections[x]].loc;
         }
     }
 
@@ -506,7 +515,7 @@ const Charmaker0 = (function () {
                     //loadCallBack();
                     UpdateMainCharTextureWrap(loadCallBack);
                 }
-                console.log('origurl:' + ' origTextureUrl is a long datauri: ' + id);//origTextureUrl);
+                console.log('origurl:' + origTextureUrls[id] + ' origTextureUrl is a long datauri: ' + id);//origTextureUrl);
                 origImageTexmpImagesAll[id].img.src = origTextureUrls[id];
             }
 
@@ -520,7 +529,7 @@ const Charmaker0 = (function () {
     }
 
     var UpdateMainCharTexture = function () {
-        var origTextureUrl = "gmodels/CatImage3_0.png";////mainChar.children[0].textureUrl;
+        //var origTextureUrl = "gmodels/CatImage3_0.png";////mainChar.children[0].textureUrl;
 
         if (!origImageTexmpImageLoaded) {
             UpdateMainCharTextureWrap(UpdateMainCharTexture);
@@ -535,27 +544,44 @@ const Charmaker0 = (function () {
         ui.width = origImageTexmpImage.width;
         gui.drawImage(origImageTexmpImage, 0, 0);
 
-        var imgData = origImageTexmpImagesAll[0].data;//origImageTexmpImageData;
+        //var imgData = origImageTexmpImagesAll[0].data;//origImageTexmpImageData;
 
         var px = 0;
         var newData = gui.createImageData(origImageTexmpImage.width, origImageTexmpImage.height);
         for (var i = 0; i < origImageTexmpImage.width * origImageTexmpImage.height; i++) {
-            for (var rc = 0; rc < baseColors.length; rc++) {
-                px = i * 4;
-                if (imgData.data[px + 0] == baseColors[rc].r && imgData.data[px + 1] == baseColors[rc].g && imgData.data[px + 2] == baseColors[rc].b) {
-                    newData.data[px + 0] = currentColors[rc].r;
-                    newData.data[px + 1] = currentColors[rc].g;
-                    newData.data[px + 2] = currentColors[rc].b;
-                    newData.data[px + 3] = imgData.data[px + 3];
-                    rc = baseColors.length;
-                } else if (rc == baseColors.length - 1) {
-                    //if last one and not written, just take defaulr data.
-                    newData.data[px + 0] = imgData.data[px + 0];
-                    newData.data[px + 1] = imgData.data[px + 1];
-                    newData.data[px + 2] = imgData.data[px + 2];
-                    newData.data[px + 3] = imgData.data[px + 3];
+            px = i * 4;
+             
+            for (var l = (origImageTexmpImagesAll.length - 1); l >= 0; l--) {
+
+                var imgData = origImageTexmpImagesAll[l].data;
+
+                if (px < 15) {
+
+                    console.log(imgData.data[px + 3]);
                 }
-        
+                if (imgData.data[px + 3] < 100) {
+                    //skip
+                } else { 
+                    for (var rc = 0; rc < baseColors.length; rc++) {
+                        //console.log(imgData.data[px + 3]);
+                        if (imgData.data[px + 0] == baseColors[rc].r && imgData.data[px + 1] == baseColors[rc].g && imgData.data[px + 2] == baseColors[rc].b) {
+                            newData.data[px + 0] = currentColors[rc].r;
+                            newData.data[px + 1] = currentColors[rc].g;
+                            newData.data[px + 2] = currentColors[rc].b;
+                            newData.data[px + 3] = imgData.data[px + 3];
+                            rc = baseColors.length;
+                        } else if (rc == baseColors.length - 1) {
+                            //if last one and not written, just take defaulr data.
+                            newData.data[px + 0] = imgData.data[px + 0];
+                            newData.data[px + 1] = imgData.data[px + 1];
+                            newData.data[px + 2] = imgData.data[px + 2];
+                            newData.data[px + 3] = imgData.data[px + 3];
+                        }
+
+                    }
+
+                    l = -1;//origImageTexmpImagesAll.length;
+                }
             }
         }
         gui.putImageData(newData, 0, 0);
