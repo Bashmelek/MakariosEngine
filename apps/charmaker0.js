@@ -50,6 +50,7 @@ const Charmaker0 = (function () {
     baseColors.push({ r: 118, g: 139, b: 143 });
     baseColors.push({ r: 236, g: 175, b: 27 });
     baseColors.push({ r: 231, g: 113, b: 208 });
+    baseColors.push({ r: 128, g: 64, b: 0 });
 
     var currentColors = [];
     for (var bc = 0; bc < baseColors.length; bc++) {
@@ -64,6 +65,13 @@ const Charmaker0 = (function () {
     var selectorItems = [];
     selectorItems[0] = [{ name: "Simple", loc: "gmodels/CatImage3_0.png" }, { name: "Spots", loc: "gmodels/CatImage3_1.png" }, { name: "Stripes", loc: "gmodels/CatImage3_2.png" }];
     selectorItems[1] = [{ name: "Simple", loc: "gmodels/CatEyes3_0.png" }, { name: "Human", loc: "gmodels/CatEyes3_1.png" }, { name: "Slit", loc: "gmodels/CatEyes3_2.png" }, { name: "Blank", loc: "gmodels/CatEyes3_3.png" }];
+    selectorItems[2] = [{ name: "Plain", loc: "gmodels/CatFace3_0.png" },
+        { name: "Cheeks", loc: "gmodels/CatFace3_1.png" },
+        { name: "Tabby", loc: "gmodels/CatFace3_2.png" }, 
+        { name: "Tiger", loc: "gmodels/CatFace3_3.png" }, 
+        { name: "Gourcho", loc: "gmodels/CatFace3_4.png" },
+        { name: "Freckles", loc: "gmodels/CatFace3_5.png" }];
+
     //selectorItems[1] = ["Plain", "Cheeks", "Groucho"];
 
     for (var sel = 0; sel < selectorItems.length; sel++) {
@@ -183,7 +191,7 @@ const Charmaker0 = (function () {
         pitch = Math.PI / 12.0;//0.65 
 
         //Primitives.shapes["kat"].textureUrl
-        var obFox = Makarios.instantiate(Primitives.shapes["kat"], "gmodels/CatImage3_0.png", null, {});//'plainsky.jpg'  Primitives.shapes["testbox"].textureUrl "timmy"
+        var obFox = Makarios.instantiate(Primitives.shapes["kat"], "gmodels/CatImage3.png", null, {});//'plainsky.jpg'  Primitives.shapes["testbox"].textureUrl "timmy"
         Makarios.SetAnimation(obFox, "IdleStand0");//"0"    Survey  Run
         //mat4.fromScaling(obFox.matrix, [0.1, 0.1, 0.1]);
         mat4.rotate(obFox.matrix, obFox.matrix, 3.1, [obFox.matrix[1], obFox.matrix[5], obFox.matrix[9]]);//.6
@@ -340,18 +348,20 @@ const Charmaker0 = (function () {
             }
         };
 
-        MakUI.drawObjToUI('colorlabel1', 'gmodels/colorLabel1.png', { nx: .1, ny: .4, clickHandler: labelClickHandler(1) });
-        MakUI.drawObjToUI('colorlabel2', 'gmodels/colorLabel2.png', { nx: .1, ny: .45, clickHandler: labelClickHandler(2) });
-        MakUI.drawObjToUI('colorlabel3', 'gmodels/colorLabel3.png', { nx: .1, ny: .5, clickHandler: labelClickHandler(3) });
-        MakUI.drawObjToUI('colorlabel4', 'gmodels/colorLabel4.png', { nx: .1, ny: .55, clickHandler: labelClickHandler(4) });
+        MakUI.drawObjToUI('colorlabel1', 'gmodels/colorLabel1.png', { nx: .1, ny: .35, clickHandler: labelClickHandler(1) });
+        MakUI.drawObjToUI('colorlabel2', 'gmodels/colorLabel2.png', { nx: .1, ny: .4, clickHandler: labelClickHandler(2) });
+        MakUI.drawObjToUI('colorlabel3', 'gmodels/colorLabel3.png', { nx: .1, ny: .45, clickHandler: labelClickHandler(3) });
+        MakUI.drawObjToUI('colorlabel4', 'gmodels/colorLabel4.png', { nx: .1, ny: .5, clickHandler: labelClickHandler(4) });
+        MakUI.drawObjToUI('colorlabel5', 'gmodels/colorLabel5.png', { nx: .1, ny: .55, clickHandler: labelClickHandler(5) });
 
 
-        MakUI.drawShapeToUI('colorsample1', { nx: .16, ny: .4, nw: 0.05, nh: 0.05, color: "rgb(" + baseColors[0].r + ", " + baseColors[0].g + ", " + baseColors[0].b + ")" });
-        MakUI.drawShapeToUI('colorsample2', { nx: .16, ny: .45, nw: 0.05, nh: 0.05, color: "rgb(" + baseColors[1].r + ", " + baseColors[1].g + ", " + baseColors[1].b + ")" });
-        MakUI.drawShapeToUI('colorsample3', { nx: .16, ny: .5, nw: 0.05, nh: 0.05, color: "rgb(" + baseColors[2].r + ", " + baseColors[2].g + ", " + baseColors[2].b + ")" });
-        MakUI.drawShapeToUI('colorsample4', { nx: .16, ny: .55, nw: 0.05, nh: 0.05, color: "rgb(" + baseColors[3].r + ", " + baseColors[3].g + ", " + baseColors[3].b + ")" });
+        MakUI.drawShapeToUI('colorsample1', { nx: .16, ny: .35, nw: 0.05, nh: 0.05, color: "rgb(" + baseColors[0].r + ", " + baseColors[0].g + ", " + baseColors[0].b + ")" });
+        MakUI.drawShapeToUI('colorsample2', { nx: .16, ny: .4, nw: 0.05, nh: 0.05, color: "rgb(" + baseColors[1].r + ", " + baseColors[1].g + ", " + baseColors[1].b + ")" });
+        MakUI.drawShapeToUI('colorsample3', { nx: .16, ny: .45, nw: 0.05, nh: 0.05, color: "rgb(" + baseColors[2].r + ", " + baseColors[2].g + ", " + baseColors[2].b + ")" });
+        MakUI.drawShapeToUI('colorsample4', { nx: .16, ny: .5, nw: 0.05, nh: 0.05, color: "rgb(" + baseColors[3].r + ", " + baseColors[3].g + ", " + baseColors[3].b + ")" });
+        MakUI.drawShapeToUI('colorsample5', { nx: .16, ny: .55, nw: 0.05, nh: 0.05, color: "rgb(" + baseColors[4].r + ", " + baseColors[4].g + ", " + baseColors[4].b + ")" });
 
-        MakUI.drawObjToUI('buttonhighlight', 'gmodels/buttonHighlight.png', { nx: .097, ny: .394 });
+        MakUI.drawObjToUI('buttonhighlight', 'gmodels/buttonHighlight.png', { nx: .097, ny: .344 });
 
         MakUI.drawShapeToUI('selectorTitle0', { nx: .16, ny: .65, nw: 0.08, nh: 0.05, text: selectorItems[0][currentSelections[0]].name, color: "rgb(180, 220, 180)" });
         MakUI.drawObjToUI('selector0LB', 'gmodels/menuarrowLeft.png', { nx: .13, ny: .655, clickHandler: selectorArrowClickHandler(0, -1) });
@@ -360,6 +370,11 @@ const Charmaker0 = (function () {
         MakUI.drawShapeToUI('selectorTitle1', { nx: .16, ny: .72, nw: 0.08, nh: 0.05, text: selectorItems[1][currentSelections[1]].name, color: "rgb(220, 180, 180)" });
         MakUI.drawObjToUI('selector1LB', 'gmodels/menuarrowLeft.png', { nx: .13, ny: .725, clickHandler: selectorArrowClickHandler(1, -1) });
         MakUI.drawObjToUI('selector1RB', 'gmodels/menuarrowRight.png', { nx: .23, ny: .725, clickHandler: selectorArrowClickHandler(1, 1) });
+
+
+        MakUI.drawShapeToUI('selectorTitle2', { nx: .16, ny: .79, nw: 0.08, nh: 0.05, text: selectorItems[1][currentSelections[1]].name, color: "rgb(128, 64, 0)" });
+        MakUI.drawObjToUI('selector2LB', 'gmodels/menuarrowLeft.png', { nx: .13, ny: .795, clickHandler: selectorArrowClickHandler(2, -1) });
+        MakUI.drawObjToUI('selector2RB', 'gmodels/menuarrowRight.png', { nx: .23, ny: .795, clickHandler: selectorArrowClickHandler(2, 1) });
 
         MakUI.EnableMakUIClick();
 
@@ -480,7 +495,7 @@ const Charmaker0 = (function () {
 
     var origImageTexmpImagesAll = [];
     for (var x = 0; x < selectorItems.length; x++) {
-        if (x == 0 || x == 1) {
+        if (x == 0 || x == 1 || x == 2) {
             origImageTexmpImagesAll.push({ data: null, loaded: false, img: null });
             origTextureUrls[x] = selectorItems[x][currentSelections[x]].loc;
         }
