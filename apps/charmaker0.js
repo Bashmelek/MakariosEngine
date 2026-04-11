@@ -209,7 +209,7 @@ const Charmaker0 = (function () {
         var env1 = Makarios.instantiate(Primitives.shapes.tiledPlane(tilenum), "gmodels/floorplain0.png", null, {}); 
         //mat4.rotate(env1.matrix, env1.matrix, 3.1, [obFox.matrix[1], obFox.matrix[5], obFox.matrix[9]]);//.6
         //mat4.scale(env1.matrix, env1.matrix, [18.0, 18.0, 18.0]);
-        mat4.translate(env1.matrix, env1.matrix, [0.0, -2.1, 0.0]);
+        mat4.translate(env1.matrix, env1.matrix, [0.0, -1.961, 0.0]);
         mat4.scale(env1.matrix, env1.matrix, [12.0, 12.0, 12.0]);
         //mat4.rotate(env1.matrix, env1.matrix, 3.1, [1.0, 0.0, 0.0]);//.6
 
@@ -271,10 +271,10 @@ const Charmaker0 = (function () {
                     //    [-0.0, 0.0, -camDist]); //negative camdist
 
 
-                    //yaw += xdel;
-                    //pitch += ydel
-                    mat4.rotate(mainChar.matrix, mainChar.matrix, xdel, [0.0, 1.0, 0.0]);//[mainChar.matrix[1], mainChar.matrix[5], mainChar.matrix[9]]);
-                    mat4.rotate(mainChar.matrix, mainChar.matrix, ydel, [mainChar.matrix[0], mainChar.matrix[4], mainChar.matrix[8]]);// [1.0, 0.0, 0.0]);//[mainChar.matrix[0], mainChar.matrix[4], mainChar.matrix[8]]);
+                    yaw += xdel;
+                    pitch += ydel
+                    //mat4.rotate(mainChar.matrix, mainChar.matrix, xdel, [0.0, 1.0, 0.0]);//[mainChar.matrix[1], mainChar.matrix[5], mainChar.matrix[9]]);
+                    //mat4.rotate(mainChar.matrix, mainChar.matrix, ydel, [mainChar.matrix[0], mainChar.matrix[4], mainChar.matrix[8]]);// [1.0, 0.0, 0.0]);//[mainChar.matrix[0], mainChar.matrix[4], mainChar.matrix[8]]);
 
                     //mat4.rotate(vmat, vmat, yaw, [vmat[1], vmat[5], vmat[9]]);
                     //mat4.rotate(gmod, vmat, pitch, [vmat[0], vmat[4], vmat[8]]);
@@ -306,14 +306,14 @@ const Charmaker0 = (function () {
             if (StageData.noScroll) { return; }
 
             var scrollDiff = event.deltaY * 0.01;
-            /*
+            
             var oldDist = camDist;
             camDist += scrollDiff;
 
-            if (camDist < 2.0) {
-                camDist = 2.0;
-            } else if (camDist > maxCamDist) {
-                camDist = maxCamDist;
+            if (camDist < 4.0) {
+                camDist = 4.0;
+            } else if (camDist > 32.0) {
+                camDist = 32.0;//maxCamDist;
             }
 
             var distDel = camDist - oldDist;
@@ -321,8 +321,9 @@ const Charmaker0 = (function () {
                 return;
             }
 
-            gmod[14] -= distDel; 
-            */
+            gmod[14] -= distDel;
+            baseGmod[14] -= distDel; 
+            
         });
 
         usePointerLock = 0;
