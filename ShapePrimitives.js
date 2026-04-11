@@ -403,6 +403,48 @@ const Primitives = (function () {
         
     };
 
+    shapes.tiledPlane = function (tiling) {
+        return {
+            id: 3,
+            isComposite: false,
+            positions: [
+                // Top face
+                -1.0, 0.0, -1.0,
+                -1.0, 0.0, 1.0,
+                1.0, 0.0, 1.0,
+                1.0, 0.0, -1.0,
+            ],
+
+            textureCoordinates: [
+                // Top
+                0.0, tiling * 1.0,
+                tiling * 1.0, tiling * 1.0,
+                tiling * 1.0, 0.0,
+                0.0, 0.0,
+            ],
+
+            textureCoordinatesWithAlpha: [
+                // Top
+                0.0, tiling * 1.0, tiling * 1.0,
+                tiling * 1.0, tiling * 1.0, tiling * 1.0,
+                tiling * 1.0, 0.0, tiling * 1.0,
+                0.0, 0.0, tiling * 1.0,
+            ],
+
+            indices: [
+                0, 1, 2, 0, 2, 3,
+            ],
+
+            vertexNormals: [
+                // Top
+                0.0, 1.0, 0.0,
+                0.0, 1.0, 0.0,
+                0.0, 1.0, 0.0,
+                0.0, 1.0, 0.0,
+            ]
+        };
+    };
+
 
     shapes["empty"] = {
         id: 4,

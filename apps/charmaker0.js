@@ -64,12 +64,17 @@ const Charmaker0 = (function () {
     var currentSelections = [];
     var selectorItems = [];
     selectorItems[0] = [{ name: "Simple", loc: "gmodels/CatImage3_0.png" }, { name: "Spots", loc: "gmodels/CatImage3_1.png" }, { name: "Stripes", loc: "gmodels/CatImage3_2.png" }];
-    selectorItems[1] = [{ name: "Simple", loc: "gmodels/CatEyes3_0.png" }, { name: "Human", loc: "gmodels/CatEyes3_1.png" }, { name: "Slit", loc: "gmodels/CatEyes3_2.png" }, { name: "Blank", loc: "gmodels/CatEyes3_3.png" }];
+    selectorItems[1] = [{ name: "Simple", loc: "gmodels/CatEyes3_0.png" }, { name: "Uncanny", loc: "gmodels/CatEyes3_1.png" },
+        { name: "Slit", loc: "gmodels/CatEyes3_2.png" },
+        { name: "Blank", loc: "gmodels/CatEyes3_3.png" },
+        { name: "Chibi", loc: "gmodels/CatEyes3_4.png" },
+        { name: "Chibi2", loc: "gmodels/CatEyes3_5.png" },
+        { name: "Piercing", loc: "gmodels/CatEyes3_6.png" }];
     selectorItems[2] = [{ name: "Plain", loc: "gmodels/CatFace3_0.png" },
         { name: "Cheeks", loc: "gmodels/CatFace3_1.png" },
         { name: "Tabby", loc: "gmodels/CatFace3_2.png" }, 
         { name: "Tiger", loc: "gmodels/CatFace3_3.png" }, 
-        { name: "Gourcho", loc: "gmodels/CatFace3_4.png" },
+        { name: "Groucho", loc: "gmodels/CatFace3_4.png" },
         { name: "Freckles", loc: "gmodels/CatFace3_5.png" }];
 
     //selectorItems[1] = ["Plain", "Cheeks", "Groucho"];
@@ -195,8 +200,18 @@ const Charmaker0 = (function () {
         Makarios.SetAnimation(obFox, "IdleStand0");//"0"    Survey  Run
         //mat4.fromScaling(obFox.matrix, [0.1, 0.1, 0.1]);
         mat4.rotate(obFox.matrix, obFox.matrix, 3.1, [obFox.matrix[1], obFox.matrix[5], obFox.matrix[9]]);//.6
-        mat4.translate(obFox.matrix, obFox.matrix, [0.0, 6.4, 0.0]); 
+        mat4.translate(obFox.matrix, obFox.matrix, [0.0, 0.0, 0.0]); 
         //initVelocity(obFox);
+
+
+        var tilenum = 12.0; 
+
+        var env1 = Makarios.instantiate(Primitives.shapes.tiledPlane(tilenum), "gmodels/floorplain0.png", null, {}); 
+        //mat4.rotate(env1.matrix, env1.matrix, 3.1, [obFox.matrix[1], obFox.matrix[5], obFox.matrix[9]]);//.6
+        //mat4.scale(env1.matrix, env1.matrix, [18.0, 18.0, 18.0]);
+        mat4.translate(env1.matrix, env1.matrix, [0.0, -2.1, 0.0]);
+        mat4.scale(env1.matrix, env1.matrix, [12.0, 12.0, 12.0]);
+        //mat4.rotate(env1.matrix, env1.matrix, 3.1, [1.0, 0.0, 0.0]);//.6
 
         UpdateMainCharTexture();
 
@@ -284,6 +299,30 @@ const Charmaker0 = (function () {
             }
             //var county = keycount;
             //console.log(county);
+        });
+
+        window.addEventListener("wheel", function (event) {
+
+            if (StageData.noScroll) { return; }
+
+            var scrollDiff = event.deltaY * 0.01;
+            /*
+            var oldDist = camDist;
+            camDist += scrollDiff;
+
+            if (camDist < 2.0) {
+                camDist = 2.0;
+            } else if (camDist > maxCamDist) {
+                camDist = maxCamDist;
+            }
+
+            var distDel = camDist - oldDist;
+            if (distDel == 0.0) {
+                return;
+            }
+
+            gmod[14] -= distDel; 
+            */
         });
 
         usePointerLock = 0;
@@ -543,6 +582,7 @@ const Charmaker0 = (function () {
 
     }
 
+
     var UpdateMainCharTexture = function () {
         //var origTextureUrl = "gmodels/CatImage3_0.png";////mainChar.children[0].textureUrl;
 
@@ -656,6 +696,8 @@ const Charmaker0 = (function () {
             MakTextures[mainChar.children[1].textureUrl] = texture;
             mainChar.children[1].textureImage = texture;
             mainChar.children[1].textureUrl = image.src;
+
+            console.log(mainChar);
         };
         image.src = ui.toDataURL("image/png");
 

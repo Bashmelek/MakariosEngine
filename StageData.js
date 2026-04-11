@@ -124,6 +124,7 @@ const StageData = (function () {
     var setupObject = function (prim, textureUrl, objectOnFrame, customprops) {
         var newInst = {};
         newInst.prim = prim;
+        newInst.name = prim.name;
         if (!prim.isComposite) {
             newInst.positions = new Array(prim.positions.length).fill().map(function (x, ind) { return prim.positions[ind]; });
             var textureMap = Makarios.UseAlphaInTextureBuffer() && prim.textureCoordinatesWithAlpha ? prim.textureCoordinatesWithAlpha : prim.textureCoordinates;
