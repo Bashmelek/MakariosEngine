@@ -51,10 +51,19 @@ const Charmaker0 = (function () {
     baseColors.push({ r: 236, g: 175, b: 27 });
     baseColors.push({ r: 231, g: 113, b: 208 });
     baseColors.push({ r: 128, g: 64, b: 0 });
+    baseColors.push({ r: 248, g: 248, b: 255 });
+    baseColors.push({ r: 0, g: 8, b: 8 });
 
     var currentColors = [];
     for (var bc = 0; bc < baseColors.length; bc++) {
-        currentColors.push({ r: baseColors[bc].r, g: baseColors[bc].g, b: baseColors[bc].b });
+        if (bc == 5) {
+            currentColors.push({ r: 255, g: 255, b: 255 });
+        } else if (bc == 6) {
+            currentColors.push({ r: 0, g: 0, b: 0 });
+        }
+        else {
+            currentColors.push({ r: baseColors[bc].r, g: baseColors[bc].g, b: baseColors[bc].b });
+        }
     }
 
     var cachedImageInfo = {};
@@ -69,13 +78,17 @@ const Charmaker0 = (function () {
         { name: "Blank", loc: "gmodels/CatEyes3_3.png" },
         { name: "Chibi", loc: "gmodels/CatEyes3_4.png" },
         { name: "Chibi2", loc: "gmodels/CatEyes3_5.png" },
-        { name: "Piercing", loc: "gmodels/CatEyes3_6.png" }];
+        { name: "Piercing", loc: "gmodels/CatEyes3_6.png" },
+        { name: "^_^", loc: "gmodels/CatEyes3_7.png" }];
     selectorItems[2] = [{ name: "Plain", loc: "gmodels/CatFace3_0.png" },
         { name: "Cheeks", loc: "gmodels/CatFace3_1.png" },
         { name: "Tabby", loc: "gmodels/CatFace3_2.png" }, 
         { name: "Tiger", loc: "gmodels/CatFace3_3.png" }, 
         { name: "Groucho", loc: "gmodels/CatFace3_4.png" },
         { name: "Freckles", loc: "gmodels/CatFace3_5.png" }];
+    selectorItems[3] = [{ name: "Default", loc: "gmodels/CatSmile3_0.png" }, { name: "Default", loc: "gmodels/CatSmile3_1.png" }, { name: "Default", loc: "gmodels/CatSmile3_2.png" },
+        { name: "Default", loc: "gmodels/CatSmile3_3.png" }, { name: "Default", loc: "gmodels/CatSmile3_4a.png" },
+        { name: "Default", loc: "gmodels/CatSmile3_5.png" }, { name: "Default", loc: "gmodels/CatSmile3_6.png" }];
 
     //selectorItems[1] = ["Plain", "Cheeks", "Groucho"];
 
@@ -350,10 +363,10 @@ const Charmaker0 = (function () {
             var ty = (e.clientY - rect.top);
 
             var tpoint = { x: tx - MakUI.uiState['catpallete'].x, y: ty - MakUI.uiState['catpallete'].y };
-            GetColorAtPoint('gmodels/CatPallette.png', tpoint, MakUI.uiState['catpallete'].scale, palleteClickFinisherCallBack);
+            GetColorAtPoint('gmodels/CatPallette3.png', tpoint, MakUI.uiState['catpallete'].scale, palleteClickFinisherCallBack);
         }
 
-        MakUI.drawObjToUI('catpallete', 'gmodels/CatPallette.png', { nx: .1, ny: .1, clickHandler: paletteClickHandler });
+        MakUI.drawObjToUI('catpallete', 'gmodels/CatPallette3.png', { nx: .05, ny: .05, clickHandler: paletteClickHandler });
 
         var labelClickHandler = function (clickerID) {
             var newid = clickerID;
@@ -389,17 +402,21 @@ const Charmaker0 = (function () {
         };
 
         MakUI.drawObjToUI('colorlabel1', 'gmodels/colorLabel1.png', { nx: .1, ny: .35, clickHandler: labelClickHandler(1) });
-        MakUI.drawObjToUI('colorlabel2', 'gmodels/colorLabel2.png', { nx: .1, ny: .4, clickHandler: labelClickHandler(2) });
-        MakUI.drawObjToUI('colorlabel3', 'gmodels/colorLabel3.png', { nx: .1, ny: .45, clickHandler: labelClickHandler(3) });
-        MakUI.drawObjToUI('colorlabel4', 'gmodels/colorLabel4.png', { nx: .1, ny: .5, clickHandler: labelClickHandler(4) });
-        MakUI.drawObjToUI('colorlabel5', 'gmodels/colorLabel5.png', { nx: .1, ny: .55, clickHandler: labelClickHandler(5) });
+        MakUI.drawObjToUI('colorlabel2', 'gmodels/colorLabel2.png', { nx: .1, ny: .39, clickHandler: labelClickHandler(2) });
+        MakUI.drawObjToUI('colorlabel3', 'gmodels/colorLabel3.png', { nx: .1, ny: .43, clickHandler: labelClickHandler(3) });
+        MakUI.drawObjToUI('colorlabel4', 'gmodels/colorLabel4.png', { nx: .1, ny: .47, clickHandler: labelClickHandler(4) });
+        MakUI.drawObjToUI('colorlabel5', 'gmodels/colorLabel5.png', { nx: .1, ny: .51, clickHandler: labelClickHandler(5) });
+        MakUI.drawObjToUI('colorlabel6', 'gmodels/colorLabel5.png', { nx: .1, ny: .55, clickHandler: labelClickHandler(6) });
+        MakUI.drawObjToUI('colorlabel7', 'gmodels/colorLabel5.png', { nx: .1, ny: .59, clickHandler: labelClickHandler(7) });
 
 
         MakUI.drawShapeToUI('colorsample1', { nx: .16, ny: .35, nw: 0.05, nh: 0.05, color: "rgb(" + baseColors[0].r + ", " + baseColors[0].g + ", " + baseColors[0].b + ")" });
-        MakUI.drawShapeToUI('colorsample2', { nx: .16, ny: .4, nw: 0.05, nh: 0.05, color: "rgb(" + baseColors[1].r + ", " + baseColors[1].g + ", " + baseColors[1].b + ")" });
-        MakUI.drawShapeToUI('colorsample3', { nx: .16, ny: .45, nw: 0.05, nh: 0.05, color: "rgb(" + baseColors[2].r + ", " + baseColors[2].g + ", " + baseColors[2].b + ")" });
-        MakUI.drawShapeToUI('colorsample4', { nx: .16, ny: .5, nw: 0.05, nh: 0.05, color: "rgb(" + baseColors[3].r + ", " + baseColors[3].g + ", " + baseColors[3].b + ")" });
-        MakUI.drawShapeToUI('colorsample5', { nx: .16, ny: .55, nw: 0.05, nh: 0.05, color: "rgb(" + baseColors[4].r + ", " + baseColors[4].g + ", " + baseColors[4].b + ")" });
+        MakUI.drawShapeToUI('colorsample2', { nx: .16, ny: .39, nw: 0.05, nh: 0.05, color: "rgb(" + baseColors[1].r + ", " + baseColors[1].g + ", " + baseColors[1].b + ")" });
+        MakUI.drawShapeToUI('colorsample3', { nx: .16, ny: .43, nw: 0.05, nh: 0.05, color: "rgb(" + baseColors[2].r + ", " + baseColors[2].g + ", " + baseColors[2].b + ")" });
+        MakUI.drawShapeToUI('colorsample4', { nx: .16, ny: .47, nw: 0.05, nh: 0.05, color: "rgb(" + baseColors[3].r + ", " + baseColors[3].g + ", " + baseColors[3].b + ")" });
+        MakUI.drawShapeToUI('colorsample5', { nx: .16, ny: .51, nw: 0.05, nh: 0.05, color: "rgb(" + baseColors[4].r + ", " + baseColors[4].g + ", " + baseColors[4].b + ")" });
+        MakUI.drawShapeToUI('colorsample6', { nx: .16, ny: .55, nw: 0.05, nh: 0.05, color: "rgb(" + currentColors[5].r + ", " + currentColors[5].g + ", " + currentColors[5].b + ")" });
+        MakUI.drawShapeToUI('colorsample7', { nx: .16, ny: .59, nw: 0.05, nh: 0.05, color: "rgb(" + currentColors[6].r + ", " + currentColors[6].g + ", " + currentColors[6].b + ")" });
 
         MakUI.drawObjToUI('buttonhighlight', 'gmodels/buttonHighlight.png', { nx: .097, ny: .344 });
 
@@ -412,9 +429,13 @@ const Charmaker0 = (function () {
         MakUI.drawObjToUI('selector1RB', 'gmodels/menuarrowRight.png', { nx: .23, ny: .725, clickHandler: selectorArrowClickHandler(1, 1) });
 
 
-        MakUI.drawShapeToUI('selectorTitle2', { nx: .16, ny: .79, nw: 0.08, nh: 0.05, text: selectorItems[1][currentSelections[1]].name, color: "rgb(128, 64, 0)" });
+        MakUI.drawShapeToUI('selectorTitle2', { nx: .16, ny: .79, nw: 0.08, nh: 0.05, text: selectorItems[2][currentSelections[2]].name, color: "rgb(128, 64, 0)" });
         MakUI.drawObjToUI('selector2LB', 'gmodels/menuarrowLeft.png', { nx: .13, ny: .795, clickHandler: selectorArrowClickHandler(2, -1) });
         MakUI.drawObjToUI('selector2RB', 'gmodels/menuarrowRight.png', { nx: .23, ny: .795, clickHandler: selectorArrowClickHandler(2, 1) });
+
+        MakUI.drawShapeToUI('selectorTitle3', { nx: .16, ny: .86, nw: 0.08, nh: 0.05, text: selectorItems[3][currentSelections[3]].name, color: "rgb(128, 64, 200)" });
+        MakUI.drawObjToUI('selector3LB', 'gmodels/menuarrowLeft.png', { nx: .13, ny: .865, clickHandler: selectorArrowClickHandler(3, -1) });
+        MakUI.drawObjToUI('selector3RB', 'gmodels/menuarrowRight.png', { nx: .23, ny: .865, clickHandler: selectorArrowClickHandler(3, 1) });
 
         MakUI.EnableMakUIClick();
 
@@ -535,7 +556,7 @@ const Charmaker0 = (function () {
 
     var origImageTexmpImagesAll = [];
     for (var x = 0; x < selectorItems.length; x++) {
-        if (x == 0 || x == 1 || x == 2) {
+        if (x == 0 || x == 1 || x == 2 || x == 3) {
             origImageTexmpImagesAll.push({ data: null, loaded: false, img: null });
             origTextureUrls[x] = selectorItems[x][currentSelections[x]].loc;
         }
@@ -792,7 +813,7 @@ const Charmaker0 = (function () {
                 console.log('spaced');
                 justSpaced = true;
 
-                InvertTexture();
+                //InvertTexture();
                 
             }
         } 
