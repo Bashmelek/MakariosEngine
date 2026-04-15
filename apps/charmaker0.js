@@ -79,7 +79,8 @@ const Charmaker0 = (function () {
         { name: "Chibi", loc: "gmodels/CatEyes3_4.png" },
         { name: "Chibi2", loc: "gmodels/CatEyes3_5.png" },
         { name: "Piercing", loc: "gmodels/CatEyes3_6.png" },
-        { name: "^_^", loc: "gmodels/CatEyes3_7.png" }];
+        { name: "^_^", loc: "gmodels/CatEyes3_7.png" },
+        { name: "sleek", loc: "gmodels/CatEyes3_8.png" }];
     selectorItems[2] = [{ name: "Plain", loc: "gmodels/CatFace3_0.png" },
         { name: "Cheeks", loc: "gmodels/CatFace3_1.png" },
         { name: "Tabby", loc: "gmodels/CatFace3_2.png" }, 
