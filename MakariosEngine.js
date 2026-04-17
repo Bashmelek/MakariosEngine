@@ -662,10 +662,12 @@ function RenderObjects(gl, programInfo, objects, parentmatrix, depth, dataHolder
         //mat4.transpose(normalMatrix, normalMatrix);
         //if (depth > 0.0) { console.log(' : )'); }
 
+        var useMat = objects[oj].useSkellMatrix ? objects[oj].skellmatrix : objects[oj].matrix;
+
         var mat0 = mat4.create();
         mat4.multiply(mat0,     // destination matrix
             parentmatrix,     // matrix to translate
-            objects[oj].matrix);
+            useMat);
         //gl.uniformMatrix4fv(
         //    programInfo.uniformLocations.modelViewMatrix,
         //    false,
@@ -762,6 +764,8 @@ function RenderObjects(gl, programInfo, objects, parentmatrix, depth, dataHolder
             //console.log(objects[oj]);
             //if (StageData.ticks % 50 == 0) { console.log('offset is:' + objects[oj].bufferOffset); }
             //console.log(offset * 2);
+            //if (vertexCount == 36)
+                //console.log(parentmatrix);
             gl.drawElements(gl.TRIANGLES, vertexCount, type, offset * 2);
             //gl.drawElements(gl.LINES, vertexCount, type, offset);
         }
@@ -1215,7 +1219,9 @@ function setupSkeletalAnimationMatrix(rootobj, obj, thekey, invmat, poschain) {/
         mat4.multiply(obj.skellmatrix, obj.skellmatrix, obj.prim.primmatscale);
         mat4.multiply(newcomp, newcomp, obj.prim.primmatscale);
     }
-    mat4.multiply(obj.skellmatrix, obj.skellmatrix, obj.prim.inverseBaseMat);
+    var defaulmat = mat4.create();
+    var invBaseMet = obj.prim.inverseBaseMat || defaulmat;
+    mat4.multiply(obj.skellmatrix, obj.skellmatrix, invBaseMet);
     mat4.multiply(obj.skellmatrix, poschain, obj.skellmatrix);
 
 
@@ -1227,7 +1233,7 @@ function setupSkeletalAnimationMatrix(rootobj, obj, thekey, invmat, poschain) {/
     //mat4.multiply(obj.skellmatrix, invinv, obj.skellmatrix);
 
     for (var i = 0; i < obj.children.length; i++) {
-        setupSkeletalAnimationMatrix(rootobj, obj.children[i], thekey, obj.prim.inverseBaseMat, newcomp);
+        setupSkeletalAnimationMatrix(rootobj, obj.children[i], thekey, invBaseMet, newcomp);
     }
 }
 
@@ -2370,6 +2376,43 @@ const Makarios = (function () {
     self.instantiateChild = function (parent, prim, textureUrl, objectOnFrame, customprops, idealstartTime) {
         var inst = StageData.instantiateChild(parent, prim, textureUrl, objectOnFrame, customprops);
         Entera.handleNewObj(inst);
+        return inst;
+    }
+    self.GetNamedNode = function(parent, nodename){
+        var node = null;
+
+        if (parent.name == nodename) {
+            node = parent;
+        }
+
+        for (var c = 0; c < parent.children.length && !node; c++) {
+            //if (parent.childrenc[c].name == nodename) {
+            //    node = parent.childrenc[c];
+            //} else
+            if (parent.children[c]) {
+                node = Makarios.GetNamedNode(parent.children[c], nodename);
+            }
+
+            if (node) {
+                c = parent.children.length;
+            }
+        }
+
+        return node;
+    }
+    self.instantiateChildOnNamedNode = function (baseParent, nodename, prim, textureUrl, objectOnFrame, customprops, idealstartTime) {
+        var trueParent = null;
+        trueParent = GetNamedNode(baseParent, nodename);
+        if (!trueParent) {
+            console.log("error! could not find node " + nodename);
+        }
+        console.log("did found node " + nodename + " on named node " + trueParent.name);
+        console.log(trueParent);
+
+        var inst = Makarios.instantiateChild(trueParent, prim, textureUrl, objectOnFrame, customprops);
+        //Entera.handleNewObj(inst);
+        //inst.matrix = mat4.create();
+        inst.useSkellMatrix = true;
         return inst;
     }
     self.destroy = function (inst) {

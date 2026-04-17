@@ -211,6 +211,7 @@ const Charmaker0 = (function () {
 
         //Primitives.shapes["kat"].textureUrl
         var obFox = Makarios.instantiate(Primitives.shapes["kat"], "gmodels/CatImage3.png", null, {});//'plainsky.jpg'  Primitives.shapes["testbox"].textureUrl "timmy"
+        var hat = instantiateChildOnNamedNode(obFox, "Bone.009", Primitives.shapes["cube"], "gmodels/CatImage3.png", null, {});
         Makarios.SetAnimation(obFox, "IdleStand0");//"0"    Survey  Run
         //mat4.fromScaling(obFox.matrix, [0.1, 0.1, 0.1]);
         mat4.rotate(obFox.matrix, obFox.matrix, 3.1, [obFox.matrix[1], obFox.matrix[5], obFox.matrix[9]]);//.6
