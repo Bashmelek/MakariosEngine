@@ -663,6 +663,11 @@ function RenderObjects(gl, programInfo, objects, parentmatrix, depth, dataHolder
         //if (depth > 0.0) { console.log(' : )'); }
 
         var useMat = objects[oj].useSkellMatrix ? objects[oj].skellmatrix : objects[oj].matrix;
+        if (objects[oj].useSkellMatrix) {
+            mat4.multiply(useMat,     // destination matrix
+                objects[oj].skellmatrix,     // matrix to translate
+                objects[oj].matrix);
+        }
 
         var mat0 = mat4.create();
         mat4.multiply(mat0,     // destination matrix
@@ -2378,23 +2383,27 @@ const Makarios = (function () {
         Entera.handleNewObj(inst);
         return inst;
     }
-    self.GetNamedNode = function(parent, nodename){
+    self.GetNamedNode = function(parent, nodename, parentmatrix, truematholder){
         var node = null;
 
         if (parent.name == nodename) {
             node = parent;
+            truematholder.mat = mat4.clone(parentmatrix);
         }
-
+        var baseparentmatrix = mat4.clone(parentmatrix);
+        var fullparentmatrix = mat4.create();
         for (var c = 0; c < parent.children.length && !node; c++) {
             //if (parent.childrenc[c].name == nodename) {
             //    node = parent.childrenc[c];
             //} else
             if (parent.children[c]) {
-                node = Makarios.GetNamedNode(parent.children[c], nodename);
+                fullparentmatrix = mat4.multiply(fullparentmatrix, baseparentmatrix, parent.children[c].prim.primmatrix);
+                node = Makarios.GetNamedNode(parent.children[c], nodename, fullparentmatrix, truematholder);
             }
 
             if (node) {
                 c = parent.children.length;
+                truematholder.mat = mat4.clone(fullparentmatrix);
             }
         }
 
@@ -2402,7 +2411,9 @@ const Makarios = (function () {
     }
     self.instantiateChildOnNamedNode = function (baseParent, nodename, prim, textureUrl, objectOnFrame, customprops, idealstartTime) {
         var trueParent = null;
-        trueParent = GetNamedNode(baseParent, nodename);
+        var truematholder = { mat: null };
+        var compmatrix = mat4.create();
+        trueParent = GetNamedNode(baseParent, nodename, compmatrix, truematholder);
         if (!trueParent) {
             console.log("error! could not find node " + nodename);
         }
@@ -2412,6 +2423,9 @@ const Makarios = (function () {
         var inst = Makarios.instantiateChild(trueParent, prim, textureUrl, objectOnFrame, customprops);
         //Entera.handleNewObj(inst);
         //inst.matrix = mat4.create();
+        //console.log(inst.matrix)
+        //inst.matrix = mat4.invert(inst.matrix, truematholder.mat);//mat4.clone(truematholder.mat);// mat4.invert(inst.matrix, trueParent.inverseBaseMat);//mat4.clone(prim.inverseBaseMat);
+        //console.log(inst.skellmatrix)
         inst.useSkellMatrix = true;
         return inst;
     }
