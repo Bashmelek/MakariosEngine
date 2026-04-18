@@ -662,7 +662,7 @@ function RenderObjects(gl, programInfo, objects, parentmatrix, depth, dataHolder
         //mat4.transpose(normalMatrix, normalMatrix);
         //if (depth > 0.0) { console.log(' : )'); }
         var imatter = mat4.create();
-        mat4.invert(imatter, objects[oj].useSkellMatrix ? objects[oj].parent.invmat : imatter);//objects[oj].parent.invmat invmat  prim.primmatrix
+        mat4.invert(imatter, objects[oj].useSkellMatrix ? mat4.multiply(imatter, Primitives.shapes["kat"].primmatrix, objects[oj].parent.invmat) : imatter);//objects[oj].parent.invmat invmat  prim.primmatrix
 
         var useMat = mat4.create();// objects[oj].useSkellMatrix ? objects[oj].parent.prim.inverseBaseMat : objects[oj].matrix;//skellmatrix
 
