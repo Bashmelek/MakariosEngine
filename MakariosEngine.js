@@ -661,12 +661,31 @@ function RenderObjects(gl, programInfo, objects, parentmatrix, depth, dataHolder
         //mat4.invert(normalMatrix, parentmatrix);
         //mat4.transpose(normalMatrix, normalMatrix);
         //if (depth > 0.0) { console.log(' : )'); }
+        var imatter = mat4.create();
+        mat4.invert(imatter, objects[oj].useSkellMatrix ? objects[oj].parent.invmat : imatter);//objects[oj].parent.invmat invmat  prim.primmatrix
 
-        var useMat = objects[oj].useSkellMatrix ? objects[oj].skellmatrix : objects[oj].matrix;
+        var useMat = mat4.create();// objects[oj].useSkellMatrix ? objects[oj].parent.prim.inverseBaseMat : objects[oj].matrix;//skellmatrix
+
+        useMat = objects[oj].useSkellMatrix ?  mat4.multiply(useMat,     // destination matrix 
+            // objects[oj].parent.prim.inverseBaseMat,
+            //imatter, 
+            //imatter ,//objects[oj].prim.primmatrix,
+            mat4.multiply(imatter, imatter, objects[oj].skellmatrix) //,objects[oj].skellmatrix//mat4.multiply(useMat, objects[oj].skellmatrix, objects[oj].prim.primmatrix),
+            , mat4.invert(useMat,objects[oj].prim.primmatrix)//mat4.multiply(imatter, imatter, objects[oj].prim.primmatrix)
+        ) : objects[oj].matrix;
+
         if (objects[oj].useSkellMatrix) {
-            mat4.multiply(useMat,     // destination matrix
-                objects[oj].skellmatrix,     // matrix to translate
-                objects[oj].matrix);
+
+            //var imatter = mat4.create();
+            //mat4.invert(imatter, objects[oj].parent.prim.inverseBaseMat);//invmat
+            //mat4.multiply(useMat,     // destination matrix
+            //          // matrix to translate
+            //    useMat,
+            //    imatter,// objects[oj].parent.prim.inverseBaseMat,
+            //);
+            //console.log(parentmatrix);
+            //obj.invmat 
+            //console.log(objects[oj].skellmatrix);
         }
 
         var mat0 = mat4.create();
@@ -1199,6 +1218,7 @@ function setupSkeletalAnimationMatrix(rootobj, obj, thekey, invmat, poschain) {/
     var newcomp = mat4.clone(poschain);
 
     obj.skellmatrix = mat4.create();
+    obj.invmat = mat4.create();
 
     if (obj.applyanimtran) {
         mat4.multiply(obj.skellmatrix, obj.skellmatrix, obj.mattran);
@@ -1228,6 +1248,8 @@ function setupSkeletalAnimationMatrix(rootobj, obj, thekey, invmat, poschain) {/
     var invBaseMet = obj.prim.inverseBaseMat || defaulmat;
     mat4.multiply(obj.skellmatrix, obj.skellmatrix, invBaseMet);
     mat4.multiply(obj.skellmatrix, poschain, obj.skellmatrix);
+    obj.invmat = mat4.multiply(obj.invmat, invmat, obj.prim.primmatrix || defaulmat);
+    //obj.invmat = mat4.multiply(obj.invmat, poschain, obj.invmat);//mat4.clone(obj.skellmatrix);//
 
 
     //old way abridged
@@ -1238,7 +1260,7 @@ function setupSkeletalAnimationMatrix(rootobj, obj, thekey, invmat, poschain) {/
     //mat4.multiply(obj.skellmatrix, invinv, obj.skellmatrix);
 
     for (var i = 0; i < obj.children.length; i++) {
-        setupSkeletalAnimationMatrix(rootobj, obj.children[i], thekey, invBaseMet, newcomp);
+        setupSkeletalAnimationMatrix(rootobj, obj.children[i], thekey, obj.invmat, newcomp);
     }
 }
 
@@ -2424,7 +2446,7 @@ const Makarios = (function () {
         //Entera.handleNewObj(inst);
         //inst.matrix = mat4.create();
         //console.log(inst.matrix)
-        //inst.matrix = mat4.invert(inst.matrix, truematholder.mat);//mat4.clone(truematholder.mat);// mat4.invert(inst.matrix, trueParent.inverseBaseMat);//mat4.clone(prim.inverseBaseMat);
+        //inst.matrix = mat4.invert(inst.matrix, trueParent.prim.inverseBaseMat);//mat4.clone(truematholder.mat);// mat4.invert(inst.matrix, trueParent.inverseBaseMat);//mat4.clone(prim.inverseBaseMat);
         //console.log(inst.skellmatrix)
         inst.useSkellMatrix = true;
         return inst;
@@ -2459,7 +2481,7 @@ const Makarios = (function () {
         ggl.uniform1f(globalMainProgramInfo.uniformLocations.ucelStep, stepCount);
     }
 
-    self.preloadGltfPrimitiveFromJsResource = function (pathloc, primname, defaultTransform) {
+    self.preloadGltfPrimitiveFromJsResource = function (pathloc, primname, defaultTransform, applyprimmat) {
         if (Primitives.shapes[primname]) { return; }
         console.log(primname + '==');
 
@@ -2474,9 +2496,15 @@ const Makarios = (function () {
                     Primitives.shapes[primname].animations[res.animations[a].name] = Primitives.animations[Primitives.animations.length - 1];
                 }
             }
-            if (defaultTransform != null) {
+            console.log(res.prim);
+            var innerTransform = defaultTransform;// || (applyprimmat && res.prim && res.prim.primmatrix ? res.prim.primmatrix : null);
+            if (!innerTransform && false && res.prim && res.prim.primmatrix) {
+                innerTransform = mat4.create();
+                innerTransform = res.prim.primmatrix;//  mat4.invert(innerTransform, res.prim.primmatrix);// res.prim.primmatrix;// mat4.invert(innerTransform, res.prim.primmatrix);
+            }
+            if (innerTransform != null) {
                 console.log(primname + ' applying default transofrm');
-                self.applyDefaultTransformRecursive(Primitives.shapes[primname], primname, defaultTransform);
+                self.applyDefaultTransformRecursive(Primitives.shapes[primname], primname, innerTransform);
                 //linTransformRange(Primitives.shapes[primname].positions, Primitives.shapes[primname].positions, defaultTransform, 0, Primitives.shapes[primname].positions.length);
                 //linTransformRange(Primitives.shapes[primname].vertexNormals, Primitives.shapes[primname].vertexNormals, defaultTransform, 0, Primitives.shapes[primname].vertexNormals.length);
             }

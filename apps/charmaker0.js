@@ -179,7 +179,7 @@ const Charmaker0 = (function () {
         //Makarios.preloadGltfPrimitiveFromJsResource(timmyloc, "timmy");
 
         var katloc = 'gmodels/firstCat16_newtim.gltf';
-        Makarios.preloadGltfPrimitiveFromJsResource(katloc, "kat");
+        Makarios.preloadGltfPrimitiveFromJsResource(katloc, "kat", null, true);
 
         var diamondloc = 'gmodels/diamond0.gltf';
         Makarios.preloadGltfPrimitiveFromJsResource(diamondloc, "diamond"); 
@@ -214,6 +214,7 @@ const Charmaker0 = (function () {
 
         //Primitives.shapes["kat"].textureUrl
         var obFox = Makarios.instantiate(Primitives.shapes["kat"], "gmodels/CatImage3.png", null, {});//'plainsky.jpg'  Primitives.shapes["testbox"].textureUrl "timmy"
+        //console.log(obFox);
         var hat = instantiateChildOnNamedNode(obFox, "Headbone", Primitives.shapes["partyhat"], "gmodels/partyhattext0.png", null, {});
         Makarios.SetAnimation(obFox, "IdleStand0");//"0"    Survey  Run
         //mat4.fromScaling(obFox.matrix, [0.1, 0.1, 0.1]);
