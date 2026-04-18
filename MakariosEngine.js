@@ -662,7 +662,7 @@ function RenderObjects(gl, programInfo, objects, parentmatrix, depth, dataHolder
         //mat4.transpose(normalMatrix, normalMatrix);
         //if (depth > 0.0) { console.log(' : )'); }
         var imatter = mat4.create();
-        mat4.invert(imatter, objects[oj].useSkellMatrix ? mat4.multiply(imatter, Primitives.shapes["kat"].primmatrix, objects[oj].parent.invmat) : imatter);//objects[oj].parent.invmat invmat  prim.primmatrix
+        mat4.invert(imatter, objects[oj].useSkellMatrix ? objects[oj].parent.invmat : imatter);//objects[oj].parent.invmat invmat  prim.primmatrix
 
         var useMat = mat4.create();// objects[oj].useSkellMatrix ? objects[oj].parent.prim.inverseBaseMat : objects[oj].matrix;//skellmatrix
 
@@ -1218,7 +1218,7 @@ function setupSkeletalAnimationMatrix(rootobj, obj, thekey, invmat, poschain) {/
     var newcomp = mat4.clone(poschain);
 
     obj.skellmatrix = mat4.create();
-    obj.invmat = mat4.create();
+    //obj.invmat = mat4.create();
 
     if (obj.applyanimtran) {
         mat4.multiply(obj.skellmatrix, obj.skellmatrix, obj.mattran);
@@ -1248,7 +1248,7 @@ function setupSkeletalAnimationMatrix(rootobj, obj, thekey, invmat, poschain) {/
     var invBaseMet = obj.prim.inverseBaseMat || defaulmat;
     mat4.multiply(obj.skellmatrix, obj.skellmatrix, invBaseMet);
     mat4.multiply(obj.skellmatrix, poschain, obj.skellmatrix);
-    obj.invmat = mat4.multiply(obj.invmat, invmat, obj.prim.primmatrix || defaulmat);
+    ////obj.invmat = mat4.multiply(obj.invmat, invmat, obj.prim.primmatrix || defaulmat);
     //obj.invmat = mat4.multiply(obj.invmat, poschain, obj.invmat);//mat4.clone(obj.skellmatrix);//
 
 

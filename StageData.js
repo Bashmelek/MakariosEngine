@@ -179,7 +179,10 @@ const StageData = (function () {
         newInst.mattran = prim.primmattran || prim.primmatrot ? mat4.create() : null;
         newInst.applyanimscale = 0;
         newInst.applyanimrot = 0;
-        newInst.applyanimtran = 0;
+        newInst.applyanimtran = 0; 
+
+        newInst.invmat = mat4.create();
+        newInst.invmat = mat4.multiply(newInst.invmat, newInst.parent && newInst.parent.invmat ? newInst.parent.invmat : mat4.create(), prim.primmatrix || mat4.create());//  mat4.multiply(obj.invmat, invmat, obj.prim.primmatrix || defaulmat);
 
         newInst.availabilityContainer = createAvailabilityObject();
         if (prim.animations) {
@@ -381,6 +384,8 @@ const StageData = (function () {
         newInst.useParentMatrix = new Array(newInst.positions.length / 3).fill().map(function (x, ind) { return 1.0 });
 
         newInst.parent = parent;
+        newInst.invmat = mat4.create();
+        newInst.invmat = mat4.multiply(newInst.invmat, newInst.parent && newInst.parent.invmat ? newInst.parent.invmat : mat4.create(), prim.primmatrix || mat4.create());
 
         if (prim.children) {
             for (var i = 0; i < prim.children.length; i++) {
