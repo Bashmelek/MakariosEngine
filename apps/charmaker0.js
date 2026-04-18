@@ -718,6 +718,9 @@ const Charmaker0 = (function () {
 
 
             console.log("settext new");
+            var oldtexture = MakTextures[mainChar.children[0].textureUrl];
+            wgl.deleteTexture(oldtexture);
+             
             MakTextures[mainChar.children[0].textureUrl] = texture;
             mainChar.children[0].textureImage = texture;
             mainChar.children[0].textureUrl = image.src;
