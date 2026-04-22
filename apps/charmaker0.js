@@ -99,7 +99,9 @@ const Charmaker0 = (function () {
 
     var currentOtherSelections = [];
     var otherSelectorItems = [];
-    otherSelectorItems[0] = [{ name: "None", modelkey: "" }, { name: "PartyHat", modelkey: "partyhat" }];
+    otherSelectorItems[0] = [{ name: "None", modelkey: "", attachpoint: "Headbone", texture: "" },
+        { name: "PartyHat", modelkey: "partyhat", attachpoint: "Headbone", texture: "gmodels/partyhattext0.png" },
+        { name: "Crown", modelkey: "crown", attachpoint: "Headbone", texture: "gmodels/plaintopaz.jpg" }];
 
     for (var cel = 0; cel < otherSelectorItems.length; cel++) {
         currentOtherSelections[cel] = 0;
@@ -195,6 +197,9 @@ const Charmaker0 = (function () {
 
         var hatloc = 'gmodels/rim_partyhat0.gltf';
         Makarios.preloadGltfPrimitiveFromJsResource(hatloc, "partyhat");
+
+        var crownloc = 'gmodels/tim_crown0.gltf';
+        Makarios.preloadGltfPrimitiveFromJsResource(crownloc, "crown");
 
         isLoading = false;
 
@@ -443,7 +448,7 @@ const Charmaker0 = (function () {
                 console.log(newselData.modelkey);
                 if (newselData.modelkey && newselData.modelkey.length > 0) {
 
-                    newselData.obj = instantiateChildOnNamedNode(mainChar, "Headbone", Primitives.shapes[newselData.modelkey], "gmodels/partyhattext0.png", null, {});
+                    newselData.obj = instantiateChildOnNamedNode(mainChar, newselData.attachpoint, Primitives.shapes[newselData.modelkey], newselData.texture, null, {});
                     processObjectOnFrame(mainChar);
                     processSkeletalAnimationsComplete(mainChar);
                     resetSkeletalAnimationsComplete(mainChar); 
