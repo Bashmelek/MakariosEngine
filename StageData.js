@@ -80,15 +80,21 @@ const StageData = (function () {
     };
     var destroy = function (inst) {
         var avail;
-        if (!inst.parent) {
+        var oldparent = inst.parent;
+        var oldindex = inst.id;
+        var objArray;
+        if (!oldparent) {
             avail = globalAvailabilityContainer;
+            objArray = objects;
+            objArray[oldindex] = null;
         } else {
-            avail = parent.availabilityContainer;
+            avail = oldparent.availabilityContainer;
+            objArray = oldparent.children;
+            objArray[oldindex] = null;
+            //oldparent.children = oldparent.children.splice(oldindex, 1);
         }
         var chainToUse = avail.availabilityChain;
 
-        var oldindex = inst.id;
-        objects[oldindex] = null;
         if (!chainToUse.first || chainToUse.first.val > oldindex) {
             chainToUse.first = { 'val': oldindex, 'next': chainToUse.first };
             firstAvailableIndex = oldindex;

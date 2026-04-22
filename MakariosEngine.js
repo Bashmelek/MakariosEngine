@@ -666,6 +666,11 @@ function RenderObjects(gl, programInfo, objects, parentmatrix, depth, dataHolder
 
         var useMat = mat4.create();// objects[oj].useSkellMatrix ? objects[oj].parent.prim.inverseBaseMat : objects[oj].matrix;//skellmatrix
 
+        if (objects[oj].useSkellMatrix) {
+            //console.log(objects[oj]);
+            //console.log(objects[oj].name);
+            //console.log(objects[oj].skellmatrix);
+        }
         useMat = objects[oj].useSkellMatrix ?  mat4.multiply(useMat,     // destination matrix 
             // objects[oj].parent.prim.inverseBaseMat,
             //imatter, 
@@ -1196,6 +1201,7 @@ function processSkeletalAnimationsComplete(obj) {
     }
     for (var i = 0; i < obj.children.length; i++) {        
         //console.log('lfs');
+        if (!obj.children[i]) { continue; };
         processSkeletalAnimationsComplete(obj.children[i]);
     }
 }
@@ -1260,6 +1266,7 @@ function setupSkeletalAnimationMatrix(rootobj, obj, thekey, invmat, poschain) {/
     //mat4.multiply(obj.skellmatrix, invinv, obj.skellmatrix);
 
     for (var i = 0; i < obj.children.length; i++) {
+        if (!obj.children[i]) { continue; };
         setupSkeletalAnimationMatrix(rootobj, obj.children[i], thekey, obj.invmat, newcomp);
     }
 }
@@ -1283,6 +1290,7 @@ function resetSkeletalAnimationsComplete(obj) {
         resetSkeletalAnimation_Holder(obj, obj.skeletonkey);
     }
     for (var i = 0; i < obj.children.length; i++) {
+        if (!obj.children[i]) { continue; };
         resetSkeletalAnimationsComplete(obj.children[i]);
     }
 }
@@ -1299,6 +1307,7 @@ function resetSkeletalAnimationItems(rootobj, obj, thekey) {
     obj.applyanimrot = 0;
     obj.applyanimtran = 0;
     for (var i = 0; i < obj.children.length; i++) {
+        if (!obj.children[i]) { continue; };
         resetSkeletalAnimationItems(rootobj, obj.children[i], thekey);
     }
 }

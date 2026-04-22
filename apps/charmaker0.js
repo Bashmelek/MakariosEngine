@@ -96,6 +96,15 @@ const Charmaker0 = (function () {
     for (var sel = 0; sel < selectorItems.length; sel++) {
         currentSelections[sel] = 0;
     }
+
+    var currentOtherSelections = [];
+    var otherSelectorItems = [];
+    otherSelectorItems[0] = [{ name: "None", modelkey: "" }, { name: "PartyHat", modelkey: "partyhat" }];
+
+    for (var cel = 0; cel < otherSelectorItems.length; cel++) {
+        currentOtherSelections[cel] = 0;
+    }
+
     //console.log("sellout at: " + selectorItems.length);
 
     //var InnerGetColorAtPoint = function (imgUri, testpoint, imageScaler) {
@@ -215,7 +224,7 @@ const Charmaker0 = (function () {
         //Primitives.shapes["kat"].textureUrl
         var obFox = Makarios.instantiate(Primitives.shapes["kat"], "gmodels/CatImage3.png", null, {});//'plainsky.jpg'  Primitives.shapes["testbox"].textureUrl "timmy"
         //console.log(obFox);
-        var hat = instantiateChildOnNamedNode(obFox, "Headbone", Primitives.shapes["partyhat"], "gmodels/partyhattext0.png", null, {});
+        //var hat = instantiateChildOnNamedNode(obFox, "Headbone", Primitives.shapes["partyhat"], "gmodels/partyhattext0.png", null, {});
         Makarios.SetAnimation(obFox, "IdleStand0");//"0"    Survey  Run
         //mat4.fromScaling(obFox.matrix, [0.1, 0.1, 0.1]);
         mat4.rotate(obFox.matrix, obFox.matrix, 3.1, [obFox.matrix[1], obFox.matrix[5], obFox.matrix[9]]);//.6
@@ -403,8 +412,44 @@ const Charmaker0 = (function () {
                 origTextureUrls[selectorID] = selectorItems[selectorID][currentSelections[selectorID]].loc;
                 origImageTexmpImageLoaded = false;
                 origImageTexmpImagesAll[selectorID].loaded = false;
-                console.log()
                 UpdateMainCharTexture(origTextureUrls[selectorID]);
+            }
+        };
+
+        var oselArrowClickHandler = function (selID, direction) {
+            //dir: 1 is right, -1 is left
+            var selectorID = selID;
+            var dir = direction;
+
+            return function () {
+                var oldsel = currentOtherSelections[selectorID];
+                currentOtherSelections[selectorID] = (currentOtherSelections[selectorID] + dir + otherSelectorItems[selectorID].length) % otherSelectorItems[selectorID].length;//selectorItems[0]
+                MakUI.uiState['oselTitle' + (selectorID)].data.text = otherSelectorItems[selectorID][currentOtherSelections[selectorID]].name;
+                MakUI.cleanRefreshUI();
+
+                var oldselData = otherSelectorItems[selectorID][oldsel];
+                if (oldselData.obj) {
+                    console.log(oldselData.obj);
+                    console.log(oldselData.obj.parent);
+                    //console.log(oldselData.obj.parent.);
+                    Makarios.destroy(oldselData.obj);
+                    oldselData.obj = null;
+
+                    processObjectOnFrame(mainChar);
+                    processSkeletalAnimationsComplete(mainChar);
+                    resetSkeletalAnimationsComplete(mainChar); 
+                }
+                var newselData = otherSelectorItems[selectorID][currentOtherSelections[selectorID]];
+                console.log(newselData.modelkey);
+                if (newselData.modelkey && newselData.modelkey.length > 0) {
+
+                    newselData.obj = instantiateChildOnNamedNode(mainChar, "Headbone", Primitives.shapes[newselData.modelkey], "gmodels/partyhattext0.png", null, {});
+                    processObjectOnFrame(mainChar);
+                    processSkeletalAnimationsComplete(mainChar);
+                    resetSkeletalAnimationsComplete(mainChar); 
+                    console.log(newselData.obj);
+                }
+                 
             }
         };
 
@@ -443,6 +488,13 @@ const Charmaker0 = (function () {
         MakUI.drawShapeToUI('selectorTitle3', { nx: .16, ny: .86, nw: 0.08, nh: 0.05, text: selectorItems[3][currentSelections[3]].name, color: "rgb(128, 64, 200)" });
         MakUI.drawObjToUI('selector3LB', 'gmodels/menuarrowLeft.png', { nx: .13, ny: .865, clickHandler: selectorArrowClickHandler(3, -1) });
         MakUI.drawObjToUI('selector3RB', 'gmodels/menuarrowRight.png', { nx: .23, ny: .865, clickHandler: selectorArrowClickHandler(3, 1) });
+
+
+
+
+        MakUI.drawShapeToUI('oselTitle0', { nx: .84, ny: .25, nw: 0.08, nh: 0.05, text: otherSelectorItems[0][currentOtherSelections[0]].name, color: "rgb(180, 220, 180)" });
+        MakUI.drawObjToUI('osel0LB', 'gmodels/menuarrowLeft.png', { nx: .81, ny: .255, clickHandler: oselArrowClickHandler(0, -1) });
+        MakUI.drawObjToUI('osel0RB', 'gmodels/menuarrowRight.png', { nx: .91, ny: .255, clickHandler: oselArrowClickHandler(0, 1) });
 
         MakUI.EnableMakUIClick();
 
